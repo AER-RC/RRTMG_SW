@@ -1,0 +1,11 @@
+#!/bin/tcsh
+
+#Created by Mike Iacono, November 2003
+#This script links several source files from the RRTM_SW local_version
+#directory to this src directory.
+
+ln -s /storm/rc1/rrtm_sw_local_version/extra.f .
+ln -s /storm/rc1/rrtm_sw_local_version/param.f .
+ln -s /storm/rc1/rrtm_sw_local_version/rrtatm.f .
+
+
