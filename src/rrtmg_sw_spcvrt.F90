@@ -407,9 +407,9 @@ DO JB = IB1, IB2
     ZTRAC(KLEV+1) =_ZERO_
     ZTRADC(KLEV+1)=_ZERO_
     ZREFC(KLEV+1) =PALBP(IBM)
-    ZREFDC(KLEV+1)=PALBP(IBM)
+    ZREFDC(KLEV+1)=PALBD(IBM)
     ZRUPC(KLEV+1) =PALBP(IBM)
-    ZRUPDC(KLEV+1)=PALBP(IBM)
+    ZRUPDC(KLEV+1)=PALBD(IBM)
            
 !-- total sky    
 !----- TOA direct beam    
@@ -418,9 +418,9 @@ DO JB = IB1, IB2
     ZDBT(KLEV+1) =_ZERO_
     ZTRA(KLEV+1) =_ZERO_
     ZTRAD(KLEV+1)=_ZERO_
-    ZREF(KLEV+1) =PALBD(IBM)
+    ZREF(KLEV+1) =PALBP(IBM)
     ZREFD(KLEV+1)=PALBD(IBM)
-    ZRUP(KLEV+1) =PALBD(IBM)
+    ZRUP(KLEV+1) =PALBP(IBM)
     ZRUPD(KLEV+1)=PALBD(IBM)
 !    if (NDBUG < 2) print *,'SWSPCTRL after 1 with JB,JG,IBM and IW= ',JB,JG,IBM,IW
     
