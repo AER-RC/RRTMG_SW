@@ -52,7 +52,12 @@ PROGRAM RRTMG_SW
 !   Total number of g-points reduced from 224 to 112.  Original
 !   set of 224 can be restored by exchanging code in modules
 !   parsrtm.F90 and yoesrtwn.F90 and in source file susrtm.F90.
-!      M. J. Iacono, AER, Inc., April, 2004 
+!      M. J. Iacono, AER, Inc., April 2004 
+!   Modifications to include output for direct and diffuse 
+!   downward fluxes.  There are output as "true" fluxes without
+!   any delta scaling applied.  Code can be commented to exclude
+!   this calculation in source file rrtmg_sw_spcvrt.F90. 
+!      E. J. Mlawer, M. J. Iacono, AER, Inc.,  January 2005
 
 !- Input from calling routine:
 !- *** NOTES ***: 
@@ -108,6 +113,8 @@ PROGRAM RRTMG_SW
 !  PCDOWN = clear sky down flux (W/m2)
 !  PHEAT = total sky heating rate (K/day)
 !  PHEAC = clear sky heating rate (K/day)
+!  DIRDOWNFLUX = direct downward flux (W/m2)
+!  DIFDOWNFLUX = diffuse downward flux (W/m2)
 
 
 #include "tsmbkind.h"
@@ -132,6 +139,7 @@ REAL_B :: PFCS(JPLON,JPLAY+1), PFLS(JPLON,JPLAY+1)
 REAL_B :: PHEAC(JPLON,JPLAY), PHEAT(JPLON,JPLAY)
 REAL_B :: PFDOWN(JPLON,JPLAY+1), PCDOWN(JPLON,JPLAY+1)
 REAL_B :: PFUP(JPLON,JPLAY+1), PCUP(JPLON,JPLAY+1)
+REAL_B :: DIRDOWNFLUX(JPLON,JPLAY+1), DIFDOWNFLUX(JPLON,JPLAY+1)
 
 !-----------------------------------------------------------------------
 
@@ -149,7 +157,7 @@ INTEGER_M :: JP(JPLAY), JT(JPLAY), JT1(JPLAY)
 
 REAL_B :: CLDFRAC(JPLAY), CLDDAT1(JPLAY), CLDDAT2(JPLAY), CLDDAT3(JPLAY), CLDDAT4(JPLAY)
 REAL_B :: CLDDATMOM(0:16,JPLAY)
-REAL_B :: TAUCLDORIG(JPLAY), TAUCLOUD(JPLAY,JPBAND), SSACLOUD(JPLAY,JPBAND)
+REAL_B :: TAUCLDORIG(JPLAY,JPBAND), TAUCLOUD(JPLAY,JPBAND), SSACLOUD(JPLAY,JPBAND)
 REAL_B :: XMOM(0:16,JPLAY,JPBAND)
 REAL_B :: TAUAER(JPLAY,JPBAND), SSAAER(JPLAY,JPBAND), PHASE(32,JPLAY,JPBAND)
 REAL_B :: ZENITH, ADJFLUX(JPBAND), SEMISS(JPBAND)
@@ -163,16 +171,17 @@ REAL_B :: FAC00(JPLAY)  , FAC01(JPLAY)  , FAC10(JPLAY)  , FAC11(JPLAY)
 REAL_B :: TBOUND        , ONEMINUS	, ZRMU0
 REAL_B :: ZALBD(JPSW)    , ZALBP(JPSW)    , ZCLFR(JPLAY)
 REAL_B :: ZTAUC(JPLAY,JPSW), ZASYC(JPLAY,JPSW), ZOMGC(JPLAY,JPSW)
+REAL_B :: ZTAUCORIG(JPLAY,JPSW)
 REAL_B :: ZTAUA(JPLAY,JPSW), ZASYA(JPLAY,JPSW), ZOMGA(JPLAY,JPSW)
 
 REAL_B :: ZBBCD(JPLAY+1), ZBBCU(JPLAY+1), ZBBFD(JPLAY+1), ZBBFU(JPLAY+1)
+REAL_B :: ZBBCDdir(JPLAY+1), ZBBFDdir(JPLAY+1)
 !REAL_B :: ZUVCD(JPLAY+1), ZUVCU(JPLAY+1), ZUVFD(JPLAY+1), ZUVFU(JPLAY+1)
 !REAL_B :: ZVSCD(JPLAY+1), ZVSCU(JPLAY+1), ZVSFD(JPLAY+1), ZVSFU(JPLAY+1)
 !REAL_B :: ZNICD(JPLAY+1), ZNICU(JPLAY+1), ZNIFD(JPLAY+1), ZNIFU(JPLAY+1)
 
 REAL_B :: ZCLEAR, ZCLOUD, ZEPSEC, ZTOTCC, ZDPGCP, ZEPZEN
 REAL_B :: RDAY, RG, RMD, RKBOL, RNAVO, R, RD, RCPD, RCDAY
-REAL_B :: DIRDOWNFLUX, DIFDOWNFLUX
 
 !-- character strings for RRTM output
 CHARACTER PAGE
@@ -339,10 +348,12 @@ DO JL = 1, KLON
      ZALBP(JSW)=1.-SEMISS(JPB1-1+JSW)
      DO JK=1,KLEV
         ZTAUC(JK,JSW)=_ZERO_
+        ZTAUCORIG(JK,JSW)=_ZERO_
         ZASYC(JK,JSW)=_ZERO_
         ZOMGC(JK,JSW)=_ZERO_
         IF (CLDFRAC(JK) .GE. ZEPSEC) THEN
            ZTAUC(JK,JSW) = TAUCLOUD(JK,JPB1-1+JSW)
+           ZTAUCORIG(JK,JSW) = TAUCLDORIG(JK,JPB1-1+JSW)
            ZASYC(JK,JSW) = XMOM(1,JK,JPB1-1+JSW)
            ZOMGC(JK,JSW) = SSACLOUD(JK,JPB1-1+JSW)
         ENDIF
@@ -419,6 +430,8 @@ DO JL = 1, KLON
       ZBBCD(JK)=_ZERO_
       ZBBFU(JK)=_ZERO_
       ZBBFD(JK)=_ZERO_
+      ZBBCDdir(JK)=_ZERO_
+      ZBBFDdir(JK)=_ZERO_
 !      ZUVCU(JK)=_ZERO_
 !      ZUVCD(JK)=_ZERO_
 !      ZUVFU(JK)=_ZERO_
@@ -440,7 +453,8 @@ DO JL = 1, KLON
    CALL RRTMG_SW_SPCVRT &
      &( KLEV   , NMOL    , KSW    ,ONEMINUS, ISTART  , IEND &
      &, PAVEL  , TAVEL   , PZ     , TZ     , TBOUND  , ZALBD   , ZALBP &
-     &, ZCLFR  , ZTAUC   , ZASYC  , ZOMGC  , ZTAUA   , ZASYA   , ZOMGA , ZRMU0   &
+     &, ZCLFR  , ZTAUC   , ZASYC  , ZOMGC  , ZTAUCORIG &
+     &, ZTAUA  , ZASYA   , ZOMGA  , ZRMU0   &
      &, COLDRY , WKL     , ADJFLUX  &	 
      &, LAYTROP, LAYSWTCH, LAYLOW &
      &, CO2MULT, COLCH4  , COLCO2 , COLH2O , COLMOL  , COLN2O  , COLO2 , COLO3 &
@@ -451,6 +465,7 @@ DO JL = 1, KLON
 !     &, ZBBCD  , ZBBCU   , ZUVCD  , ZUVCU  , ZVSCD   , ZVSCU   , ZNICD , ZNICU &
      &, ZBBFD  , ZBBFU &
      &, ZBBCD  , ZBBCU &
+     &, ZBBFDdir  , ZBBCDdir &
      &)
 
 ! Output up and down, clear and total fluxes
@@ -459,6 +474,12 @@ DO JL = 1, KLON
       PCDOWN(JL,JK)=ZBBCD(JK)
       PFUP(JL,JK)=(_ONE_-ZCLEAR)*ZBBFU(JK)+ZCLEAR*ZBBCU(JK)
       PFDOWN(JL,JK)=(_ONE_-ZCLEAR)*ZBBFD(JK)+ZCLEAR*ZBBCD(JK)
+! Use for direct/diffuse flux output
+      DIRDOWNFLUX(JL,JK) = (_ONE_-ZCLEAR)*ZBBFDdir(JK)+ZCLEAR*ZBBCDdir(JK)
+      DIFDOWNFLUX(JL,JK) = PFDOWN(JL,JK) - DIRDOWNFLUX(JL,JK)
+! Use for no direct/diffuse flux output
+!      DIRDOWNFLUX(JL,JK) = _ZERO_
+!      DIFDOWNFLUX(JL,JK) = _ZERO_
    END DO
 
 ! Output net, clear and total fluxes
@@ -478,8 +499,6 @@ DO JL = 1, KLON
 
 ! Stand-alone version output
    IF (IOUT .LT. 0) GO TO 4000
-   DIRDOWNFLUX = 0.
-   DIFDOWNFLUX = 0.
 
 ! ***    Process output for this atmosphere.
    OPEN (IWR,FILE='OUTPUT_RRTM',FORM='FORMATTED')
@@ -496,11 +515,11 @@ DO JL = 1, KLON
       write(iwr,9879)
    endif
 
-   if (idelm .eq. 0) then
-      write(iwr,9883)
-   else
-      write(iwr,9882)
-   endif
+!   if (idelm .eq. 0) then
+!      write(iwr,9883)
+!   else
+!      write(iwr,9882)
+!   endif
 
    WRITE(IWR,9899)WAVENUM1(ISTART),WAVENUM2(IEND)
    WRITE(IWR,9900)
@@ -523,7 +542,7 @@ DO JL = 1, KLON
          INDFORM = 7
       ENDIF
       WRITE(IWR,OUTFORM(INDFORM)) I, PZ(I), PFUP(1,I+1), &
-     &     DIFDOWNFLUX, DIRDOWNFLUX, &
+     &     DIFDOWNFLUX(1,I+1), DIRDOWNFLUX(1,I+1), &
      &     PFDOWN(1,I+1), PFLS(1,I+1), HTR(I)
  3000 CONTINUE
       WRITE(IWR,9903)PAGE

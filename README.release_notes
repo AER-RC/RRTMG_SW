@@ -1,6 +1,28 @@
 NOTE:
 ** CVS rtags can't accept "." in strings, substitute "_"
 
+January 27, 2005:
+
+	Release_2_3 - This version contains modifications to include 
+                a bug fix related to delta scaling in cloudy profiles
+                when cldprop is used and to add the capability of
+                computed non-delta scaled direct and diffuse fluxes.
+
+                1) Routine rrtmg_sw_spcvrt.F90 was modified to remove
+                delta scaling in cloud profiles if subroutine cldprop
+                was used to compute cloud properties and to apply scaling.
+
+                2) Routines rrtmg_sw.F90 and rrtmg_sw_spcvrt.F90 were
+                modified to output downward direct and diffuse fluxes.
+                If not needed, this capability can be turned off to save 
+                time by commenting code in rrtmg_sw_spcvrt.F90.
+
+                3) Instruction manual was updated to specify that the 
+                IDELM=0 option (unscaled "true" direct and diffuse flux)
+                is the default and that the IDELM=1 option is not 
+                available. 
+
+
 December 15, 2004:
 
 	Release_2_2 - This version contains modifications to include 

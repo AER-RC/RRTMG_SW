@@ -46,6 +46,7 @@ SUBROUTINE RRTMG_SW &
   &, CLDD1SW,CLDD2SW, CLDD3SW,CLDD4SW,CLDSWMOM &
   &, PCUP  , PCDOWN , PHEAC &
   &, PFUP  , PFDOWN , PHEAT &
+  &, DIRDOWNFLUX, DIFDOWNFLUX &
   &)
 
 !-- Interface to RRTM_SW; conversion to F90 formatting; addition of 
@@ -57,6 +58,11 @@ SUBROUTINE RRTMG_SW &
 !   set of 224 can be restored by exchanging code in modules
 !   parsrtm.F90 and yoesrtwn.F90 and in source file susrtm.F90.
 !      M. J. Iacono, AER, Inc., April, 2004 
+!   Modifications to include output for direct and diffuse 
+!   downward fluxes.  There are output as "true" fluxes without
+!   any delta scaling applied.  Code can be commented to exclude
+!   this calculation in source file rrtmg_sw_spcvrt.F90.
+!      E. J. Mlawer, M. J. Iacono, AER, Inc.,  January 2005
 
 !- Input from calling routine: 
 !- *** NOTES ***: 
@@ -72,7 +78,11 @@ SUBROUTINE RRTMG_SW &
 !  KOVLP = cloud overlap method (1=Maximum-random, 2=Maximum, or 3=Random)
 !  DYOFYR = day of year (1 to 365; set to 0 for calculation at 1 AU)
 !  PRMU0 = Cosine of solar zenith angle
+!  ADJFLX = Incoming solar flux adjustment for current Earth/Sun distance
+!  SOLVAR = Array for scaling solar constant from RRTMG_SW default value
+!           at 1 AU of 1368.22 Wm-2 by band
 !  ADJFLUX = Incoming solar flux adjustment for current Earth/Sun distance
+!           and solar constant scaling 
 !  PAER = Aerosol layer optical thickness at 0.55 micron (for one or all 
 !         of the six aerosol types from the ECMWF model defined in 
 !         rrtmg_sw_susrtaer.F90)
@@ -117,6 +127,8 @@ SUBROUTINE RRTMG_SW &
 !  PCDOWN = clear sky down flux (W/m2)
 !  PHEAT = total sky heating rate (K/day)
 !  PHEAC = clear sky heating rate (K/day)
+!  DIRDOWNFLUX = direct downward flux (W/m2)
+!  DIFDOWNFLUX = diffuse downward flux (W/m2)
 
 
 #include "tsmbkind.h"
@@ -155,13 +167,14 @@ REAL_B :: PFCS(JPLON,JPLAY+1), PFLS(JPLON,JPLAY+1)
 REAL_B :: PHEAC(JPLON,JPLAY), PHEAT(JPLON,JPLAY)
 REAL_B :: PFDOWN(JPLON,JPLAY+1), PCDOWN(JPLON,JPLAY+1)
 REAL_B :: PFUP(JPLON,JPLAY+1), PCUP(JPLON,JPLAY+1)
+REAL_B :: DIRDOWNFLUX(JPLON,JPLAY+1), DIFDOWNFLUX(JPLON,JPLAY+1)
  
 !-----------------------------------------------------------------------
 
 !-- dummy integers
 
 INTEGER_M :: ICLD,ICLDATM, INFLAG, ICEFLAG, LIQFLAG, NMOL, NSTR
-INTEGER_M :: IK, IMOL, J1, J2, JA, JAE, JL, JK, JMOM, JSW
+INTEGER_M :: IK, IMOL, J1, J2, JA, JAE, JL, JK, JMOM, JSW, IB
 
 INTEGER_M :: LAYTROP, LAYSWTCH, LAYLOW
 INTEGER_M :: INDFOR(JPLAY), INDSELF(JPLAY)
@@ -171,10 +184,10 @@ INTEGER_M :: JP(JPLAY), JT(JPLAY), JT1(JPLAY)
 
 REAL_B :: CLDFRAC(JPLAY), CLDDAT1(JPLAY), CLDDAT2(JPLAY), CLDDAT3(JPLAY), CLDDAT4(JPLAY)
 REAL_B :: CLDDATMOM(0:16,JPLAY)
-REAL_B :: TAUCLDORIG(JPLAY), TAUCLOUD(JPLAY,JPBAND), SSACLOUD(JPLAY,JPBAND)
+REAL_B :: TAUCLDORIG(JPLAY,JPBAND), TAUCLOUD(JPLAY,JPBAND), SSACLOUD(JPLAY,JPBAND)
 REAL_B :: XMOM(0:16,JPLAY,JPBAND)
 REAL_B :: PRMU0(JPLON)
-REAL_B :: ADJFLUX, EARTH_SUN
+REAL_B :: ADJFLX, ADJFLUX(JPBAND), EARTH_SUN, SOLVAR(JPBAND)
 
 REAL_B :: PZ(0:JPLAY)   , TZ(0:JPLAY)   , PAVEL(JPLAY)  , TAVEL(JPLAY)
 REAL_B :: COLDRY(JPLAY) , COLMOL(JPLAY) , WKL(35,JPLAY)
@@ -185,9 +198,11 @@ REAL_B :: FAC00(JPLAY)  , FAC01(JPLAY)  , FAC10(JPLAY)  , FAC11(JPLAY)
 REAL_B :: TBOUND        , ONEMINUS	, ZRMU0
 REAL_B :: ZALBD(JPSW)    , ZALBP(JPSW)    , ZCLFR(JPLAY)
 REAL_B :: ZTAUC(JPLAY,JPSW), ZASYC(JPLAY,JPSW), ZOMGC(JPLAY,JPSW)
+REAL_B :: ZTAUCORIG(JPLAY,JPSW)
 REAL_B :: ZTAUA(JPLAY,JPSW), ZASYA(JPLAY,JPSW), ZOMGA(JPLAY,JPSW)
 
 REAL_B :: ZBBCD(JPLAY+1), ZBBCU(JPLAY+1), ZBBFD(JPLAY+1), ZBBFU(JPLAY+1)
+REAL_B :: ZBBCDdir(JPLAY+1), ZBBFDdir(JPLAY+1)
 !REAL_B :: ZUVCD(JPLAY+1), ZUVCU(JPLAY+1), ZUVFD(JPLAY+1), ZUVFU(JPLAY+1)
 !REAL_B :: ZVSCD(JPLAY+1), ZVSCU(JPLAY+1), ZVSFD(JPLAY+1), ZVSFU(JPLAY+1)
 !REAL_B :: ZNICD(JPLAY+1), ZNICU(JPLAY+1), ZNIFD(JPLAY+1), ZNIFU(JPLAY+1)
@@ -269,14 +284,25 @@ RCDAY= 8.4391
 CALL RRTMG_SW_INIT
 
 ! mji - Calculate incoming flux adjustment for Earth/Sun distance
-! Input DYOFYR, the cumulative day of the year, or
-! set to 0 for calculation at 1 AU
+! Input DYOFYR, the cumulative day of the year, or set to 0 
+! for calculation at 1 AU
 ! DYOFYR = 0
 IF (DYOFYR .EQ. 0) THEN
-   ADJFLUX = 1.
+   ADJFLX = _ONE_
 ELSE
-   ADJFLUX = EARTH_SUN(DYOFYR)
+   ADJFLX = EARTH_SUN(DYOFYR)
 ENDIF
+! mji - Set incoming solar flux adjustment to include adjustment for
+! current Earth/Sun distance (ADJFLX) and scaling of default internal
+! solar constant (1368.22 Wm-2) by band (SOLVAR).  SOLVAR can be set 
+! to a single scaling factor as needed, or to a different value in each 
+! band, which may be necessary for paleoclimate simulations. 
+! 
+DO IB = JPB1,JPB2
+   SOLVAR(IB) = _ONE_
+   ADJFLUX(IB) = ADJFLX * SOLVAR(IB)
+END DO
+
 
 ! Main longitude loop
 DO JL = 1, KLON
@@ -398,10 +424,12 @@ DO JL = 1, KLON
       ZALBP(JSW)=PALBP(JL,JSW)
       DO JK=1,KLEV
          ZTAUC(JK,JSW)=_ZERO_
+         ZTAUCORIG(JK,JSW)=_ZERO_
          ZASYC(JK,JSW)=_ZERO_
          ZOMGC(JK,JSW)=_ZERO_
          IF (CLDFRAC(JK) .GE. ZEPSEC) THEN
             ZTAUC(JK,JSW) = TAUCLOUD(JK,JPB1-1+JSW)
+            ZTAUCORIG(JK,JSW) = TAUCLDORIG(JK,JPB1-1+JSW)
             ZASYC(JK,JSW) = XMOM(1,JK,JPB1-1+JSW)
             ZOMGC(JK,JSW) = SSACLOUD(JK,JPB1-1+JSW)
          ENDIF
@@ -444,6 +472,8 @@ DO JL = 1, KLON
       ZBBCD(JK)=_ZERO_
       ZBBFU(JK)=_ZERO_
       ZBBFD(JK)=_ZERO_
+      ZBBCDdir(JK)=_ZERO_
+      ZBBFDdir(JK)=_ZERO_
 !      ZUVCU(JK)=_ZERO_
 !      ZUVCD(JK)=_ZERO_
 !      ZUVFU(JK)=_ZERO_
@@ -465,8 +495,9 @@ DO JL = 1, KLON
    CALL RRTMG_SW_SPCVRT &
      &( KLEV   , NMOL    , KSW    ,ONEMINUS, JPB1    , JPB2 &
      &, PAVEL  , TAVEL   , PZ     , TZ     , TBOUND  , ZALBD   , ZALBP &
-     &, ZCLFR  , ZTAUC   , ZASYC  , ZOMGC  , ZTAUA   , ZASYA   , ZOMGA , ZRMU0   &
-     &, COLDRY , WKL     , ADJFLUX &	 
+     &, ZCLFR  , ZTAUC   , ZASYC  , ZOMGC  , ZTAUCORIG &
+     &, ZTAUA  , ZASYA   , ZOMGA  , ZRMU0   &
+     &, COLDRY , WKL     , ADJFLUX  &	 
      &, LAYTROP, LAYSWTCH, LAYLOW &
      &, CO2MULT, COLCH4  , COLCO2 , COLH2O , COLMOL  , COLN2O  , COLO2 , COLO3 &
      &, FORFAC , FORFRAC , INDFOR , SELFFAC, SELFFRAC, INDSELF &
@@ -476,6 +507,7 @@ DO JL = 1, KLON
 !     &, ZBBCD  , ZBBCU   , ZUVCD  , ZUVCU  , ZVSCD   , ZVSCU   , ZNICD , ZNICU &
      &, ZBBFD  , ZBBFU &
      &, ZBBCD  , ZBBCU &
+     &, ZBBFDdir  , ZBBCDdir &
      &)
 
 ! Output up and down, clear and total fluxes
@@ -484,6 +516,12 @@ DO JL = 1, KLON
       PCDOWN(JL,JK)=ZBBCD(JK)
       PFUP(JL,JK)=(_ONE_-ZCLEAR)*ZBBFU(JK)+ZCLEAR*ZBBCU(JK)
       PFDOWN(JL,JK)=(_ONE_-ZCLEAR)*ZBBFD(JK)+ZCLEAR*ZBBCD(JK)
+! Use for direct/diffuse flux output
+      DIRDOWNFLUX(JL,JK) = (_ONE_-ZCLEAR)*ZBBFDdir(JK)+ZCLEAR*ZBBCDdir(JK)
+      DIFDOWNFLUX(JL,JK) = PFDOWN(JL,JK) - DIRDOWNFLUX(JL,JK)
+! Use for no direct/diffuse flux output
+!      DIRDOWNFLUX(JL,JK) = _ZERO_
+!      DIFDOWNFLUX(JL,JK) = _ZERO_
    END DO
 
 ! Output net, clear and total fluxes

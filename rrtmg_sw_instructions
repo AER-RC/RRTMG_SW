@@ -86,8 +86,9 @@ C  --------------------------------------------------------------------------
   
   Measurement comparison flags:
           IDELM  (0,1) flag for outputting downwelling fluxes computed using the delta-M scaling approximation
-                  = 0  output "true" direct and diffuse downwelling fluxes
+                  = 0  output "true" direct and diffuse downwelling fluxes (default)
                   = 1  output direct and diffuse downwelling fluxes computed with delta-M approximation
+                       (unavailable)
                  (Note:  The delta-M approximation is always used internally in RRTM_SW to compute the total
                  downwelling flux at each level.  What the IDELM flag determines is whether the components 
                  of the downwelling flux, the direct and diffuse fluxes, that are output are the actual direct
