@@ -1,0 +1,38 @@
+NOTE:
+** CVS rtags can't accept "." in strings, substitute "_"
+
+October 17, 2003:
+
+	RRTMG_SW is now being officially archived in CVS.  This code
+	evolved from the standard RRTM_SW release, and it is intended for 
+	application to GCMs. It includes modifications to replace DISORT 
+	with a two-stream radiative transfer method, and the code has been 
+	converted to F90 format.  Both a column version and callable 
+	subroutine version of this code are archived.
+
+	Release_1_0 - Initial release version.  This version uses only
+		a two-stream radiative transfer method, and it uses the
+                the full compliment of 224 g-points of the standard RRTM_SW.
+		No reference
+
+		This release was distributed to Ken Campana and Yu-Tai Hou
+		(NCEP) for testing in their global forecast (GFS) model.
+		The subroutine version was distributed to Kerry Emanuel (MIT) 
+		for use in the MIT radiative-convective single column model.
+                ECMWF did the conversion to F90 and added the 2-stream code
+                starting from RRTM_SW_v2.4, and they are testing a version
+                of this release in their forecast model. 
+	
+November 18, 2003:
+
+	Release_1_1 - Includes two bug fixes that prevent execution of the
+		code with a solar zenith angle of exactly zero (a small
+		epsilon is substituted) and corrects variable assignments of
+		the seperate diffuse and direct values of surface albedo.
+		No reference
+
+		This release was distributed to Jimy Dudhia at NCAR for
+		testing in their mesoscale model (MM5) and the Weather
+		Research and Forecasting (WRF) model.
+
+
