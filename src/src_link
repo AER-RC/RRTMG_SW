@@ -4,8 +4,8 @@
 #This script links several source files from the RRTM_SW local_version
 #directory to this src directory.
 
-ln -s /storm/rc1/rrtm_sw_local_version/extra.f .
-ln -s /storm/rc1/rrtm_sw_local_version/param.f .
-ln -s /storm/rc1/rrtm_sw_local_version/rrtatm.f .
+ln -s /storm/rc1/rrtm_sw_local_version/src/extra.f .
+ln -s /storm/rc1/rrtm_sw_local_version/src/param.f .
+ln -s /storm/rc1/rrtm_sw_local_version/src/rrtatm.f .
 
 
