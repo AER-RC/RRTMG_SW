@@ -1,16 +1,16 @@
-C     path:      $Source$
-C     author:    $Author$
-C     revision:  $Revision$
-C     created:   $Date$
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 
-SUBROUTINE RRTM_SW_REFTRA &
+SUBROUTINE RRTMG_SW_REFTRA &
   &( KLEV  , KMODTS &
   &, LRTCHK &
   &, PGG   , PRMUZ, PTAU , PW    &
   &, PREF  , PREFD, PTRA , PTRAD &
   &)
   
-!**** *RRTM_SW_REFTRA* - REFLECTIVITY AND TRANSMISSIVITY
+!**** *RRTMG_SW_REFTRA* - REFLECTIVITY AND TRANSMISSIVITY
 
 !     PURPOSE.
 !     --------
@@ -19,7 +19,7 @@ SUBROUTINE RRTM_SW_REFTRA &
 !
 !**   INTERFACE.
 !     ----------
-!          *RRTM_SW_REFTRA* IS CALLED BY *RRTM_SW_SPCVRT*
+!          *RRTMG_SW_REFTRA* IS CALLED BY *RRTMG_SW_SPCVRT*
 !
 !
 !        EXPLICIT ARGUMENTS :
@@ -74,7 +74,6 @@ SUBROUTINE RRTM_SW_REFTRA &
 #include "tsmbkind.h"
 
 USE PARSRTM , ONLY : JPLAY
-!USE YOESW   , ONLY : NDBUG
 
 IMPLICIT NONE
 
@@ -93,7 +92,6 @@ REAL_B :: PREF(JPLAY),PREFD(JPLAY), PTRA(JPLAY), PTRAD(JPLAY)
 
 !     LOCAL INTEGER SCALARS
 INTEGER_M :: JK, JL
-!INTEGER_M :: NDBUG
 
 REAL_B :: ZA, ZA1, ZA2
 REAL_B :: ZBETA, ZDEND, ZDENR, ZDENT
@@ -109,22 +107,12 @@ ZSR3=SQRT(3._JPRB)
 ZWCRIT=0.9995_JPRB
 KMODTS=2
 
-!NDBUG=3
-
 DO JK=1,KLEV
-!  if (NDBUG < 2) then
-!    print 9000,JK,LRTCHK(JK),PTAU(JK),PW(JK),PGG(JK),PRMUZ
-9000 format(1x,'RRTM_SW_REFTRA:inputs:',I3,L8,4E13.6)
-!  end if
   IF (.NOT.LRTCHK(JK)) THEN
     PREF(JK) =_ZERO_
     PTRA(JK) =_ONE_
     PREFD(JK)=_ZERO_
     PTRAD(JK)=_ONE_
-!    if (NDBUG < 2) then
-!      print 9001,JL,JK,PREF(JK),PTRA(JK),PREFD(JK),PTRAD(JK)
-9001  format(1x,'RRTM_SW_REFTRA:not.LRTCKH:',2I3,4F10.6)
-!    end if
   ELSE
     ZTO1=PTAU(JK)
     ZW  =PW(JK)
@@ -164,6 +152,7 @@ DO JK=1,KLEV
 !     
       ZE1 = MIN ( ZTO1 / PRMUZ , 500._JPRB)
       ZE2 = EXP ( - ZE1 )
+
       PREF(JK) = (ZGT - ZA1 * (1._JPRB - ZE2)) / (1._JPRB + ZGT)
       PTRA(JK) = 1._JPRB - PREF(JK)
 !
@@ -172,11 +161,6 @@ DO JK=1,KLEV
       PREFD(JK) = ZGT / (1._JPRB + ZGT)
       PTRAD(JK) = 1._JPRB - PREFD(JK)        
 !    
-!      if (NDBUG < 2) then
-!        print 9002,JL,JK,PREF(JK),PTRA(JK),PREFD(JK),PTRAD(JK)
-9002  format(1x,'RRTM_SW_REFTRA: consrv: LRTCHK:',2I3,4F10.6)
-!      end if
-!        
     ELSE
 !
 !-- non-conservative scattering
@@ -206,17 +190,26 @@ DO JK=1,KLEV
 !
       ZE1 = MIN ( ZRK * ZTO1, 500._JPRB)
       ZE2 = MIN ( ZTO1 / PRMUZ , 500._JPRB)
+
+! original
+!      ZEP1 = EXP( ZE1 )
+!      ZEM1 = EXP(-ZE1 )
+!      ZEP2 = EXP( ZE2 )
+!      ZEM2 = EXP(-ZE2 )
+!
+! mji - opt
       ZEP1 = EXP( ZE1 )
-      ZEM1 = EXP(-ZE1 )
+      ZEM1 = 1._JPRB / ZEP1
       ZEP2 = EXP( ZE2 )
-      ZEM2 = EXP(-ZE2 )
+      ZEM2 = 1._JPRB / ZEP2
+! mji
 !        
 ! collimated beam
 !     
       ZDENR = ZR4*ZEP1 + ZR5*ZEM1
-      PREF(JK) = ZWO * (ZR1*ZEP1 - ZR2*ZEM1 - ZR3*ZEM2) / ZDENR
+      PREF(JK) = ZW * (ZR1*ZEP1 - ZR2*ZEM1 - ZR3*ZEM2) / ZDENR
       ZDENT = ZT4*ZEP1 + ZT5*ZEM1
-      PTRA(JK) = ZEM2 * (1._JPRB - ZWO * (ZT1*ZEP1 - ZT2*ZEM1 - ZT3*ZEP2) / ZDENT)
+      PTRA(JK) = ZEM2 - ZEM2 * ZW * (ZT1*ZEP1 - ZT2*ZEM1 - ZT3*ZEP2) / ZDENT
 !
 ! diffuse beam
 !
@@ -225,10 +218,6 @@ DO JK=1,KLEV
       PREFD(JK) =  ZGAMMA2 * (1._JPRB - ZEMM) * ZDEND
       PTRAD(JK) =  ZRK2*ZEM1*ZDEND
 !
-!      if (NDBUG < 2) then        
-!        print 9003,JL,JK,PREF(JK),PTRA(JK),PREFD(JK),PTRAD(JK)
-9003  format(1x,'RRTM_SW_REFTRA: OMG<1:  LRTCHK:',2I3,4F10.6)
-!      end if
     END IF
 !
   END IF         
@@ -237,4 +226,5 @@ END DO
 !
 !     ------------------------------------------------------------------
 RETURN
-END SUBROUTINE RRTM_SW_REFTRA     
+END SUBROUTINE RRTMG_SW_REFTRA     
+

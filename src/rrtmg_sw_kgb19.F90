@@ -1,7 +1,7 @@
-C     path:      $Source$
-C     author:    $Author$
-C     revision:  $Revision$
-C     created:   $Date$
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 
 !OCL SCALAR
 #ifdef RS6K

@@ -1,8 +1,14 @@
-C     path:      $Source$
-C     author:    $Author$
-C     revision:  $Revision$
-C     created:   $Date$
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 
+! Copyright 2002, 2003, 2004, Atmospheric & Environmental Research, Inc. (AER).
+! This software may be used, copied, or redistributed as long as it is
+! not sold and this copyright notice is reproduced on each copy made.
+! This model is provided as is without any express or implied warranties.
+!                      (http://www.rtweb.aer.com/)
+!
 !***************************************************************************
 !                                                                          *
 !                               RRTM_SW                                    *
@@ -35,17 +41,26 @@ C     created:   $Date$
 !                                                                          *
 !***************************************************************************
 
-PROGRAM RRTM_SW_224
+PROGRAM RRTMG_SW
 
 !-- Interface to RRTM_SW; conversion to F90 formatting; addition of 
 !   2-stream radiative transfer
-!     J.-J. Morcrette, ECMWF, 030225
-!-- Additional modifications for GCM application
-!     This stand-alone version uses RRTATM for input
-!     M. J. Iacono, AER, Inc., August 2003
+!      J.-J. Morcrette, ECMWF, 030225
+!-- Additional modifications for GCM applications -> RRTMG_SW
+!   This stand-alone version uses RRTATM for input
+!      M. J. Iacono, AER, Inc., August 2003
+!   Total number of g-points reduced from 224 to 112.  Original
+!   set of 224 can be restored by exchanging code in modules
+!   parsrtm.F90 and yoesrtwn.F90 and in source file susrtm.F90.
+!      M. J. Iacono, AER, Inc., April, 2004 
 
 !- Input from calling routine:
-!- NOTE: In RRTM_SW, the layer dimension goes from bottom to top
+!- *** NOTES ***: 
+!    1) In RRTMG_SW, the level dimension goes from bottom to top.
+!    2) All input real variables must be passed in as real*8.
+!    3) Water vapor, CO2, ozone, CH4, and N2O are needed in units of vmr.
+!       If passed in as mmr, use molecular weights below to convert to vmr.
+!  
 !  KLON, JPLON = number of longitudes (1 in single-column mode)
 !  JPLAY = maximum number of layers
 !  KLEV, NLAYERS = number of layers
@@ -54,20 +69,16 @@ PROGRAM RRTM_SW_224
 !  KOVLP = cloud overlap method (1=Maximum-random, 2=Maximum, or 3=Random)
 !  ZENITH = Cosine of solar zenith angle
 !  ADJFLUX = Incoming solar flux adjustment for current Earth/Sun distance
-!  PAER = Aerosol optical thickness (6 types; see susrtaer.F90)
+!  PAER = Aerosol layer optical thickness at 0.55 micron (for one or all 
+!         of the six aerosol types from the ECMWF model defined in 
+!         rrtmg_sw_susrtaer.F90)
 !  SEMISS = surface emissivity by band
-!  PAPH = pressure levels (mb)
-!  PAP = pressure layers (mb)
-!  PTS = surface temp (K)
-!  PTH = temperature levels (K)
-!  PT = temperature layers (K)
-!-NOTE: Water vapor, CO2, ozone, CH4, and N2O are needed in units of vmr
-!- If passed in as mmr, use molecular weights below to convert to vmr
-!  PQ = water vapor 
-!  PCCO2 = CO2 
-!  POZN = ozone
-!  PCH4 = methane
-!  PN2O = nitrous ozide
+!  PAVEL = pressure levels (mb)
+!  PZ = pressure layers (mb)
+!  TBOUND = surface temp (K)
+!  TAVEL = temperature levels (K)
+!  TZ = temperature layers (K)
+!  WKL = molecular amounts, water vapor, co2, ozone, methane, nitrous oxide 
 !  PCLFR = cloud fraction
 
 !-Variables related to the cloud optical properties (original RRTM_SW)
@@ -111,11 +122,9 @@ IMPLICIT NONE
 
 INTEGER_M :: KLON, KLEV, KSW, KOVLP
 
-REAL_B :: PAER(JPLON,6,JPLAY)
-REAL_B :: PAP(JPLON,JPLAY)     , PAPH(JPLON,JPLAY+1) , PDP(JPLON,JPLAY)
-REAL_B :: PTS(JPLON)           , PT(JPLON,JPLAY)     , PTH(JPLON,JPLAY+1)
-REAL_B :: PQ(JPLON,JPLAY)      , POZN(JPLON,JPLAY)   , PCLFR(JPLON,JPLAY)
-REAL_B :: PCCO2, PCH4, PN2O
+REAL_B :: PAER(JPLON,JPAER,JPLAY)
+REAL_B :: PDP(JPLON,JPLAY)
+REAL_B :: PCLFR(JPLON,JPLAY)
 
 !-- Output arguments
 
@@ -127,7 +136,6 @@ REAL_B :: PFUP(JPLON,JPLAY+1), PCUP(JPLON,JPLAY+1)
 !-----------------------------------------------------------------------
 
 !-- dummy integers
-INTEGER_M :: JB
 
 INTEGER_M :: ICLDATM, INFLAG, ICEFLAG, LIQFLAG, NMOL, NSTR, IWR
 INTEGER_M :: I, IK, IMOL, J1, J2, JA, JAE, JL, JK, JMOM, JSW
@@ -163,13 +171,11 @@ REAL_B :: ZBBCD(JPLAY+1), ZBBCU(JPLAY+1), ZBBFD(JPLAY+1), ZBBFU(JPLAY+1)
 !REAL_B :: ZNICD(JPLAY+1), ZNICU(JPLAY+1), ZNIFD(JPLAY+1), ZNIFU(JPLAY+1)
 
 REAL_B :: ZCLEAR, ZCLOUD, ZEPSEC, ZTOTCC, ZDPGCP, ZEPZEN
-REAL_B :: DIRDOWNFLUX, DIFDOWNFLUX
-
 REAL_B :: RDAY, RG, RMD, RKBOL, RNAVO, R, RD, RCPD, RCDAY
+REAL_B :: DIRDOWNFLUX, DIFDOWNFLUX
 
 !-- character strings for RRTM output
 CHARACTER PAGE
-
 CHARACTER*50 OUTFORM(7)
 
 !     Setup format statements for output
@@ -230,12 +236,11 @@ RCPD = 3.5*RD
 ! RCDAY= RDAY * RG / RCPD
 RCDAY = 8.4391
 
-! mji - Initialization routine for RRTM_SW (called once only).
+! mji - Initialization routine for RRTMG_SW (called once only).
 ! This calls SUSRTM, KGBn, SUSRTOP and should be placed in the
-! GCM's initialization section, if RRTM_SW is used in a GCM.
+! GCM's initialization section, if RRTMG_SW is used in a GCM.
 
-CALL RRTM_SW_INIT
-
+CALL RRTMG_SW_INIT
 
 ! Main longitude loop
 DO JL = 1, KLON
@@ -258,14 +263,8 @@ DO JL = 1, KLON
       IEND = IFLAG
    ENDIF
 
-!  DO JK=1,KLEV 
-!    print 9101,JK,CLDFRAC(JK),CLDDAT1(JK),CLDDAT2(JK),CLDDAT3(JK)&
-!    &,CLDDAT4(JK),(CLDDATMOM(JMOM,JK),JMOM=0,NSTR)
-!9101 format(1x,'RRTM_SW_EC224GP Cld :',I3,f7.4,7E12.5)
-!  END DO
-
    IF (ICLD.EQ.1) THEN
-      CALL RRTM_SW_CLDPROP &
+      CALL RRTMG_SW_CLDPROP &
      &( KLEV, ICLDATM, INFLAG, ICEFLAG, LIQFLAG, NSTR &
      &, CLDFRAC, CLDDAT1, CLDDAT2, CLDDAT3, CLDDAT4, CLDDATMOM &
      &, TAUCLDORIG, TAUCLOUD, SSACLOUD, XMOM &
@@ -280,8 +279,6 @@ DO JL = 1, KLON
 
    DO JK=1,KLEV 
       PCLFR(JL,JK) = CLDFRAC(JK)
-!     print 9102,JK,PCLFR(JL,JK)
-!9102 format(1x,'RRTM_SW_EC224GP PCLFR :',I3,f7.4)
    END DO
 
    ZCLEAR=_ONE_
@@ -291,32 +288,25 @@ DO JL = 1, KLON
       PDP(JL,JK)= (PZ(JK-1)-PZ(JK))
 
 ! Set up for cloud overlap
+! Maximum-random
       IF (KOVLP == 1) THEN
          ZCLEAR=ZCLEAR*(_ONE_-MAX(PCLFR(JL,JK),ZCLOUD)) &
         &   /(_ONE_-MIN(ZCLOUD,_ONE_-ZEPSEC))
          ZCLOUD=PCLFR(JL,JK)
          ZTOTCC=_ONE_-ZCLEAR
+! Maximum
       ELSE IF (KOVLP == 2) THEN
          ZCLOUD=MAX(ZCLOUD,PCLFR(JL,JK))
          ZCLEAR=_ONE_-ZCLOUD
          ZTOTCC=ZCLOUD
+! Random
       ELSE IF (KOVLP == 3) THEN
          ZCLEAR=ZCLEAR*(_ONE_-PCLFR(JL,JK))
          ZCLOUD=_ONE_-ZCLEAR
          ZTOTCC=ZCLOUD
       END IF
 
-!    print 9202,JK,KOVLP,ZCLEAR,ZCLOUD,ZTOTCC
-!9202 format(1x,'RRTM_SW, OVLP: ',2I3,3F8.1)
-
    END DO
-
-! DO JK = 1, KLEV
-!    print 9200,JK,PAVEL(JK),TAVEL(JK),(WKL(JA,JK),JA=1,4),WKL(6,JK),COLDRY(JK)
-!9200 format(1x,'RRTM_SW ',I3,2F8.1,6E13.5)
-!    print 9201,JK,PDP(JL,JK),PZ(JK)
-!9201 format(1x,'RRTM_SW ',I3,2F8.1)
-! END DO
 
    IF (ZTOTCC == _ZERO_) THEN
       DO JK=1,KLEV
@@ -328,9 +318,7 @@ DO JL = 1, KLON
       END DO
    END IF
 
-!  print *,'just before RRTM_SW_SETCOEF'
-
-   CALL RRTM_SW_SETCOEF &
+   CALL RRTMG_SW_SETCOEF &
      &( KLEV   , NMOL &
      &, PAVEL  , TAVEL   , PZ     , TZ     , TBOUND &
      &, COLDRY , WKL     &
@@ -358,16 +346,13 @@ DO JL = 1, KLON
            ZASYC(JK,JSW) = XMOM(1,JK,JPB1-1+JSW)
            ZOMGC(JK,JSW) = SSACLOUD(JK,JPB1-1+JSW)
         ENDIF
-!      print 9002,JSW,JK,ZCLFR(JK),ZTAUC(JK,JSW),ZASYC(JK,JSW),ZOMGC(JK,JSW)
-!!9002  format(1x,'srtm_srtm_224gp ClOPropECmodel ',2I3,f8.4,3E12.5)
-!9002  format(1x,'RRTM_SW_EC224gp CldpropRRTM_SW ',2I3,f8.4,3E12.5)
      END DO
   END DO
 
 !- mixing of aerosols
 !- Put aerosol optical properties in arrays for 2-stream 
 
-! IAER = 0: no aerosols
+! IAER = 0: no aerosols (IAER set in INPUT_RRTM)
    IF (IAER.EQ.0) THEN
 
      DO JSW=1,KSW
@@ -423,23 +408,11 @@ DO JL = 1, KLON
 
    ENDIF
 
-!  DO JK=1,KLEV
-!    print 9013,JK,(PAER(JL,JAE,JK),JAE=1,6)
-!  END DO
-!9013 format(1x,'Aerosol opt.thickness: ',I3,6F10.5)
-!  DO JSW=1,KSW
-!    print 9003,JSW,(RSRTAUA(JSW,JAE),JAE=1,6)
-!    print 9003,JSW,(RSRPIZA(JSW,JAE),JAE=1,6)
-!    print 9003,JSW,(RSRASYA(JSW,JAE),JAE=1,6)
-!9003 format(1x,'Aerosol opt.prop: ',I3,6F10.5)
-!  END DO
- 
-!  print *,'just after setting aerosol properties'
+! Cosine of the solar zenith angle
+! Prevent passing value of zero
 
    ZRMU0=ZENITH
    IF (ZRMU0.EQ.0.) ZRMU0=ZEPZEN
-
-!  print*, 'ZRMU0, ZENITH = ', ZRMU0, ZENITH
 
    DO JK=1,KLEV+1
       ZBBCU(JK)=_ZERO_
@@ -460,9 +433,11 @@ DO JL = 1, KLON
 !      ZNIFD(JK)=_ZERO_
    END DO
 
-!  print *,'just before calling STRM_SPCVRT for JL=',JL
+! Call two-stream model
+! Commented fields contain results for separate spectral regions
+! (near-IR, visible, and UV).  
 
-   CALL RRTM_SW_SPCVRT &
+   CALL RRTMG_SW_SPCVRT &
      &( KLEV   , NMOL    , KSW    ,ONEMINUS, ISTART  , IEND &
      &, PAVEL  , TAVEL   , PZ     , TZ     , TBOUND  , ZALBD   , ZALBP &
      &, ZCLFR  , ZTAUC   , ZASYC  , ZOMGC  , ZTAUA   , ZASYA   , ZOMGA , ZRMU0   &
@@ -478,43 +453,27 @@ DO JL = 1, KLON
      &, ZBBCD  , ZBBCU &
      &)
 
-
-!  print *,'SRTM_SRTM_224GP before potential scaling'
-!  DO JK=1,KLEV+1
-!    print 9004,JK,ZBBCU(JK),ZBBCD(JK),ZBBFU(JK),ZBBFD(JK)
-9004 format(1x,'Clear-sky and total fluxes U & D ',I3,4F10.3)
-!  END DO
-
-
-!   print *,'Clear-sky and total fluxes over whole SW spectrum'
-!   print *,'    ClearUpw   ClearDnw  TotalUpw  TotalDnw'
+! Output up and down, clear and total fluxes
    DO JK=1,KLEV+1
       PCUP(JL,JK)=ZBBCU(JK)
       PCDOWN(JL,JK)=ZBBCD(JK)
       PFUP(JL,JK)=(_ONE_-ZCLEAR)*ZBBFU(JK)+ZCLEAR*ZBBCU(JK)
       PFDOWN(JL,JK)=(_ONE_-ZCLEAR)*ZBBFD(JK)+ZCLEAR*ZBBCD(JK)
    END DO
-!   DO JK=1,KLEV+1
-!     print 9005,JK,PCUP(JL,JK),PCDOWN(JL,JK),PFUP(JL,JK),PFDOWN(JL,JK)
-!9005 format(1x,I3,4F10.3)
-!   END DO
 
+! Output net, clear and total fluxes
    DO JK = 1 , KLEV+1
       PFLS(JL,JK) = PFDOWN(JL,JK) - PFUP(JL,JK)
       PFCS(JL,JK) = PCDOWN(JL,JK) - PCUP(JL,JK)
-!  print 9504,JK,ZFLUC(JL,2,JK),ZFLUC(JL,1,JK),PFCS(JL,JK) &
-!    &,          ZFLUX(JL,2,JK),ZFLUX(JL,1,JK),PFLS(JL,JK)
-!9504 format(1x,'SRTM-FLX',1I3,2(2x,f10.3,1x,f10.3,1x,f10.3))
    ENDDO
 
+! Output clear and total heating rates
    HTR(KLEV) = 0.
    DO JK=1,KLEV
       ZDPGCP=RCDAY/PDP(JL,JK)
       PHEAC(JL,JK)=(PFCS(JL,JK+1)-PFCS(JL,JK))*ZDPGCP
       PHEAT(JL,JK)=(PFLS(JL,JK+1)-PFLS(JL,JK))*ZDPGCP
       HTR(JK-1) = PHEAT(JL,JK)
-!  print 9505,JK,ZCEAT(JL,JK),ZHEAT(JL,JK),PCLFR(JL,JK)
-!9505 format(1x,'SRTM-HR',I3,3(10x,f10.3,14x))
    END DO
 
 ! Stand-alone version output
@@ -629,7 +588,7 @@ DO JL = 1, KLON
 
 END DO
 
-END PROGRAM RRTM_SW_224
+END PROGRAM RRTMG_SW
 
 !*****************************************************************
 FUNCTION EARTH_SUN(IDN)
@@ -651,3 +610,7 @@ EARTH_SUN = 1.000110 + .034221 * COS(GAMMA) + .001289 * SIN(GAMMA) + &
 RETURN
 END FUNCTION EARTH_SUN
 !*****************************************************************
+
+
+
+

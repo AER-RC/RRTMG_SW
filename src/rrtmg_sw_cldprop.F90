@@ -1,9 +1,9 @@
-C     path:      $Source$
-C     author:    $Author$
-C     revision:  $Revision$
-C     created:   $Date$
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 
-SUBROUTINE RRTM_SW_CLDPROP &
+SUBROUTINE RRTMG_SW_CLDPROP &
   &( KLEV, ICLDATM, INFLAG, ICEFLAG, LIQFLAG, NSTR &
   &, CLDFRAC, CLDDAT1, CLDDAT2, CLDDAT3, CLDDAT4, CLDDATMOM &
   &, TAUCLDORIG, TAUCLOUD, SSACLOUD, XMOM &
@@ -55,13 +55,13 @@ REAL_B :: TAUICEORIG, SCATICE, SSAICE, TAUICE &
 !-- integer locals
 INTEGER_M :: NCBANDS, NLAYERS
 INTEGER_M :: IB, IB1, IB2, LAY, ISTR , INDEX
-INTEGER_M :: NDBUG
- 
+
 
 ! HVRCLD = '$Revision$'
 
+! Initialize
+
 EPS = 1.E-06_JPRB
-NDBUG = 4
 
 ICLDATM = 0
 NCBANDS = 29
@@ -79,20 +79,11 @@ DO LAY = 1, NLAYERS
    END DO
 END DO
 
-!IF (NDBUG.LE.2) THEN
-!  print *,'cldprop before loop INFLAG, ICEFLAG, LIQFLAG, IB1, IB2:',INFLAG,ICEFLAG,LIQFLAG,IB1,IB2
-!END IF
-
+! Main layer loop
 DO LAY = 1, NLAYERS
 
   IF (CLDFRAC(LAY) .GE. EPS) THEN
     ICLDATM = 1
-
-!    IF (NDBUG.LE.2) THEN
-!      print 9101,LAY,ICLDATM,CLDFRAC(LAY),CLDDAT1(LAY),CLDDAT2(LAY),CLDDAT3(LAY)&
-!       &,CLDDAT4(LAY),(CLDDATMOM(ISTR,LAY),ISTR=0,NSTR)
-!9101  format(1x,'Cld :',2I3,f7.4,7E12.5)
-!    END IF
 
 !   Ice clouds and water clouds combined.
     IF (INFLAG .EQ. 0) THEN
@@ -120,11 +111,6 @@ DO LAY = 1, NLAYERS
        FICE = CLDDAT2(LAY)
        RADICE = CLDDAT3(LAY)
 
-!       IF (NDBUG.LE.1) THEN
-!         print 9102,LAY,CWP,FICE,RADICE
-!9102     format(1x,'A',I3,3E13.6)
-!       END IF
-
 !   Calculation of absorption coefficients due to ice clouds.
        IF (FICE .EQ. 0.0) THEN
          DO IB = IB1 , IB2
@@ -132,12 +118,6 @@ DO LAY = 1, NLAYERS
            SSACOICE(IB) = 1.0_JPRB
            GICE(IB)     = 1.0_JPRB
            FORWICE(IB)  = 0.0_JPRB
-
-!	   IF (NDBUG.LE.1) THEN
-!             print 9103,LAY,FICE,CWP,RADICE,IB,EXTCOICE(IB),SSACOICE(IB),GICE(IB),FORWICE(IB)
-!9103         format(1x,'B',I3,F6.3,2E13.6,I3,4E12.5)
-!	   END IF
-
          END DO
 
        ELSE IF (ICEFLAG .EQ. 3) THEN
@@ -167,17 +147,9 @@ DO LAY = 1, NLAYERS
            if (ssacoice(ib) .lt. 0.0_JPRB) STOP 'ICE SSA LESS THAN 0.0'
            if (gice(ib) .gt. 1.0_JPRB) STOP 'ICE ASYM GRTR THAN 1.0'
            if (gice(ib) .lt. 0.0_JPRB) STOP 'ICE ASYM LESS THAN 0.0'
-
-!   	   IF (NDBUG.LE.1) THEN
-!             print 9104,LAY,FICE,CWP,RADICE,IB,EXTCOICE(IB),SSACOICE(IB),GICE(IB),FORWICE(IB),FDELTA(IB)
-!9104         format(1x,'C',I3,F5.3,2E13.6,I3,5E12.5)
-!           END IF
-
          END DO
+
        ENDIF
-!       IF (NDBUG.LE.1) THEN
-!         print *,'end of ice computations for LAY=',LAY
-!       ENDIF
                   
 !  Calculation of absorption coefficients due to water clouds.
        FLIQ = 1. - FICE
@@ -187,12 +159,6 @@ DO LAY = 1, NLAYERS
            SSACOLIQ(IB) = 1.0
            GLIQ(IB) = 1.0
            FORWLIQ(IB) = 0.0
-
-!	   IF (NDBUG.LE.1) THEN
-!             print 9105,LAY,FLIQ,CWP,IB,EXTCOLIQ(IB),SSACOLIQ(IB),GLIQ(IB),FORWLIQ(IB)
-!9105         format(1x,'D',I3,F5.3,1E13.6,I3,4E12.5)
-!           END IF
-
          END DO
 
        ELSE IF (LIQFLAG .EQ. 1) THEN
@@ -217,31 +183,14 @@ DO LAY = 1, NLAYERS
            if (ssacoliq(ib) .lt. 0.0_JPRB) STOP 'LIQUID SSA LESS THAN 0.0'
            if (gliq(ib) .gt. 1.0_JPRB) STOP 'LIQUID ASYM GRTR THAN 1.0'
            if (gliq(ib) .lt. 0.0_JPRB) STOP 'LIQUID ASYM LESS THAN 0.0'
-
-!	   IF (NDBUG.LE.1) THEN
-!             print 9106,LAY,FLIQ,CWP,RADLIQ,IB,EXTCOLIQ(IB),SSACOLIQ(IB),GLIQ(IB),FORWLIQ(IB)
-!9106         format(1x,'E',I3,F5.3,2E13.6,I3,5E12.5)
-!           END IF
-
          END DO
+
        END IF
 
-!       IF (NDBUG.LE.1) THEN
-!         print *,'end of liquid water computations for LAY=',LAY
-!       END IF
-
-               
        DO IB = IB1 , IB2
          TAULIQORIG = CWP * EXTCOLIQ(IB)
          TAUICEORIG = CWP * EXTCOICE(IB)
          TAUCLDORIG(LAY,IB) = TAULIQORIG + TAUICEORIG
-
-!	 IF (NDBUG.LE.1) THEN
-!           print 9107,IB,TAULIQORIG,TAUICEORIG,TAUCLDORIG(LAY,IB),CWP &
-!            &,EXTCOLIQ(IB),EXTCOICE(IB),SSACOLIQ(IB),SSACOICE(IB) &
-!	    &,FORWLIQ(IB),FORWICE(IB)
-!9107       format(1x,'F',I3,10E12.5)
-!         END IF
 
          SSALIQ = SSACOLIQ(IB) * (1. - FORWLIQ(IB)) / &
      &                 (1. - FORWLIQ(IB) * SSACOLIQ(IB))
@@ -257,11 +206,6 @@ DO LAY = 1, NLAYERS
          SSACLOUD(LAY,IB) = (SCATLIQ + SCATICE) / &
      &                 TAUCLOUD(LAY,IB)
          XMOM(0,LAY,IB) = 1.0
-
-!	 IF (NDBUG.LE.1) THEN
-!           print 9108,IB,TAULIQORIG,TAUICEORIG,SSALIQ,TAULIQ,SCATLIQ,SSAICE,TAUICE,SCATICE
-!9108       format(1x,'G',I3,8E13.6)
-!         END IF
 
          DO ISTR = 1, NSTR
 !This commented code is the standard method for delta-m scaling. In accordance
@@ -281,12 +225,6 @@ DO LAY = 1, NLAYERS
      &               ((gice(ib)-forwice(ib))/(1.0-forwice(ib)))**ISTR)
          END DO
 
-!	 IF (NDBUG.LE.1) THEN
-!           print 9109,IB,TAUCLOUD(LAY,IB),SSACLOUD(LAY,IB),XMOM(1,LAY,IB)
-!9109       format(1x,'H',I3,3E13.6)
-!         END IF
-
-
        END DO
 
      ENDIF
@@ -295,11 +233,7 @@ DO LAY = 1, NLAYERS
 
  END DO
 
-! IF (NDBUG.LE.1) THEN
-!   print *,'about to leave RRTM_SW_CLDPROP'
-! END IF
-
 !-----------------------------------------------------------------------
 RETURN
-END SUBROUTINE RRTM_SW_CLDPROP
+END SUBROUTINE RRTMG_SW_CLDPROP
 

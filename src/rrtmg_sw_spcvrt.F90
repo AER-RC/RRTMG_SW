@@ -1,9 +1,9 @@
-C     path:      $Source$
-C     author:    $Author$
-C     revision:  $Revision$
-C     created:   $Date$
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 
-SUBROUTINE RRTM_SW_SPCVRT &
+SUBROUTINE RRTMG_SW_SPCVRT &
  &( KLEV   , KMOL    , KSW    , ONEMINUS,ISTART  , IEND &
  &, PAVEL  , TAVEL   , PZ     , TZ     , TBOUND  , PALBD   , PALBP &
  &, PCLFR  , PTAUC   , PASYC  , POMGC  , PTAUA   , PASYA   , POMGA , PRMU0   &
@@ -21,7 +21,7 @@ SUBROUTINE RRTM_SW_SPCVRT &
  &)
 
 
-!**** *RRTM_SW_SPCVRT* - SPECTRAL LOOP TO COMPUTE THE SHORTWAVE RADIATION FLUXES.
+!**** *RRTMG_SW_SPCVRT* - SPECTRAL LOOP TO COMPUTE THE SHORTWAVE RADIATION FLUXES.
 
 !     PURPOSE.
 !     --------
@@ -31,7 +31,7 @@ SUBROUTINE RRTM_SW_SPCVRT &
 !**   INTERFACE.
 !     ----------
 
-!          *RRTM_SW_SPCVRT* IS CALLED FROM *SRTM_SRTM_224GP*
+!          *RRTMG_SW_SPCVRT* IS CALLED FROM *SRTM_SRTM_224GP*
 
 
 !        IMPLICIT ARGUMENTS :
@@ -62,13 +62,15 @@ SUBROUTINE RRTM_SW_SPCVRT &
 !     MODIFICATIONS.
 !     --------------
 !        ORIGINAL : 03-02-27
+!        Add adjustment for Earth/Sun distance : MJIacono, AER, October 2003
+!        Bug fix for use of PALBP and PALBD: MJIacono, AER, November 2003
 !     ------------------------------------------------------------------
 
 
 #include "tsmbkind.h"
 
 USE PARSRTM  , ONLY : JPLAY, JPBAND, JPB1, JPB2, JPGPT
-USE YOESRTWN , ONLY : NG
+USE YOESRTWN , ONLY : NGC
 
 IMPLICIT NONE
 
@@ -134,17 +136,16 @@ REAL_B :: &
 
 !     LOCAL INTEGER SCALARS
 INTEGER_M :: IB1, IB2, IBM, IGT, IKL, IKP, IKX, IW, JB, JG, JL, JK, KGS, KMODTS
-!INTEGER_M :: NDBUG
 
 !     LOCAL REAL SCALARS
 REAL_B :: ZDBTMC, ZDBTMO, ZF, ZGW, ZINCFLUX, ZREFLECT, ZWF
 REAL_B :: REPCLC
 
-!-- Output of RRTM_SW_TAUMOLn routines
+!-- Output of RRTMG_SW_TAUMOLn routines
 
 REAL_B :: ZTAUG(JPLAY,16), ZTAUR(JPLAY,16), ZSSA(JPLAY,16), ZSFLXZEN(16)
 
-!-- Output of RRTM_SW_VRTQDR routine
+!-- Output of RRTMG_SW_VRTQDR routine
 REAL_B :: &
   &   ZCD(JPLAY+1,JPGPT), ZCU(JPLAY+1,JPGPT) &
   &,  ZFD(JPLAY+1,JPGPT), ZFU(JPLAY+1,JPGPT)
@@ -155,7 +156,6 @@ REAL_B :: &
 
 !-- Two-stream model 1: Eddington, 2: PIFM, Zdunkowski et al., 3: discret ordinates
 ! KMODTS is set in SWREFTRA
-!NDBUG=1
 
 IB1=ISTART
 IB2=IEND
@@ -175,20 +175,7 @@ END DO
 JB=IB1-1
 DO JB = IB1, IB2
   IBM = JB-15
-  IGT = NG(JB)
-
-! mji out
-!  print *,'=== spectral band === JB= ',JB,' ====== i.e. IBM= ',IBM,' with IGT= ',IGT
-!  print *,'    ClearUpw   ClearDnw  TotalUpw  TotalDnw for band= ',JB            
-!-- for each band, computes the gaseous and Rayleigh optical thickness 
-!  for each g-point
-
-!  print*, 'JB = ', JB
-!  print*, 'KLEV, FAC00, FAC01, FAC10, FAC11 = ',KLEV, FAC00, FAC01, FAC10, FAC11
-!  print*, 'JP, JT, JT1, ONEMINUS = ', JP, JT, JT1, ONEMINUS
-!  print*, 'COLH2O, COLCH4, COLMOL = ', COLH2O, COLCH4, COLMOL
-!  print*, 'LAYTROP, SELFFAC, SELFFRAC, INDSELF = ', LAYTROP, SELFFAC, SELFFRAC, INDSELF
-!  print*, 'FORFAC, FORFRAC, INDFOR = ', FORFAC, FORFRAC, INDFOR
+  IGT = NGC(IBM)
 
   IF (JB .EQ. 16) THEN
     CALL TAUMOL16 &
@@ -336,27 +323,6 @@ DO JB = IB1, IB2
 
   ENDIF
 
-!  IF (NDBUG.LE.3) THEN
-!    print *,'Incident Solar Flux'
-!    PRINT 9010,(ZSFLXZEN(JG),JG=1,16)
-!9010 format(1x,'SolFlx ',16F8.4)
-!    print *,'Optical thickness for molecular absorption for JB= ',JB 
-!    DO JK=1,KLEV
-!      PRINT 9011,JK,(ZTAUG(JK,JG),JG=1,16)
-!9011  format(1x,'TauGas ',I3,16E9.2)
-!    END DO
-!    print *,'Optical thickness for Rayleigh scattering for JB= ',JB 
-!    DO JK=1,KLEV
-!      PRINT 9012,JK,(ZTAUR(JK,JG),JG=1,16)
-!9012  format(1x,'TauRay ',I3,16E9.2)
-!    END DO
-!    print *,'Cloud optical properties for JB= ',JB
-!    DO JK=1,KLEV
-!      PRINT 9013,JK,PCLFR(JK),PTAUC(JK,IBM),POMGC(JK,IBM),PASYC(JK,IBM)
-!9013  format(1x,'Cloud optprop ',I3,f8.4,f8.3,2f8.5)
-!    END DO
-!  END IF
-
   DO JK=1,KLEV+1
     ZBBCD(JK)=_ZERO_
     ZBBCU(JK)=_ZERO_
@@ -366,10 +332,6 @@ DO JB = IB1, IB2
 
   DO JG=1,IGT
     IW=IW+1
-
-!    IF (NDBUG.LE.1) THEN
-!      print *,' === JG= ',JG,' === for JB= ',JB,' with IW, IBM, JPLAY, KLEV=',IW,IBM,JPLAY,KLEV
-!    END IF
 
 ! mji - add adjustment for correct Earth/Sun distance
 !    ZINCFLX(IW)=ZSFLXZEN(JG)*PRMU0
@@ -422,21 +384,17 @@ DO JB = IB1, IB2
     ZREFD(KLEV+1)=PALBD(IBM)
     ZRUP(KLEV+1) =PALBP(IBM)
     ZRUPD(KLEV+1)=PALBD(IBM)
-!    if (NDBUG < 2) print *,'SWSPCTRL after 1 with JB,JG,IBM and IW= ',JB,JG,IBM,IW
     
     
     DO JK=1,KLEV
 
-!-- NB: a two-stream calculations from top to bottom, but RRTM_SW quantities 
+!-- NB: a two-stream calculations from top to bottom, but RRTMG_SW quantities 
 !       are given bottom to top and are reverse here:
 
       IKL=KLEV+1-JK
 
 !-- clear-sky optical parameters      
       LRTCHK(JK)=.TRUE.
-
-!      print 9000,JK,JG,IKL,ZTAUR(IKL,JG),ZTAUG(IKL,JG),PTAUC(IKL,IBM)
-!9000  format(1x,'Cloud quantities ',3I4,3E12.5)
 
 !-- original
 !      ZTAUC(JK)=ZTAUR(IKL,JG)+ZTAUG(IKL,JG)
@@ -465,23 +423,13 @@ DO JB = IB1, IB2
         &       /  ZOMCO(JK)
       ZOMCO(JK) = ZOMCO(JK) / ZTAUO(JK)
 
-!      if (NDBUG <2) THEN
-!        print 9001,JK,JG,LRTCHK(JK),0.00,ZTAUC(JK),ZOMCC(JK),ZGCC(JK),ZTAUR(IKL,JG),ZTAUG(IKL,JG)
-!9001    format(1x,'SPCVRT; clear :',2I3,L4,7(1x,E13.6))
-!        print 9002,JK,JG,LRTCHK(JK),PCLFR(JK),ZTAUO(JK),ZOMCO(JK),ZGCO(JK) &
-!          &,PTAUC(IKL,IBM),POMGC(IKL,IBM),PASYC(IKL,IBM)
-!9002    format(1x,'SPCVRT; total0:',2I3,L4,7(1x,E13.6))
-!      end if
-
     END DO    
-!    if (NDBUG < 2) print *,'SWSPCTRL after 2'
+
    
-    CALL RRTM_SW_REFTRA ( KLEV, KMODTS &
+    CALL RRTMG_SW_REFTRA ( KLEV, KMODTS &
       &, LRTCHK, ZGCC  , PRMU0, ZTAUC , ZOMCC &
       &, ZREFC , ZREFDC, ZTRAC, ZTRADC )
 
-!    if (NDBUG < 2) print *,'SWSPCTR after SWREFTRA for clear-sky'
-    
       
 !-- Delta scaling    
     DO JK=1,KLEV
@@ -493,20 +441,12 @@ DO JB = IB1, IB2
       ZOMCO(JK)=(ZOMCO(JK)-ZWF)/(1._JPRB-ZWF)
       ZGCO (JK)=(ZGCO(JK)-ZF)/(1._JPRB-ZF)
       LRTCHK(JK)=(PCLFR(IKL) > REPCLC)
-
-!      if (NDBUG < 2) THEN 
-!        print 9003,JK,LRTCHK(JK),PCLFR(IKL),ZTAUO(JK),ZOMCO(JK),ZGCO(JK) &
-!          &,PTAUC(IKL,IBM),POMGC(IKL,IBM),PASYC(IKL,IBM)
-9003    format(1x,'totalD:',I3,L4,7(1x,E13.6))
-!      end if
-
     END DO
-!    if (NDBUG < 2) print *,'SWSPCTR after Delta scaling'
     
-    CALL RRTM_SW_REFTRA ( KLEV, KMODTS &
+
+    CALL RRTMG_SW_REFTRA ( KLEV, KMODTS &
       &, LRTCHK, ZGCO  , PRMU0, ZTAUO , ZOMCO &
       &, ZREFO , ZREFDO, ZTRAO, ZTRADO )
-!    if (NDBUG < 2) print *,'SWSPCTR after SWREFTRA for cloudy'
 
 !
     DO JK=1,KLEV
@@ -533,49 +473,24 @@ DO JB = IB1, IB2
       ZDBTC(JK)=ZDBTMC
       ZTDBTC(JK+1)=ZDBTC(JK)*ZTDBTC(JK)
 
-!      if (NDBUG < 2) print 9200,JK,ZREFC(JK),ZREFDC(JK),ZTRAC(JK),ZTRADC(JK),ZDBTC(JK),ZTDBTC(JK+1)
-!      if (NDBUG < 2) print 9199,JK,ZREF(JK),ZREFD(JK),ZTRA(JK),ZTRAD(JK),ZDBT(JK),ZTDBT(JK+1)
-9199  format(1x,'Comb total:',I3,6E13.6)
-9200  format(1x,'Comb clear:',I3,6E13.6)
-
     END DO           
-!    if (NDBUG < 2) print *,'RRTM_SW_SPCVRT after combining clear and cloudy'
                  
  
 !-- vertical quadrature producing clear-sky fluxes
 
-!    print *,'RRTM_SW_SPCVRT after 3 before RRTM_SW_VRTQDR clear'
-    
-    CALL RRTM_SW_VRTQDR ( KLEV, IW &
+    CALL RRTMG_SW_VRTQDR ( KLEV, IW &
       &, ZREFC, ZREFDC, ZTRAC , ZTRADC &
       &, ZDBTC, ZRDNDC, ZRUPC , ZRUPDC, ZTDBTC &
       &, ZCD  , ZCU   )
       
-!    IF (NDBUG < 2) THEN
-!      print *,'RRTM_SW_SPCVRT out of RRTM_SW_VRTQDR for clear IW=',IW  
-!      DO JK=1,KLEV+1
-!        print 9201,JK,ZCD(JK,IW),ZCU(JK,IW)
-9201    format(1x,'clear-sky contrib to fluxes',I3,2F12.4)
-!      END DO      
-!    END IF
 
 !-- vertical quadrature producing cloudy fluxes
 
-!    print *,'RRTM_SW_SPCVRT after 4 before RRTM_SW_VRTQDR cloudy'
-    
-    CALL RRTM_SW_VRTQDR ( KLEV, IW &
+    CALL RRTMG_SW_VRTQDR ( KLEV, IW &
       &, ZREF , ZREFD , ZTRA , ZTRAD &
       &, ZDBT , ZRDND , ZRUP , ZRUPD , ZTDBT &
       &, ZFD  , ZFU   )
  
-!    IF (NDBUG < 2) THEN     
-!      print *,'RRTM_SW_SPCVRT out of RRTM_SW_VRTQDR for cloudy IW=',IW
-!      DO JK=1,KLEV+1
-!        print 9202,JK,ZFD(JK,IW),ZFU(JK,IW)
-9202    format(1x,'cloudy sky contrib to fluxes',I3,2F12.4)
-!      END DO      
-!    END IF
-
                                               
 !-- up and down-welling fluxes at levels
 !-- mji: two-stream calculations go from top to bottom; reverse layer
@@ -616,30 +531,15 @@ DO JB = IB1, IB2
 !        PNICD(JK)=PNICD(JK)+RWGT(IW)*ZCD(JK,IW)
 !        PNICU(JK)=PNICU(JK)+RWGT(IW)*ZCU(JK,IW)
 !      END IF  
-!      if (NDBUG < 2) then
-!      if (JG.EQ.IGT) THEN 
-!          print 9206,JB,JG,JK,IW,PBBCU(JK),PBBCD(JK),PBBFU(JK),PBBFD(JK)
-9206      format(1x,'fluxes up to:',3I3,I4,6E13.6)       
-!      end if
     END DO
-
-!    if (NDBUG < 2) print *,'RRTM_SW_SPCVRT end of JG=',JG,' for JB=',JB,' i.e. IW=',IW
 
   END DO             
 !-- end loop on JG
 
-! mji out
-!  DO JK=1,KLEV+1  
-!    print 9207,JK,ZBBCU(JK),ZBBCD(JK),ZBBFU(JK),ZBBFD(JK)
-!9207 format(1x,I3,4F10.3)
-!  END DO
-!!  print *,' --- JB= ',JB,' with IB1, IB2= ',IB1,IB2
-
 END DO                    
 !-- end loop on JB
 
-!if (NDBUG < 2) print *,'RRTM_SW_SPCVRT about to come out'
 !     ------------------------------------------------------------------
 RETURN
-END SUBROUTINE RRTM_SW_SPCVRT
+END SUBROUTINE RRTMG_SW_SPCVRT
 

@@ -1,9 +1,9 @@
-C     path:      $Source$
-C     author:    $Author$
-C     revision:  $Revision$
-C     created:   $Date$
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
 
-SUBROUTINE RRTM_SW_SETCOEF &
+SUBROUTINE RRTMG_SW_SETCOEF &
   &( KLEV   , NMOL    &
   &, PAVEL  , TAVEL   , PZ     , TZ     , TBOUND  &
   &, COLDRY , WKL     &
@@ -29,7 +29,6 @@ SUBROUTINE RRTM_SW_SETCOEF &
 
 USE PARSRTM , ONLY : JPLAY, JPG
 USE YOESRTWN, ONLY : PREF, PREFLOG, TREF
-!  USE YOESWN  , ONLY : NDBUG
 				   
 IMPLICIT NONE
 
@@ -76,14 +75,6 @@ T0FRAC   = TZ(0) - INT(TZ(0))
 LAYTROP  = 0
 LAYSWTCH = 0
 LAYLOW   = 0
-
-!IF (NDBUG.LE.3) THEN
-!  print *,'-------- Computed in SETCOEF --------'
-!  print 8990
-!8990 format(18x,'  T     FAC00,    01,    10,    11  CO2MULT     MOL   &
-!    &    CH4      CO2      H2O      N2O      O2      O3      SFAC  &
-!    &    SFRAC    FFAC    FFRAC  ISLF IFOR')
-!END IF
 
 DO LAY = 1, NLAYERS
 !        Find the two reference pressures on either side of the
@@ -238,5 +229,5 @@ END DO
 
 !----------------------------------------------------------------------- 
 RETURN
-END SUBROUTINE RRTM_SW_SETCOEF
+END SUBROUTINE RRTMG_SW_SETCOEF
 

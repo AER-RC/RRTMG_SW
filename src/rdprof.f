@@ -21,7 +21,17 @@ C      PARAMETER (MAXPROD = MXLAY*MAXXSEC)
 
       PARAMETER (MCMU = 32)
 
-      INCLUDE 'param.f'
+c param.f 
+c      INCLUDE 'param.f'
+      parameter (mxlay = 203, nbands = 29)
+      parameter (ib1 = 16, ib2 = 29)
+      parameter (mg = 16)
+      parameter (mxstr = 16)
+      COMMON /BANDS/     WAVENUM1(IB1:IB2),
+     &                   WAVENUM2(IB1:IB2),
+     &                   DELWAVE(IB1:IB2)
+c
+
 c
 
       DIMENSION ALTZ(0:MXLAY),IXTRANS(14)
@@ -321,7 +331,17 @@ C************************  SUBROUTINE READCLD  *****************************C
 C     Purpose:  To read in IN_CLD_RRTM_SW, the file that contains input 
 C               cloud properties.
 
-      INCLUDE 'param.f'
+c param.f 
+c      INCLUDE 'param.f'
+      parameter (mxlay = 203, nbands = 29)
+      parameter (ib1 = 16, ib2 = 29)
+      parameter (mg = 16)
+      parameter (mxstr = 16)
+      COMMON /BANDS/     WAVENUM1(IB1:IB2),
+     &                   WAVENUM2(IB1:IB2),
+     &                   DELWAVE(IB1:IB2)
+c
+
 c
       COMMON /CONTROL/   IAER, NSTR, IOUT, ISTART, IEND, ICLD,
      &                   idelm, isccos
@@ -400,7 +420,17 @@ C************************  SUBROUTINE READAER  *****************************C
 C     Purpose:  To read in IN_AER_RRTM, the file that contains input
 C               aerosol properties.
 
-      INCLUDE 'param.f'
+c param.f 
+c      INCLUDE 'param.f'
+      parameter (mxlay = 203, nbands = 29)
+      parameter (ib1 = 16, ib2 = 29)
+      parameter (mg = 16)
+      parameter (mxstr = 16)
+      COMMON /BANDS/     WAVENUM1(IB1:IB2),
+     &                   WAVENUM2(IB1:IB2),
+     &                   DELWAVE(IB1:IB2)
+c
+
 c
 
       PARAMETER (MCMU = 32)
@@ -615,7 +645,16 @@ C        Left-justify all inputed names.
 *****************************************************************
       BLOCK DATA
 
-      INCLUDE 'param.f'
+c param.f 
+c      INCLUDE 'param.f'
+      parameter (mxlay = 203, nbands = 29)
+      parameter (ib1 = 16, ib2 = 29)
+      parameter (mg = 16)
+      parameter (mxstr = 16)
+      COMMON /BANDS/     WAVENUM1(IB1:IB2),
+     &                   WAVENUM2(IB1:IB2),
+     &                   DELWAVE(IB1:IB2)
+c
 
       COMMON /HVERSN/ HVRRTM,HVRRTR,HVRATM,HVRSET,HVRTAU,
      *                HVDUM1(4),HVRUTL,HVREXT,

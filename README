@@ -6,28 +6,29 @@ C     created:   $Date$
  RRTM Shortwave Radiative Transfer Model for GCMs (RRTMG_SW)
  Atmospheric and Environmental Research, Inc., Cambridge, MA
 
- Original version:   E. J. Mlawer, et al.
  Revision for GCMs:  Michael J. Iacono (AER),
                      Jean-Jacques Morcrette (ECMWF)
+ Original version:   Eli. J. Mlawer, S. A. Clough, et al. (AER)
 
  References: 
 
 ******************************************************************************
 
 This directory contains the source code and sample makefile necessary to run
-RRTMG_SW version 1.0, a correlated k-distribution shortwave radiative transfer 
+RRTMG_SW version 2.0, a correlated k-distribution shortwave radiative transfer 
 model developed at AER, Inc for application to GCMs.  This version of RRTMG_SW 
 utilizes a two-stream radiative transfer method as implemented at ECMWF. Two
 modes of operation are possible.  RRTMG_SW can be run in stand-alone mode using 
 the input files and source modules described below, or it can be attached to an 
 atmospheric general circulation model as a callable subroutine. 
 
-The version of RRTMG_SW provided here utilizes the full complement of 224 
-g-points used in the standard RRTM_SW.  No g-point reduction or other
-performance enhancements have been completed for this code.  Total fluxes are
-accurate to within 1.5 W/m2 relative to the standard RRTM_SW (using DISORT) 
-in clear sky and within 10 W/m2 in cloudy sky.  RRTM_SW with DISORT is itself
-accurate to within 1 W/m2 of the data-validated multiple scattering model, CHARTS. 
+The version of RRTMG_SW provided here utilizes a reduced complement of 112 
+g-points, which is half of the 224 g-points used in the standard RRTM_SW.  
+Additional minor changes have been made to enhance computational performance.  
+Total fluxes are accurate to within 1.5 W/m2 relative to the standard RRTM_SW 
+(using DISORT) in clear sky and within 10 W/m2 in cloudy sky.  RRTM_SW with 
+DISORT is itself accurate to within 2 W/m2 of the data-validated multiple 
+scattering model, CHARTS. 
 
 
 ***********************
@@ -89,16 +90,23 @@ Note that user-defined profiles may be used for as many as 200 layers.
    IN_CLD_RRTM.frac0.5     : Sample cloud input file; Single cloud in layer 11, 
                              with cloud fraction of 0.5 and optical depth of 6.515
 
+***Notes regarding column version***
+1) The code modules in the /module directory must be compiled before the 
+source files.  The modules and the source may be complied with the supplied
+makefiles (on SGI) by linking these makefiles to the /module and /src directories.
 
-***********************
+
+
+********************
 RRTMG_SW GCM version
-***********************
+********************
 
 The following files (in /src directory) are the source files needed to
-implement RRTMG_SW to a GCM (changes to the main routine may be necessary for 
-complete implementation in a specific GCM):
+implement RRTMG_SW in a GCM or SCM (changes to the main routine may be necessary 
+for complete implementation in a specific GCM), in addition to the files in 
+/include and /module:
 
-   rrtmg_sw_224.F90      : Main module; callable subroutine
+   rrtmg_sw_112.F90      : Main module; callable subroutine
    rrtmg_sw_cldprop.F90  : Cloud optical properties
    rrtmg_sw_init.F90     : Initialization routine
    rrtmg_sw_kgb16.F90    : Absorption coefficient block data file, band 16
@@ -125,3 +133,12 @@ complete implementation in a specific GCM):
    rrtmg_sw_taumol.F90   : Calculates optical depths and Planck fractions for 
                            each spectral band
    rrtmg_sw_vrtqdr.F90   : Performs two-stream vertical quadrature 
+
+
+Notes regarding GCM version:
+1) RRTMG_SW_INIT is an initialization routine that has to be called only once.
+The call to this routine currently in RRTMG_SW_112 should be moved to the GCM
+initialization area if this code is used in a GCM. 
+2) JPLAY (number of layers) is currently set to 203, the maximum number of 
+allowable layers.  For use in a GCM or SCM, this should be set to the actual
+number of model layers. 

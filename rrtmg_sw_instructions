@@ -43,10 +43,10 @@
  
 	  IAER   (0,10)   flag for aerosols
                   = 0   no layers contain aerosols
-                  = 6   uses ECMWF global mean aerosol properties for 
-                        six aerosol types.  Aerosol optical thickness, PAER,
-                        must be set manually in module rrtmg_sw_224.F90 to
-                        activate the aerosols with this option.
+                  = 6   uses ECMWF global mean aerosol properties for one or all of
+                        six aerosol types.  Aerosol optical thickness at 0.55 micron,
+                        PAER, must be set manually in main source module rrtmg_sw.F90
+                        to activate the aerosols with this option.
                   = 10  one or more layers contain aerosols
                        (requires the presence of file IN_AER_RRTM)
 

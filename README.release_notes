@@ -35,4 +35,23 @@ November 18, 2003:
 		testing in their mesoscale model (MM5) and the Weather
 		Research and Forecasting (WRF) model.
 
+April 21, 2004:
+
+	Release_2_0 - This version uses a reduced set of 112 g-points for
+                improved computational efficiency.  Other minor modifications
+                were also made to enhance performance.  The original 224
+                g-point set can be restored by swapping code in one source
+                file and two modules.  Two bug fixes were made to the source
+                file rrtmg_sw_reftra.F90 to correct the computation of
+                reflectivity and transmissivity in the presence of aerosols. 
+                This fix was accomplished by restoring the syntax in this F90 
+                version of the code to that used in the original F77 source.  
+                An additional bug fix corrects the use of the parallel and
+                direct components of the surface albedo, PALBP and PALBD.
+
+		This release was distributed to Jimy Dudhia at NCAR for
+		testing in their mesoscale model (MM5) and the Weather
+		Research and Forecasting (WRF) model, to Yu-Tai Hou (NCEP)
+                for testing in the GFS model, and to Kerry Emanuel (MIT). 
+
 

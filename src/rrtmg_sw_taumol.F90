@@ -1,7 +1,125 @@
-C     path:      $Source$
-C     author:    $Author$
-C     revision:  $Revision$
-C     created:   $Date$
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
+
+!******************************************************************************
+!                                                                             *
+!                  Optical depths developed for the                           *
+!                                                                             *
+!                RAPID RADIATIVE TRANSFER MODEL (RRTM)                        *
+!                                                                             *
+!                                                                             *
+!            ATMOSPHERIC AND ENVIRONMENTAL RESEARCH, INC.                     *
+!                        840 MEMORIAL DRIVE                                   *
+!                        CAMBRIDGE, MA 02139                                  *
+!                                                                             *
+!                                                                             *
+!                           ELI J. MLAWER                                     *
+!                         STEVEN J. TAUBMAN                                   *
+!                         SHEPARD A. CLOUGH                                   *
+!                                                                             *
+!                                                                             *
+!                                                                             *
+!                                                                             *
+!                       email:  mlawer@aer.com                                *
+!                                                                             *
+!        The authors wish to acknowledge the contributions of the             *
+!        following people:  Patrick D. Brown, Michael J. Iacono,              *
+!        Ronald E. Farren, Luke Chen, Robert Bergstrom.                       *
+!                                                                             *
+!******************************************************************************
+!     TAUMOL                                                                  *
+!                                                                             *
+!     This file contains the subroutines TAUGBn (where n goes from            *
+!     1 to 28).  TAUGBn calculates the optical depths and Planck fractions    *
+!     per g-value and layer for band n.                                       *
+!                                                                             *
+!  Output:  optical depths (unitless)                                         *
+!           fractions needed to compute Planck functions at every layer       *
+!               and g-value                                                   *
+!                                                                             *
+!     COMMON /TAUGCOM/  TAUG(MXLAY,MG)                                        *
+!     COMMON /PLANKG/   FRACS(MXLAY,MG)                                       *
+!                                                                             *
+!  Input                                                                      *
+!                                                                             *
+!     PARAMETER (MG=16, MXLAY=203, NBANDS=14)                                 *
+!                                                                             *
+!     COMMON /FEATURES/ NG(NBANDS),NSPA(NBANDS),NSPB(NBANDS)                  *
+!     COMMON /PRECISE/  ONEMINUS                                              *
+!     COMMON /PROFILE/  NLAYERS,PAVEL(MXLAY),TAVEL(MXLAY),                    *
+!    &                  PZ(0:MXLAY),TZ(0:MXLAY),TBOUND                        *
+!     COMMON /PROFDATA/ LAYTROP,LAYSWTCH,LAYLOW,                              *
+!    &                  COLH2O(MXLAY),COLCO2(MXLAY),                          *
+!    &                  COLO3(MXLAY),COLN2O(MXLAY),COLCH4(MXLAY),             *
+!    &                  COLO2(MXLAY),CO2MULT(MXLAY)                           *
+!     COMMON /INTFAC/   FAC00(MXLAY),FAC01(MXLAY),                            *
+!    &                  FAC10(MXLAY),FAC11(MXLAY)                             *
+!     COMMON /INTIND/   JP(MXLAY),JT(MXLAY),JT1(MXLAY)                        *
+!     COMMON /SELF/     SELFFAC(MXLAY), SELFFRAC(MXLAY), INDSELF(MXLAY)       *
+!                                                                             *
+!     Description:                                                            *
+!     NG(IBAND) - number of g-values in band IBAND                            *
+!     NSPA(IBAND) - for the lower atmosphere, the number of reference         *
+!                   atmospheres that are stored for band IBAND per            *
+!                   pressure level and temperature.  Each of these            *
+!                   atmospheres has different relative amounts of the         *
+!                   key species for the band (i.e. different binary           *
+!                   species parameters).                                      *
+!     NSPB(IBAND) - same for upper atmosphere                                 *
+!     ONEMINUS - since problems are caused in some cases by interpolation     *
+!                parameters equal to or greater than 1, for these cases       *
+!                these parameters are set to this value, slightly < 1.        *
+!     PAVEL - layer pressures (mb)                                            *
+!     TAVEL - layer temperatures (degrees K)                                  *
+!     PZ - level pressures (mb)                                               *
+!     TZ - level temperatures (degrees K)                                     *
+!     LAYTROP - layer at which switch is made from one combination of         *
+!               key species to another                                        *
+!     COLH2O, COLCO2, COLO3, COLN2O, COLCH4 - column amounts of water         *
+!               vapor,carbon dioxide, ozone, nitrous ozide, methane,          *
+!               respectively (molecules/cm**2)                                *
+!     CO2MULT - for bands in which carbon dioxide is implemented as a         *
+!               trace species, this is the factor used to multiply the        *
+!               band's average CO2 absorption coefficient to get the added    *
+!               contribution to the optical depth relative to 355 ppm.        *
+!     FACij(LAY) - for layer LAY, these are factors that are needed to        *
+!                  compute the interpolation factors that multiply the        *
+!                  appropriate reference k-values.  A value of 0 (1) for      *
+!                  i,j indicates that the corresponding factor multiplies     *
+!                  reference k-value for the lower (higher) of the two        *
+!                  appropriate temperatures, and altitudes, respectively.     *
+!     JP - the index of the lower (in altitude) of the two appropriate        *
+!          reference pressure levels needed for interpolation                 *
+!     JT, JT1 - the indices of the lower of the two appropriate reference     *
+!               temperatures needed for interpolation (for pressure           *
+!               levels JP and JP+1, respectively)                             *
+!     SELFFAC - scale factor needed to water vapor self-continuum, equals     *
+!               (water vapor density)/(atmospheric density at 296K and        *
+!               1013 mb)                                                      *
+!     SELFFRAC - factor needed for temperature interpolation of reference     *
+!                water vapor self-continuum data                              *
+!     INDSELF - index of the lower of the two appropriate reference           *
+!               temperatures needed for the self-continuum interpolation      *
+!                                                                             *
+!  Data input                                                                 *
+!     COMMON /Kn/ KA(NSPA(n),5,13,MG), KB(NSPB(n),5,13:59,MG), SELFREF(10,MG) *
+!        (note:  n is the band number)                                        *
+!                                                                             *
+!     Description:                                                            *
+!     KA - k-values for low reference atmospheres (no water vapor             *
+!          self-continuum) (units: cm**2/molecule)                            *
+!     KB - k-values for high reference atmospheres (all sources)              *
+!          (units: cm**2/molecule)                                            *
+!     SELFREF - k-values for water vapor self-continuum for reference         *
+!               atmospheres (used below LAYTROP)                              *
+!               (units: cm**2/molecule)                                       *
+!                                                                             *
+!     DIMENSION ABSA(65*NSPA(n),MG), ABSB(235*NSPB(n),MG)                     *
+!     EQUIVALENCE (KA,ABSA),(KB,ABSB)                                         *
+!                                                                             *
+!******************************************************************************
 
 SUBROUTINE TAUMOL16 &
   &( KLEV    &
@@ -12,29 +130,25 @@ SUBROUTINE TAUMOL16 &
   &, SFLUXZEN, TAUG    , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
 !     BAND 16:  2600-3250 cm-1 (low - H2O,CH4; high - CH4)
 
 ! Modifications
 !
 !     JJMorcrette 2003-02-24 adapted to ECMWF environment
 
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
 
 #include "tsmbkind.h"
 
-
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG16
-USE YOESRTA16, ONLY : ABSA, ABSB, FORREF, SELFREF &
-  &                 , SFLUXREF, RAYL &
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG16
+USE YOESRTA16, ONLY : ABSA, ABSB, FORREFC, SELFREFC &
+  &                 , SFLUXREFC, RAYL &
   &                 , LAYREFFR, STRRAT1
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
 IMPLICIT NONE
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG16), TAUR(JPLAY,NG16), SSA(JPLAY,NG16), SFLUXZEN(NG16)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 !     DUMMY INTEGER SCALARS
 INTEGER_M :: KLEV
@@ -67,7 +181,6 @@ REAL_B :: FAC000, FAC001, FAC010, FAC011, FAC100, FAC101,&
 
 NLAYERS = KLEV
 
-
 !     Compute the optical depth by interpolating in ln(pressure), 
 !     temperature, and appropriate species.  Below LAYTROP, the water
 !     vapor self-continuum is interpolated (in temperature) separately.  
@@ -93,12 +206,6 @@ DO LAY = 1, LAYTROP
   INDF = INDFOR(LAY)
   TAURAY = COLMOL(LAY) * RAYL
 
-!  print 9001,LAY,IND0,IND1,INDS,INDF,FAC000,FAC010,FAC100,FAC110,FAC001,FAC011,FAC101,FAC111 &
-!   &,TAURAY,SELFFAC(LAY),SELFFRAC(LAY),FORFAC(LAY),FORFRAC(LAY)
-9001 format(1x,'T16 ',5I4,13E12.3)
-
-
-!  DO IG = 1, NG(16)
   DO IG = 1, NG16
     TAUG(LAY,IG) = SPECCOMB * &
      &          (FAC000 * ABSA(IND0   ,IG) + &
@@ -110,19 +217,15 @@ DO LAY = 1, LAYTROP
      &           FAC011 * ABSA(IND1 +9,IG) + &
      &           FAC111 * ABSA(IND1+10,IG)) + &
      &           COLH2O(LAY) * &
-     &           (SELFFAC(LAY) * (SELFREF(INDS,IG) + &
+     &           (SELFFAC(LAY) * (SELFREFC(INDS,IG) + &
      &           SELFFRAC(LAY) * &
-     &           (SELFREF(INDS+1,IG) - SELFREF(INDS,IG))) + &
-     &           FORFAC(LAY) * (FORREF(INDF,IG) + &
+     &           (SELFREFC(INDS+1,IG) - SELFREFC(INDS,IG))) + &
+     &           FORFAC(LAY) * (FORREFC(INDF,IG) + &
      &           FORFRAC(LAY) * &
-     &           (FORREF(INDF+1,IG) - FORREF(INDF,IG)))) 
+     &           (FORREFC(INDF+1,IG) - FORREFC(INDF,IG)))) 
 !     &           + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
     TAUR(LAY,IG) = TAURAY
-!    print 9002,LAY,IG,ABSA(IND0,IG),ABSA(IND0+1,IG),ABSA(IND0+9,IG),ABSA(IND0+10,IG) & 
-!      &, ABSA(IND1,IG),ABSA(IND1+1,IG),ABSA(IND1+9,IG),ABSA(IND1+10,IG) & 
-!      &, SELFREF(INDS+1,IG),SELFREF(INDS,IG),FORREF(INDF+1,IG),FORREF(INDF,IG)
-9002 format(1x,'U16 ',2I3,12E12.3)
   END DO
 END DO
 
@@ -135,7 +238,6 @@ DO LAY = LAYTROP+1, NLAYERS
   IND1 = ((JP(LAY)-12)*5+(JT1(LAY)-1))*NSPB(16) + 1
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(16)
   DO IG = 1, NG16
     TAUG(LAY,IG) = COLCH4(LAY) * &
      &          (FAC00(LAY) * ABSB(IND0  ,IG) + &
@@ -144,19 +246,14 @@ DO LAY = LAYTROP+1, NLAYERS
      &           FAC11(LAY) * ABSB(IND1+1,IG)) 
 !     &           + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
-    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREF(IG) 
+    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREFC(IG) 
     TAUR(LAY,IG) = TAURAY  
   END DO
 END DO
 
-!DO LAY=1,NLAYERS
-!  print 9003,LAY,(TAUG(LAY,IG),IG=1,NG16)
-9003 format(1x,'O16 ',I3,16E13.5)
-!END DO
-
-!----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL16
+!----------------------------------------------------------------------
 
 SUBROUTINE TAUMOL17 &
   &( KLEV    &
@@ -167,22 +264,18 @@ SUBROUTINE TAUMOL17 &
   &, SFLUXZEN, TAUG   , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
 !     BAND 17:  3250-4000 cm-1 (low - H2O,CO2; high - H2O,CO2)
 
 ! Modifications
 !
 !     JJMorcrette 2003-02-24 adapted to ECMWF environment
 
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
-
 #include "tsmbkind.h"
 
 
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG17
-USE YOESRTA17, ONLY : ABSA, ABSB, FORREF, SELFREF &
-  &                 , SFLUXREF, RAYL &
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG17
+USE YOESRTA17, ONLY : ABSA, ABSB, FORREFC, SELFREFC &
+  &                 , SFLUXREFC, RAYL &
   &                 , LAYREFFR, STRRAT
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
@@ -190,7 +283,7 @@ IMPLICIT NONE
 
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG17), TAUR(JPLAY,NG17), SSA(JPLAY,NG17), SFLUXZEN(NG17)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 
 !     DUMMY INTEGER SCALARS
@@ -249,7 +342,6 @@ DO LAY = 1, LAYTROP
   INDF = INDFOR(LAY)
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(17)
   DO IG = 1, NG17
     TAUG(LAY,IG) = SPECCOMB * &
      &          (FAC000 * ABSA(IND0,IG) + &
@@ -261,12 +353,12 @@ DO LAY = 1, LAYTROP
      &           FAC011 * ABSA(IND1+9,IG) + &
      &           FAC111 * ABSA(IND1+10,IG)) + &
      &           COLH2O(LAY) * &
-     &           (SELFFAC(LAY) * (SELFREF(INDS,IG) + &
+     &           (SELFFAC(LAY) * (SELFREFC(INDS,IG) + &
      &           SELFFRAC(LAY) * &
-     &           (SELFREF(INDS+1,IG) - SELFREF(INDS,IG))) + &
-     &           FORFAC(LAY) * (FORREF(INDF,IG) + &
+     &           (SELFREFC(INDS+1,IG) - SELFREFC(INDS,IG))) + &
+     &           FORFAC(LAY) * (FORREFC(INDF,IG) + &
      &           FORFRAC(LAY) * &
-     &           (FORREF(INDF+1,IG) - FORREF(INDF,IG)))) 
+     &           (FORREFC(INDF+1,IG) - FORREFC(INDF,IG)))) 
 !     &           + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
     TAUR(LAY,IG) = TAURAY
@@ -297,7 +389,6 @@ DO LAY = LAYTROP+1, NLAYERS
   INDF = INDFOR(LAY)
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(17)
   DO IG = 1, NG17
     TAUG(LAY,IG) = SPECCOMB * &
      &          (FAC000 * ABSB(IND0,IG) + &
@@ -309,20 +400,20 @@ DO LAY = LAYTROP+1, NLAYERS
      &           FAC011 * ABSB(IND1+5,IG) + &
      &           FAC111 * ABSB(IND1+6,IG)) + &
      &           COLH2O(LAY) * &
-     &           FORFAC(LAY) * (FORREF(INDF,IG) + &
+     &           FORFAC(LAY) * (FORREFC(INDF,IG) + &
      &           FORFRAC(LAY) * &
-     &           (FORREF(INDF+1,IG) - FORREF(INDF,IG))) 
+     &           (FORREFC(INDF+1,IG) - FORREFC(INDF,IG))) 
 !     &           + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
-    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREF(IG,JS) &
-     &           + FS * (SFLUXREF(IG,JS+1) - SFLUXREF(IG,JS))
+    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREFC(IG,JS) &
+     &           + FS * (SFLUXREFC(IG,JS+1) - SFLUXREFC(IG,JS))
     TAUR(LAY,IG) = TAURAY
   END DO
 END DO
 
-!-----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL17
+!-----------------------------------------------------------------------
 
 SUBROUTINE TAUMOL18 &
   &( KLEV    &
@@ -333,15 +424,13 @@ SUBROUTINE TAUMOL18 &
   &, SFLUXZEN, TAUG   , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
 !     BAND 18:  4000-4650 cm-1 (low - H2O,CH4; high - CH4)
 
 #include "tsmbkind.h"
 
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG18
-USE YOESRTA18, ONLY : ABSA, ABSB, FORREF, SELFREF &
-  &                 , SFLUXREF, RAYL &
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG18
+USE YOESRTA18, ONLY : ABSA, ABSB, FORREFC, SELFREFC &
+  &                 , SFLUXREFC, RAYL &
   &                 , LAYREFFR, STRRAT
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
@@ -349,7 +438,7 @@ IMPLICIT NONE
 
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG18), TAUR(JPLAY,NG18), SSA(JPLAY,NG18), SFLUXZEN(NG18)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 
 !     DUMMY INTEGER SCALARS
@@ -412,7 +501,6 @@ DO LAY = 1, LAYTROP
   INDF = INDFOR(LAY)
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(18)
   DO IG = 1, NG18
     TAUG(LAY,IG) = SPECCOMB * &
      &          (FAC000 * ABSA(IND0,IG) + &
@@ -424,16 +512,16 @@ DO LAY = 1, LAYTROP
      &           FAC011 * ABSA(IND1+9,IG) + &
      &           FAC111 * ABSA(IND1+10,IG)) + &
      &           COLH2O(LAY) * &
-     &           (SELFFAC(LAY) * (SELFREF(INDS,IG) + &
+     &           (SELFFAC(LAY) * (SELFREFC(INDS,IG) + &
      &           SELFFRAC(LAY) * &
-     &           (SELFREF(INDS+1,IG) - SELFREF(INDS,IG))) + &
-     &           FORFAC(LAY) * (FORREF(INDF,IG) + &
+     &           (SELFREFC(INDS+1,IG) - SELFREFC(INDS,IG))) + &
+     &           FORFAC(LAY) * (FORREFC(INDF,IG) + &
      &           FORFRAC(LAY) * &
-     &           (FORREF(INDF+1,IG) - FORREF(INDF,IG)))) 
+     &           (FORREFC(INDF+1,IG) - FORREFC(INDF,IG)))) 
 !     &           + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
-    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREF(IG,JS)  &
-     &           + FS * (SFLUXREF(IG,JS+1) - SFLUXREF(IG,JS))
+    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREFC(IG,JS)  &
+     &           + FS * (SFLUXREFC(IG,JS+1) - SFLUXREFC(IG,JS))
     TAUR(LAY,IG) = TAURAY
   END DO
 END DO
@@ -443,7 +531,6 @@ DO LAY = LAYTROP+1, NLAYERS
   IND1 = ((JP(LAY)-12)*5+(JT1(LAY)-1))*NSPB(18) + 1
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(18)
   DO IG = 1, NG18
     TAUG(LAY,IG) = COLCH4(LAY) * &
      &          (FAC00(LAY) * ABSB(IND0,IG) + &
@@ -456,9 +543,9 @@ DO LAY = LAYTROP+1, NLAYERS
   END DO
 END DO
 
-!-----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL18
+!-----------------------------------------------------------------------
 
 SUBROUTINE TAUMOL19 &
   &( KLEV    &
@@ -469,22 +556,18 @@ SUBROUTINE TAUMOL19 &
   &, SFLUXZEN, TAUG   , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
-
 !     BAND 19:  4650-5150 cm-1 (low - H2O,CO2; high - CO2)
 
 ! Modifications
 !
 !     JJMorcrette 2003-02-24 adapted to ECMWF environment
 
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
 
 #include "tsmbkind.h"
 
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG19
-USE YOESRTA19, ONLY : ABSA, ABSB, FORREF, SELFREF &
-  &                 , SFLUXREF, RAYL &
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG19
+USE YOESRTA19, ONLY : ABSA, ABSB, FORREFC, SELFREFC &
+  &                 , SFLUXREFC, RAYL &
   &                 , LAYREFFR, STRRAT
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
@@ -492,7 +575,7 @@ IMPLICIT NONE
 
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG19), TAUR(JPLAY,NG19), SSA(JPLAY,NG19), SFLUXZEN(NG19)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 
 !     DUMMY INTEGER SCALARS
@@ -556,7 +639,6 @@ DO LAY = 1, LAYTROP
   INDF = INDFOR(LAY)
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(19)
   DO IG = 1 , NG19
     TAUG(LAY,IG) = SPECCOMB * &
      &          (FAC000 * ABSA(IND0,IG) + &
@@ -568,16 +650,16 @@ DO LAY = 1, LAYTROP
      &           FAC011 * ABSA(IND1+9,IG) + &
      &           FAC111 * ABSA(IND1+10,IG)) + &
      &           COLH2O(LAY) * &
-     &           (SELFFAC(LAY) * (SELFREF(INDS,IG) + &
+     &           (SELFFAC(LAY) * (SELFREFC(INDS,IG) + &
      &           SELFFRAC(LAY) * &
-     &           (SELFREF(INDS+1,IG) - SELFREF(INDS,IG))) + & 
-     &           FORFAC(LAY) * (FORREF(INDF,IG) + &
+     &           (SELFREFC(INDS+1,IG) - SELFREFC(INDS,IG))) + & 
+     &           FORFAC(LAY) * (FORREFC(INDF,IG) + &
      &           FORFRAC(LAY) * &
-     &           (FORREF(INDF+1,IG) - FORREF(INDF,IG)))) 
+     &           (FORREFC(INDF+1,IG) - FORREFC(INDF,IG)))) 
 !     &           + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
-    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREF(IG,JS) &
-     &           + FS * (SFLUXREF(IG,JS+1) - SFLUXREF(IG,JS))
+    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREFC(IG,JS) &
+     &           + FS * (SFLUXREFC(IG,JS+1) - SFLUXREFC(IG,JS))
     TAUR(LAY,IG) = TAURAY   
   END DO
 END DO
@@ -587,7 +669,6 @@ DO LAY = LAYTROP+1, NLAYERS
   IND1 = ((JP(LAY)-12)*5+(JT1(LAY)-1))*NSPB(19) + 1
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(19)
   DO IG = 1 , NG19
     TAUG(LAY,IG) = COLCO2(LAY) * &
      &          (FAC00(LAY) * ABSB(IND0,IG) + &
@@ -600,9 +681,9 @@ DO LAY = LAYTROP+1, NLAYERS
   END DO
 END DO
 
-!-----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL19
+!-----------------------------------------------------------------------
 
 SUBROUTINE TAUMOL20 &
   &( KLEV    &
@@ -613,23 +694,18 @@ SUBROUTINE TAUMOL20 &
   &, SFLUXZEN, TAUG   , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
-
 !     BAND 20:  5150-6150 cm-1 (low - H2O; high - H2O)
-
 
 ! Modifications
 !
 !     JJMorcrette 2003-02-24 adapted to ECMWF environment
 
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
 
 #include "tsmbkind.h"
 
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG20
-USE YOESRTA20, ONLY : ABSA, ABSB, FORREF, SELFREF &
-  &                 , SFLUXREF, ABSCH4, RAYL &
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG20
+USE YOESRTA20, ONLY : ABSA, ABSB, FORREFC, SELFREFC &
+  &                 , SFLUXREFC, ABSCH4C, RAYL &
   &                 , LAYREFFR
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
@@ -637,7 +713,7 @@ IMPLICIT NONE
 
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG20), TAUR(JPLAY,NG20), SSA(JPLAY,NG20), SFLUXZEN(NG20)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 
 !     DUMMY INTEGER SCALARS
@@ -671,8 +747,6 @@ REAL_B :: FAC000, FAC001, FAC010, FAC011, FAC100, FAC101,&
 
 NLAYERS = KLEV
 
-
-
 !     Compute the optical depth by interpolating in ln(pressure), 
 !     temperature, and appropriate species.  Below LAYTROP, the water
 !     vapor self-continuum is interpolated (in temperature) separately.  
@@ -688,24 +762,23 @@ DO LAY = 1, LAYTROP
   INDF = INDFOR(LAY)
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(20)
   DO IG = 1 , NG20
     TAUG(LAY,IG) = COLH2O(LAY) * &
      &          ((FAC00(LAY) * ABSA(IND0,IG) + &
      &           FAC10(LAY) * ABSA(IND0+1,IG) + &
      &           FAC01(LAY) * ABSA(IND1,IG) + &
      &           FAC11(LAY) * ABSA(IND1+1,IG)) + &
-     &           SELFFAC(LAY) * (SELFREF(INDS,IG) + & 
+     &           SELFFAC(LAY) * (SELFREFC(INDS,IG) + & 
      &           SELFFRAC(LAY) * &
-     &           (SELFREF(INDS+1,IG) - SELFREF(INDS,IG))) + &
-     &           FORFAC(LAY) * (FORREF(INDF,IG) + &
+     &           (SELFREFC(INDS+1,IG) - SELFREFC(INDS,IG))) + &
+     &           FORFAC(LAY) * (FORREFC(INDF,IG) + &
      &           FORFRAC(LAY) * &
-     &           (FORREF(INDF+1,IG) - FORREF(INDF,IG)))) &
-     &           + COLCH4(LAY) * ABSCH4(IG)
+     &           (FORREFC(INDF+1,IG) - FORREFC(INDF,IG)))) &
+     &           + COLCH4(LAY) * ABSCH4C(IG)
 !     &           + TAURAY &
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
     TAUR(LAY,IG) = TAURAY 
-    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREF(IG) 
+    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREFC(IG) 
   END DO
 END DO
 
@@ -715,26 +788,25 @@ DO LAY = LAYTROP+1, NLAYERS
   INDF = INDFOR(LAY)
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(20)
   DO IG = 1 , NG20
     TAUG(LAY,IG) = COLH2O(LAY) * &
      &          (FAC00(LAY) * ABSB(IND0,IG) + &
      &           FAC10(LAY) * ABSB(IND0+1,IG) + &
      &           FAC01(LAY) * ABSB(IND1,IG) + &
      &           FAC11(LAY) * ABSB(IND1+1,IG) + &
-     &           FORFAC(LAY) * (FORREF(INDF,IG) + &
+     &           FORFAC(LAY) * (FORREFC(INDF,IG) + &
      &           FORFRAC(LAY) * &
-     &           (FORREF(INDF+1,IG) - FORREF(INDF,IG)))) + &
-     &           COLCH4(LAY) * ABSCH4(IG)
+     &           (FORREFC(INDF+1,IG) - FORREFC(INDF,IG)))) + &
+     &           COLCH4(LAY) * ABSCH4C(IG)
 !     &           TAURAY + &
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
     TAUR(LAY,IG) = TAURAY 
   END DO
 END DO
 
-!-----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL20
+!-----------------------------------------------------------------------
 
 SUBROUTINE TAUMOL21 &
   &( KLEV    &
@@ -745,22 +817,18 @@ SUBROUTINE TAUMOL21 &
   &, SFLUXZEN, TAUG   , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
 !     BAND 21:  6150-7700 cm-1 (low - H2O,CO2; high - H2O,CO2)
 
 ! Modifications
 !
 !     JJMorcrette 2003-02-24 adapted to ECMWF environment
 
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
-
 
 #include "tsmbkind.h"
 
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG21
-USE YOESRTA21, ONLY : ABSA, ABSB, FORREF, SELFREF &
-  &                 , SFLUXREF, RAYL &
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG21
+USE YOESRTA21, ONLY : ABSA, ABSB, FORREFC, SELFREFC &
+  &                 , SFLUXREFC, RAYL &
   &                 , LAYREFFR, STRRAT
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
@@ -768,7 +836,7 @@ IMPLICIT NONE
 
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG21), TAUR(JPLAY,NG21), SSA(JPLAY,NG21), SFLUXZEN(NG21)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 
 !     DUMMY INTEGER SCALARS
@@ -802,8 +870,6 @@ REAL_B :: FAC000, FAC001, FAC010, FAC011, FAC100, FAC101,&
 
 NLAYERS = KLEV
 
-
-
 !     Compute the optical depth by interpolating in ln(pressure), 
 !     temperature, and appropriate species.  Below LAYTROP, the water
 !     vapor self-continuum is interpolated (in temperature) separately.  
@@ -832,7 +898,6 @@ DO LAY = 1, LAYTROP
   INDF = INDFOR(LAY)
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(21)
   DO IG = 1 , NG21
     TAUG(LAY,IG) = SPECCOMB * &
      &          (FAC000 * ABSA(IND0,IG) + &
@@ -844,16 +909,16 @@ DO LAY = 1, LAYTROP
      &           FAC011 * ABSA(IND1+9,IG) + &
      &           FAC111 * ABSA(IND1+10,IG)) + &
      &           COLH2O(LAY) * &
-     &           (SELFFAC(LAY) * (SELFREF(INDS,IG) + &
+     &           (SELFFAC(LAY) * (SELFREFC(INDS,IG) + &
      &           SELFFRAC(LAY) * &
-     &           (SELFREF(INDS+1,IG) - SELFREF(INDS,IG))) + &
-     &           FORFAC(LAY) * (FORREF(INDF,IG) + &
+     &           (SELFREFC(INDS+1,IG) - SELFREFC(INDS,IG))) + &
+     &           FORFAC(LAY) * (FORREFC(INDF,IG) + &
      &           FORFRAC(LAY) * &
-     &           (FORREF(INDF+1,IG) - FORREF(INDF,IG))))
+     &           (FORREFC(INDF+1,IG) - FORREFC(INDF,IG))))
 !     &           + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
-    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREF(IG,JS) &
-     &           + FS * (SFLUXREF(IG,JS+1) - SFLUXREF(IG,JS))
+    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREFC(IG,JS) &
+     &           + FS * (SFLUXREFC(IG,JS+1) - SFLUXREFC(IG,JS))
     TAUR(LAY,IG) = TAURAY
   END DO
 END DO
@@ -878,7 +943,6 @@ DO LAY = LAYTROP+1, NLAYERS
   INDF = INDFOR(LAY)
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(21)
   DO IG = 1 , NG21
     TAUG(LAY,IG) = SPECCOMB * &
      &          (FAC000 * ABSB(IND0,IG) + &
@@ -890,18 +954,18 @@ DO LAY = LAYTROP+1, NLAYERS
      &           FAC011 * ABSB(IND1+5,IG) + &
      &           FAC111 * ABSB(IND1+6,IG)) + &
      &           COLH2O(LAY) * &
-     &           FORFAC(LAY) * (FORREF(INDF,IG) + &
+     &           FORFAC(LAY) * (FORREFC(INDF,IG) + &
      &           FORFRAC(LAY) * &
-     &           (FORREF(INDF+1,IG) - FORREF(INDF,IG)))
+     &           (FORREFC(INDF+1,IG) - FORREFC(INDF,IG)))
 !     &           + TAURAY 
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
     TAUR(LAY,IG) = TAURAY
   END DO
 END DO
 
-!-----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL21
+!-----------------------------------------------------------------------
 
 SUBROUTINE TAUMOL22 &
   &( KLEV    &
@@ -912,21 +976,18 @@ SUBROUTINE TAUMOL22 &
   &, SFLUXZEN, TAUG   , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
 !     BAND 22:  7700-8050 cm-1 (low - H2O,O2; high - O2)
 
 ! Modifications
 !
 !     JJMorcrette 2003-02-24 adapted to ECMWF environment
 
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
 
 #include "tsmbkind.h"
 
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG22
-USE YOESRTA22, ONLY : ABSA, ABSB, FORREF, SELFREF &
-  &                 , SFLUXREF, RAYL &
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG22
+USE YOESRTA22, ONLY : ABSA, ABSB, FORREFC, SELFREFC &
+  &                 , SFLUXREFC, RAYL &
   &                 , LAYREFFR, STRRAT
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
@@ -934,7 +995,7 @@ IMPLICIT NONE
 
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG22), TAUR(JPLAY,NG22), SSA(JPLAY,NG22), SFLUXZEN(NG22)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 
 !     DUMMY INTEGER SCALARS
@@ -967,8 +1028,6 @@ REAL_B :: FAC000, FAC001, FAC010, FAC011, FAC100, FAC101,&
         & TAURAY, O2ADJ , O2CONT
 
 NLAYERS = KLEV
-
-
 
 !     The following factor is the ratio of total O2 band intensity (lines 
 !     and Mate continuum) to O2 band intensity (line only).  It is needed
@@ -1006,7 +1065,6 @@ DO LAY = 1, LAYTROP
   INDF = INDFOR(LAY)
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(22)
   DO IG = 1 , NG22
     TAUG(LAY,IG) = SPECCOMB * &
      &          (FAC000 * ABSA(IND0,IG) + &
@@ -1018,17 +1076,17 @@ DO LAY = 1, LAYTROP
      &           FAC011 * ABSA(IND1+9,IG) + &
      &           FAC111 * ABSA(IND1+10,IG)) + &
      &           COLH2O(LAY) * &
-     &           (SELFFAC(LAY) * (SELFREF(INDS,IG) + &
+     &           (SELFFAC(LAY) * (SELFREFC(INDS,IG) + &
      &           SELFFRAC(LAY) * &
-     &           (SELFREF(INDS+1,IG) - SELFREF(INDS,IG))) + &
-     &           FORFAC(LAY) * (FORREF(INDF,IG) + &
+     &           (SELFREFC(INDS+1,IG) - SELFREFC(INDS,IG))) + &
+     &           FORFAC(LAY) * (FORREFC(INDF,IG) + &
      &           FORFRAC(LAY) * &
-     &           (FORREF(INDF+1,IG) - FORREF(INDF,IG)))) &
+     &           (FORREFC(INDF+1,IG) - FORREFC(INDF,IG)))) &
      &           + O2CONT
 !     &          + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
-    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREF(IG,JS) &
-     &           + FS * (SFLUXREF(IG,JS+1) - SFLUXREF(IG,JS))
+    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREFC(IG,JS) &
+     &           + FS * (SFLUXREFC(IG,JS+1) - SFLUXREFC(IG,JS))
     TAUR(LAY,IG) = TAURAY
   END DO
 END DO
@@ -1039,7 +1097,6 @@ DO LAY = LAYTROP+1, NLAYERS
   IND1 = ((JP(LAY)-12)*5+(JT1(LAY)-1))*NSPB(22) + 1
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(22)
   DO IG = 1 , NG22
     TAUG(LAY,IG) = COLO2(LAY) * O2ADJ * &
      &          (FAC00(LAY) * ABSB(IND0,IG) + &
@@ -1053,9 +1110,9 @@ DO LAY = LAYTROP+1, NLAYERS
   END DO
 END DO
 
-!-----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL22
+!-----------------------------------------------------------------------
 
 SUBROUTINE TAUMOL23 &
   &( KLEV    &
@@ -1066,21 +1123,18 @@ SUBROUTINE TAUMOL23 &
   &, SFLUXZEN, TAUG   , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
 !     BAND 23:  8050-12850 cm-1 (low - H2O; high - nothing)
 
 ! Modifications
 !
 !     JJMorcrette 2003-02-24 adapted to ECMWF environment
 
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
 
 #include "tsmbkind.h"
 
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG23
-USE YOESRTA23, ONLY : ABSA, FORREF, SELFREF &
-  &                 , SFLUXREF, RAYL &
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG23
+USE YOESRTA23, ONLY : ABSA, FORREFC, SELFREFC &
+  &                 , SFLUXREFC, RAYLC &
   &                 , LAYREFFR, GIVFAC 
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
@@ -1088,7 +1142,7 @@ IMPLICIT NONE
 
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG23), TAUR(JPLAY,NG23), SSA(JPLAY,NG23), SFLUXZEN(NG23)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 
 !     DUMMY INTEGER SCALARS
@@ -1122,8 +1176,6 @@ REAL_B :: FAC000, FAC001, FAC010, FAC011, FAC100, FAC101,&
 
 NLAYERS = KLEV
 
-
-
 !     Compute the optical depth by interpolating in ln(pressure), 
 !     temperature, and appropriate species.  Below LAYTROP, the water
 !     vapor self-continuum is interpolated (in temperature) separately.  
@@ -1138,40 +1190,38 @@ DO LAY = 1, LAYTROP
   INDS = INDSELF(LAY)
   INDF = INDFOR(LAY)
 
-!  DO IG = 1, NG(23)
   DO IG = 1 , NG23
-    TAURAY = COLMOL(LAY) * RAYL(IG)
+    TAURAY = COLMOL(LAY) * RAYLC(IG)
     TAUG(LAY,IG) = COLH2O(LAY) * &
      &          (GIVFAC * (FAC00(LAY) * ABSA(IND0,IG) + &
      &           FAC10(LAY) * ABSA(IND0+1,IG) + &
      &           FAC01(LAY) * ABSA(IND1,IG) + &
      &           FAC11(LAY) * ABSA(IND1+1,IG)) + &
-     &           SELFFAC(LAY) * (SELFREF(INDS,IG) + &
+     &           SELFFAC(LAY) * (SELFREFC(INDS,IG) + &
      &           SELFFRAC(LAY) * &
-     &           (SELFREF(INDS+1,IG) - SELFREF(INDS,IG))) + &
-     &           FORFAC(LAY) * (FORREF(INDF,IG) + &
+     &           (SELFREFC(INDS+1,IG) - SELFREFC(INDS,IG))) + &
+     &           FORFAC(LAY) * (FORREFC(INDF,IG) + &
      &           FORFRAC(LAY) * &
-     &           (FORREF(INDF+1,IG) - FORREF(INDF,IG)))) 
+     &           (FORREFC(INDF+1,IG) - FORREFC(INDF,IG)))) 
 !     &          + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
-    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREF(IG) 
+    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREFC(IG) 
     TAUR(LAY,IG) = TAURAY
   END DO
 END DO
 
 DO LAY = LAYTROP+1, NLAYERS
-!  DO IG = 1, NG(23)
   DO IG = 1 , NG23
-!    TAUG(LAY,IG) = COLMOL(LAY) * RAYL(IG)
+!    TAUG(LAY,IG) = COLMOL(LAY) * RAYLC(IG)
 !    SSA(LAY,IG) = 1.0
     TAUG(LAY,IG) = _ZERO_
-    TAUR(LAY,IG) = COLMOL(LAY) * RAYL(IG) 
+    TAUR(LAY,IG) = COLMOL(LAY) * RAYLC(IG) 
   END DO
 END DO
 
-!-----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL23
+!-----------------------------------------------------------------------
 
 SUBROUTINE TAUMOL24 &
   &( KLEV    &
@@ -1182,21 +1232,18 @@ SUBROUTINE TAUMOL24 &
   &, SFLUXZEN, TAUG   , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
 !     BAND 24:  12850-16000 cm-1 (low - H2O,O2; high - O2)
 
 ! Modifications
 !
 !     JJMorcrette 2003-02-24 adapted to ECMWF environment
 
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
 
 #include "tsmbkind.h"
 
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG24
-USE YOESRTA24, ONLY : ABSA, ABSB, FORREF, SELFREF &
-  &                 , SFLUXREF, ABSO3A, ABSO3B, RAYLA, RAYLB &
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG24
+USE YOESRTA24, ONLY : ABSA, ABSB, FORREFC, SELFREFC &
+  &                 , SFLUXREFC, ABSO3AC, ABSO3BC, RAYLAC, RAYLBC &
   &                 , LAYREFFR, STRRAT
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
@@ -1204,7 +1251,7 @@ IMPLICIT NONE
 
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG24), TAUR(JPLAY,NG24), SSA(JPLAY,NG24), SFLUXZEN(NG24)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 
 !     DUMMY INTEGER SCALARS
@@ -1238,7 +1285,6 @@ REAL_B :: FAC000, FAC001, FAC010, FAC011, FAC100, FAC101,&
 
 NLAYERS = KLEV
 
-
 !     Compute the optical depth by interpolating in ln(pressure), 
 !     temperature, and appropriate species.  Below LAYTROP, the water
 !     vapor self-continuum is interpolated (in temperature) separately.  
@@ -1267,10 +1313,9 @@ DO LAY = 1, LAYTROP
   INDS = INDSELF(LAY)
   INDF = INDFOR(LAY)
 
-!  DO IG = 1, NG(24)
   DO IG = 1 , NG24
-    TAURAY = COLMOL(LAY) * (RAYLA(IG,JS) + &
-     &           FS * (RAYLA(IG,JS+1) - RAYLA(IG,JS)))
+    TAURAY = COLMOL(LAY) * (RAYLAC(IG,JS) + &
+     &           FS * (RAYLAC(IG,JS+1) - RAYLAC(IG,JS)))
     TAUG(LAY,IG) = SPECCOMB * &
      &          (FAC000 * ABSA(IND0,IG) + &
      &           FAC100 * ABSA(IND0+1,IG) + &
@@ -1280,18 +1325,18 @@ DO LAY = 1, LAYTROP
      &           FAC101 * ABSA(IND1+1,IG) + &
      &           FAC011 * ABSA(IND1+9,IG) + &
      &           FAC111 * ABSA(IND1+10,IG)) + &
-     &           COLO3(LAY) * ABSO3A(IG) + &
+     &           COLO3(LAY) * ABSO3AC(IG) + &
      &           COLH2O(LAY) * & 
-     &           (SELFFAC(LAY) * (SELFREF(INDS,IG) + &
+     &           (SELFFAC(LAY) * (SELFREFC(INDS,IG) + &
      &           SELFFRAC(LAY) * &
-     &           (SELFREF(INDS+1,IG) - SELFREF(INDS,IG))) + &
-     &           FORFAC(LAY) * (FORREF(INDF,IG) + & 
+     &           (SELFREFC(INDS+1,IG) - SELFREFC(INDS,IG))) + &
+     &           FORFAC(LAY) * (FORREFC(INDF,IG) + & 
      &           FORFRAC(LAY) * &
-     &           (FORREF(INDF+1,IG) - FORREF(INDF,IG))))
+     &           (FORREFC(INDF+1,IG) - FORREFC(INDF,IG))))
 !     &           + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
-    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREF(IG,JS) &
-     &           + FS * (SFLUXREF(IG,JS+1) - SFLUXREF(IG,JS))
+    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREFC(IG,JS) &
+     &           + FS * (SFLUXREFC(IG,JS+1) - SFLUXREFC(IG,JS))
     TAUR(LAY,IG) =  TAURAY
   END DO
 END DO
@@ -1300,24 +1345,23 @@ DO LAY = LAYTROP+1, NLAYERS
   IND0 = ((JP(LAY)-13)*5+(JT(LAY)-1))*NSPB(24) + 1
   IND1 = ((JP(LAY)-12)*5+(JT1(LAY)-1))*NSPB(24) + 1
 
-!  DO IG = 1, NG(24)
   DO IG = 1 , NG24
-    TAURAY = COLMOL(LAY) * RAYLB(IG)
+    TAURAY = COLMOL(LAY) * RAYLBC(IG)
     TAUG(LAY,IG) = COLO2(LAY) * &
      &          (FAC00(LAY) * ABSB(IND0,IG) + &
      &           FAC10(LAY) * ABSB(IND0+1,IG) + &
      &           FAC01(LAY) * ABSB(IND1,IG) + &
      &           FAC11(LAY) * ABSB(IND1+1,IG)) + &
-     &           COLO3(LAY) * ABSO3B(IG)
+     &           COLO3(LAY) * ABSO3BC(IG)
 !     &          + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
     TAUR(LAY,IG) = TAURAY
   END DO
 END DO
 
-!-----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL24
+!-----------------------------------------------------------------------
 
 SUBROUTINE TAUMOL25 &
   &( KLEV    &
@@ -1328,23 +1372,18 @@ SUBROUTINE TAUMOL25 &
   &, SFLUXZEN, TAUG   , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
 !     BAND 25:  16000-22650 cm-1 (low - H2O; high - nothing)
-
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
 
 ! Modifications
 !
 !     JJMorcrette 2003-02-24 adapted to ECMWF environment
 
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
 
 #include "tsmbkind.h"
 
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG25
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG25
 USE YOESRTA25, ONLY : ABSA &
-  &                 , SFLUXREF, ABSO3A, ABSO3B, RAYL &
+  &                 , SFLUXREFC, ABSO3AC, ABSO3BC, RAYLC &
   &                 , LAYREFFR
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
@@ -1352,7 +1391,7 @@ IMPLICIT NONE
 
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG25), TAUR(JPLAY,NG25), SSA(JPLAY,NG25), SFLUXZEN(NG25)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 
 !     DUMMY INTEGER SCALARS
@@ -1386,8 +1425,6 @@ REAL_B :: FAC000, FAC001, FAC010, FAC011, FAC100, FAC101,&
 
 NLAYERS = KLEV
 
-
-
 !     Compute the optical depth by interpolating in ln(pressure), 
 !     temperature, and appropriate species.  Below LAYTROP, the water
 !     vapor self-continuum is interpolated (in temperature) separately.  
@@ -1400,36 +1437,34 @@ DO LAY = 1, LAYTROP
   IND0 = ((JP(LAY)-1)*5+(JT(LAY)-1))*NSPA(25) + 1
   IND1 = (JP(LAY)*5+(JT1(LAY)-1))*NSPA(25) + 1
 
-!  DO IG = 1, NG(25)
   DO IG = 1 , NG25
-    TAURAY = COLMOL(LAY) * RAYL(IG)
+    TAURAY = COLMOL(LAY) * RAYLC(IG)
     TAUG(LAY,IG) = COLH2O(LAY) * &
      &          (FAC00(LAY) * ABSA(IND0,IG) + &
      &           FAC10(LAY) * ABSA(IND0+1,IG) + &
      &           FAC01(LAY) * ABSA(IND1,IG) + &
      &           FAC11(LAY) * ABSA(IND1+1,IG)) + &
-     &           COLO3(LAY) * ABSO3A(IG) 
+     &           COLO3(LAY) * ABSO3AC(IG) 
 !     &          + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
-    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREF(IG) 
+    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREFC(IG) 
     TAUR(LAY,IG) = TAURAY
   END DO
 END DO
 
 DO LAY = LAYTROP+1, NLAYERS
-!  DO IG = 1, NG(25)
   DO IG = 1 , NG25
-    TAURAY = COLMOL(LAY) * RAYL(IG)
-    TAUG(LAY,IG) = COLO3(LAY) * ABSO3B(IG) 
+    TAURAY = COLMOL(LAY) * RAYLC(IG)
+    TAUG(LAY,IG) = COLO3(LAY) * ABSO3BC(IG) 
 !     &          + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
     TAUR(LAY,IG) = TAURAY
   END DO
 END DO
 
-!-----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL25
+!-----------------------------------------------------------------------
 
 SUBROUTINE TAUMOL26 &
   &( KLEV    &
@@ -1440,27 +1475,24 @@ SUBROUTINE TAUMOL26 &
   &, SFLUXZEN, TAUG   , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
 !     BAND 26:  22650-29000 cm-1 (low - nothing; high - nothing)
-
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
 
 ! Modifications
 !
 !     JJMorcrette 2003-02-24 adapted to ECMWF environment
 
+
 #include "tsmbkind.h"
 
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG26
-USE YOESRTA26, ONLY : SFLUXREF, RAYL
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG26
+USE YOESRTA26, ONLY : SFLUXREFC, RAYLC
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
 IMPLICIT NONE
 
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG26), TAUR(JPLAY,NG26), SSA(JPLAY,NG26), SFLUXZEN(NG26)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 
 !     DUMMY INTEGER SCALARS
@@ -1497,37 +1529,33 @@ REAL_B :: FAC000, FAC001, FAC010, FAC011, FAC100, FAC101,&
 
 NLAYERS = KLEV
 
-
-
 !     Compute the optical depth by interpolating in ln(pressure), 
 !     temperature, and appropriate species.  Below LAYTROP, the water
 !     vapor self-continuum is interpolated (in temperature) separately.  
 LAYSOLFR = LAYTROP
 
 DO LAY = 1, LAYTROP
-!  DO IG = 1, NG(26)
   DO IG = 1 , NG26 
-!    TAUG(LAY,IG) = COLMOL(LAY) * RAYL(IG)
+!    TAUG(LAY,IG) = COLMOL(LAY) * RAYLC(IG)
 !    SSA(LAY,IG) = 1.0
-    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREF(IG) 
+    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREFC(IG) 
     TAUG(LAY,IG) = _ZERO_
-    TAUR(LAY,IG) = COLMOL(LAY) * RAYL(IG) 
+    TAUR(LAY,IG) = COLMOL(LAY) * RAYLC(IG) 
   END DO
 END DO
 
 DO LAY = LAYTROP+1, NLAYERS
-!  DO IG = 1, NG(26)
   DO IG = 1 , NG26
-!    TAUG(LAY,IG) = COLMOL(LAY) * RAYL(IG)
+!    TAUG(LAY,IG) = COLMOL(LAY) * RAYLC(IG)
 !    SSA(LAY,IG) = 1.0
     TAUG(LAY,IG) = _ZERO_
-    TAUR(LAY,IG) = COLMOL(LAY) * RAYL(IG) 
+    TAUR(LAY,IG) = COLMOL(LAY) * RAYLC(IG) 
   END DO
 END DO
 
-!-----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL26
+!-----------------------------------------------------------------------
 
 SUBROUTINE TAUMOL27 &
   &( KLEV    &
@@ -1538,21 +1566,18 @@ SUBROUTINE TAUMOL27 &
   &, SFLUXZEN, TAUG   , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
 !     BAND 27:  29000-38000 cm-1 (low - O3; high - O3)
 
 ! Modifications
 !
 !     JJMorcrette 2003-02-24 adapted to ECMWF environment
 
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
 
 #include "tsmbkind.h"
 
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG27
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG27
 USE YOESRTA27, ONLY : ABSA, ABSB &
-  &                 , SFLUXREF, RAYL &
+  &                 , SFLUXREFC, RAYLC &
   &                 , LAYREFFR, SCALEKUR
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
@@ -1560,7 +1585,7 @@ IMPLICIT NONE
 
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG27), TAUR(JPLAY,NG27), SSA(JPLAY,NG27), SFLUXZEN(NG27)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 
 !     DUMMY INTEGER SCALARS
@@ -1594,8 +1619,6 @@ REAL_B :: FAC000, FAC001, FAC010, FAC011, FAC100, FAC101,&
 
 NLAYERS = KLEV
 
-
-
 !     Compute the optical depth by interpolating in ln(pressure), 
 !     temperature, and appropriate species.  Below LAYTROP, the water
 !     vapor self-continuum is interpolated (in temperature) separately.  
@@ -1603,9 +1626,8 @@ DO LAY = 1, LAYTROP
   IND0 = ((JP(LAY)-1)*5+(JT(LAY)-1))*NSPA(27) + 1
   IND1 = (JP(LAY)*5+(JT1(LAY)-1))*NSPA(27) + 1
 
-!  DO IG = 1, NG(27)
   DO IG = 1 , NG27
-    TAURAY = COLMOL(LAY) * RAYL(IG)
+    TAURAY = COLMOL(LAY) * RAYLC(IG)
     TAUG(LAY,IG) = COLO3(LAY) * &
      &          (FAC00(LAY) * ABSA(IND0,IG) + &
      &           FAC10(LAY) * ABSA(IND0+1,IG) + &
@@ -1625,9 +1647,8 @@ DO LAY = LAYTROP+1, NLAYERS
   IND0 = ((JP(LAY)-13)*5+(JT(LAY)-1))*NSPB(27) + 1
   IND1 = ((JP(LAY)-12)*5+(JT1(LAY)-1))*NSPB(27) + 1
 
-!  DO IG = 1, NG(27)
   DO IG = 1 , NG27
-    TAURAY = COLMOL(LAY) * RAYL(IG)
+    TAURAY = COLMOL(LAY) * RAYLC(IG)
     TAUG(LAY,IG) = COLO3(LAY) * &
      &          (FAC00(LAY) * ABSB(IND0,IG) + &
      &           FAC10(LAY) * ABSB(IND0+1,IG) + &
@@ -1635,14 +1656,14 @@ DO LAY = LAYTROP+1, NLAYERS
      &           FAC11(LAY) * ABSB(IND1+1,IG))
 !     &          + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
-    IF (LAY.EQ.LAYSOLFR) SFLUXZEN(IG) = SCALEKUR * SFLUXREF(IG) 
+    IF (LAY.EQ.LAYSOLFR) SFLUXZEN(IG) = SCALEKUR * SFLUXREFC(IG) 
     TAUR(LAY,IG) = TAURAY
   END DO
 END DO
 
-!-----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL27
+!-----------------------------------------------------------------------
 
 SUBROUTINE TAUMOL28 &
   &( KLEV    &
@@ -1653,21 +1674,18 @@ SUBROUTINE TAUMOL28 &
   &, SFLUXZEN, TAUG   , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
 !     BAND 28:  38000-50000 cm-1 (low - O3,O2; high - O3,O2)
 
 ! Modifications
 !
 !     JJMorcrette 2003-02-24 adapted to ECMWF environment
 
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
 
 #include "tsmbkind.h"
 
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG28
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG28
 USE YOESRTA28, ONLY : ABSA, ABSB &
-  &                 , SFLUXREF, RAYL &
+  &                 , SFLUXREFC, RAYL &
   &                 , LAYREFFR, STRRAT
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
@@ -1675,7 +1693,7 @@ IMPLICIT NONE
 
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG28), TAUR(JPLAY,NG28), SSA(JPLAY,NG28), SFLUXZEN(NG28)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 
 !     DUMMY INTEGER SCALARS
@@ -1709,7 +1727,6 @@ REAL_B :: FAC000, FAC001, FAC010, FAC011, FAC100, FAC101,&
 
 NLAYERS = KLEV
 
-      
 !     Compute the optical depth by interpolating in ln(pressure), 
 !     temperature, and appropriate species.  Below LAYTROP, the water
 !     vapor self-continuum is interpolated (in temperature) separately.  
@@ -1733,7 +1750,6 @@ DO LAY = 1, LAYTROP
   IND1 = (JP(LAY)*5+(JT1(LAY)-1))*NSPA(28) + JS
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(28)
   DO IG = 1 , NG28
     TAUG(LAY,IG) = SPECCOMB * &
      &          (FAC000 * ABSA(IND0,IG) + &
@@ -1773,7 +1789,6 @@ DO LAY = LAYTROP+1, NLAYERS
   IND1 = ((JP(LAY)-12)*5+(JT1(LAY)-1))*NSPB(28) + JS
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(28)
   DO IG = 1 , NG28
     TAUG(LAY,IG) = SPECCOMB * &
      &          (FAC000 * ABSB(IND0,IG) + &
@@ -1786,15 +1801,15 @@ DO LAY = LAYTROP+1, NLAYERS
      &           FAC111 * ABSB(IND1+6,IG)) 
 !     &           + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
-    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREF(IG,JS) &
-     &           + FS * (SFLUXREF(IG,JS+1) - SFLUXREF(IG,JS))
+    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREFC(IG,JS) &
+     &           + FS * (SFLUXREFC(IG,JS+1) - SFLUXREFC(IG,JS))
     TAUR(LAY,IG) = TAURAY
   END DO
 END DO
 
-!-----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL28
+!-----------------------------------------------------------------------
 
 SUBROUTINE TAUMOL29 &
   &( KLEV    &
@@ -1805,22 +1820,18 @@ SUBROUTINE TAUMOL29 &
   &, SFLUXZEN, TAUG   , TAUR    &
   &)
 
-!     Written by Eli J. Mlawer, Atmospheric & Environmental Research.
-
 !     BAND 29:  820-2600 cm-1 (low - H2O; high - CO2)
 
 ! Modifications
 !
 !     JJMorcrette 2002-10-03 adapted to ECMWF environment
 
-!      PARAMETER (MG=16, MXLAY=203, NBANDS=14)
-
 
 #include "tsmbkind.h"
 
-USE PARSRTM  , ONLY : JPLAY, JPBAND, NG29
-USE YOESRTA29, ONLY : ABSA, ABSB, FORREF, SELFREF &
-  &                 , SFLUXREF, ABSH2O, ABSCO2, RAYL &
+USE PARSRTM  , ONLY : JPLAY, JPBAND, JPG, NG29
+USE YOESRTA29, ONLY : ABSA, ABSB, FORREFC, SELFREFC &
+  &                 , SFLUXREFC, ABSH2OC, ABSCO2C, RAYL &
   &                 , LAYREFFR
 USE YOESRTWN , ONLY : NG, NSPA, NSPB
 
@@ -1828,7 +1839,7 @@ USE YOESRTWN , ONLY : NG, NSPA, NSPB
 IMPLICIT NONE
 
 !-- Output
-REAL_B :: TAUG(JPLAY,NG29), TAUR(JPLAY,NG29), SSA(JPLAY,NG29), SFLUXZEN(NG29)
+REAL_B :: TAUG(JPLAY,JPG), TAUR(JPLAY,JPG), SSA(JPLAY,JPG), SFLUXZEN(JPG)
 
 !     DUMMY INTEGER SCALARS
 INTEGER_M :: KLEV
@@ -1854,8 +1865,6 @@ INTEGER_M :: INDSELF(JPLAY)
 REAL_B :: FORFAC(JPLAY), FORFRAC(JPLAY)
 INTEGER_M :: INDFOR(JPLAY)
 
-
-
 !     LOCAL INTEGER SCALARS
 INTEGER_M :: IG, IND0, IND1, INDS, INDF, JS, LAY, LAYSOLFR, NLAYERS
 
@@ -1863,8 +1872,6 @@ INTEGER_M :: IG, IND0, IND1, INDS, INDF, JS, LAY, LAYSOLFR, NLAYERS
 REAL_B :: FAC000, FAC001, FAC010, FAC011, FAC100, FAC101,&
         & FAC110, FAC111, FS, SPECCOMB, SPECMULT, SPECPARM, &
         & TAURAY
-
-
 
 NLAYERS = KLEV
 
@@ -1879,20 +1886,19 @@ DO LAY = 1, LAYTROP
   INDF = INDFOR(LAY)
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(29)
   DO IG = 1, NG29
     TAUG(LAY,IG) = COLH2O(LAY) * &
      &          ((FAC00(LAY) * ABSA(IND0,IG) + &
      &           FAC10(LAY) * ABSA(IND0+1,IG) + &
      &           FAC01(LAY) * ABSA(IND1,IG) + &
      &           FAC11(LAY) * ABSA(IND1+1,IG)) + &
-     &           SELFFAC(LAY) * (SELFREF(INDS,IG) + &
+     &           SELFFAC(LAY) * (SELFREFC(INDS,IG) + &
      &           SELFFRAC(LAY) * &
-     &           (SELFREF(INDS+1,IG) - SELFREF(INDS,IG))) + &
-     &           FORFAC(LAY) * (FORREF(INDF,IG) + & 
+     &           (SELFREFC(INDS+1,IG) - SELFREFC(INDS,IG))) + &
+     &           FORFAC(LAY) * (FORREFC(INDF,IG) + & 
      &           FORFRAC(LAY) * &
-     &           (FORREF(INDF+1,IG) - FORREF(INDF,IG)))) &
-     &           + COLCO2(LAY) * ABSCO2(IG) 
+     &           (FORREFC(INDF+1,IG) - FORREFC(INDF,IG)))) &
+     &           + COLCO2(LAY) * ABSCO2C(IG) 
 !     &           + TAURAY &
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
     TAUR(LAY,IG) = TAURAY
@@ -1907,22 +1913,22 @@ DO LAY = LAYTROP+1, NLAYERS
   IND1 = ((JP(LAY)-12)*5+(JT1(LAY)-1))*NSPB(29) + 1
   TAURAY = COLMOL(LAY) * RAYL
 
-!  DO IG = 1, NG(29)
   DO IG = 1 , NG29
     TAUG(LAY,IG) = COLCO2(LAY) * &
      &          (FAC00(LAY) * ABSB(IND0,IG) + &
      &           FAC10(LAY) * ABSB(IND0+1,IG) + &
      &           FAC01(LAY) * ABSB(IND1,IG) + &
      &           FAC11(LAY) * ABSB(IND1+1,IG)) &  
-     &           + COLH2O(LAY) * ABSH2O(IG) 
+     &           + COLH2O(LAY) * ABSH2OC(IG) 
 !     &           + TAURAY
 !    SSA(LAY,IG) = TAURAY/TAUG(LAY,IG)
-    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREF(IG) 
+    IF (LAY .EQ. LAYSOLFR) SFLUXZEN(IG) = SFLUXREFC(IG) 
     TAUR(LAY,IG) = TAURAY
   END DO
 END DO
 
-!-----------------------------------------------------------------------
 RETURN
 END SUBROUTINE TAUMOL29
+
+
 
