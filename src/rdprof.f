@@ -6,22 +6,16 @@ C     created:   $Date$
 C************************  SUBROUTINE READPROF  *****************************C
 
       SUBROUTINE READPROF(NLAYERSX,IOUTX,ICLDX,IAERX,ISCCOSX,IDELMX,
-     &      PAVELX,TAVELX,PZX,TZX,ZENITH,ADJFLUX,SEMISS,
+     &      PAVELX,TAVELX,PZX,TZX,ZENITHX,ADJFLUXX,SEMISSX,
      &      WKLX,COLDRYX,INFLAGX,ICEFLAGX,LIQFLAGX,
      &      CLDFRACX,CLDDAT1X,CLDDAT2X,CLDDAT3X,CLDDAT4X,CLDDATMOMX,
      &      TAUAERX,SSAAERX,PHASEX)
-
+                                                                         
 C     Read in atmospheric profile.
 
       IMPLICIT DOUBLE PRECISION (V)                                      
                                                                          
-      PARAMETER (MAXINPX=35)
-      PARAMETER (MAXXSEC=4)
-C      PARAMETER (MAXPROD = MXLAY*MAXXSEC)
-
-      PARAMETER (MCMU = 32)
-
-c param.f 
+c mji - add param.f 
 c      INCLUDE 'param.f'
       parameter (mxlay = 203, nbands = 29)
       parameter (ib1 = 16, ib2 = 29)
@@ -32,20 +26,26 @@ c      INCLUDE 'param.f'
      &                   DELWAVE(IB1:IB2)
 c
 
-c
+      PARAMETER (MCMU = 32)
+
+      PARAMETER (MXMOL = 38)
+      PARAMETER (MAXINPX=35)
+      PARAMETER (MAXXSEC=4)
+C      PARAMETER (MAXPROD = MXLAY*MAXXSEC)
 
       DIMENSION ALTZ(0:MXLAY),IXTRANS(14)
+      DIMENSION SOLVAR(NBANDS)
 
       COMMON /CONTROL/  IAER, NSTR, IOUT, ISTART, IEND, ICLD,
      &                  idelm, isccos
       COMMON /CONSTANTS/FLUXFAC,HEATFAC
       COMMON /CONSTS/ PI,PLANCK,BOLTZ,CLIGHT,AVOGAD,ALOSMT,GASCON,
      *                RADCN1,RADCN2 
-c      COMMON /SWPROP/   ZENITH, ALBEDO, ADJFLUX
-c      COMMON /SURFACE/  IREFLECT,SEMISS(NBANDS)
+      COMMON /SWPROP/   ZENITH, ALBEDO, ADJFLUX(NBANDS)
+      COMMON /SURFACE/  IREFLECT,SEMISS(NBANDS)
       COMMON /PROFILE/  NLAYERS,PAVEL(MXLAY),TAVEL(MXLAY),
      &                  PZ(0:MXLAY),TZ(0:MXLAY),TBOUND
-      COMMON /SPECIES/  COLDRY(MXLAY),WKL(35,MXLAY),WBRODL(MXLAY),
+      COMMON /SPECIES/  COLDRY(MXLAY),WKL(MXMOL,MXLAY),WBRODL(MXLAY),
      &                  COLMOL(MXLAY),NMOL
       COMMON /IFIL/     IRD,IPR,IPU,IDUM(15)
       COMMON /XSECCTRL/ NXMOL,IXINDX(MAXINPX)
@@ -67,7 +67,7 @@ c      COMMON /SURFACE/  IREFLECT,SEMISS(NBANDS)
       REAL*8 CLDFRACX(MXLAY),CLDDAT1X(MXLAY),CLDDAT2X(MXLAY),
      &          CLDDAT3X(MXLAY),CLDDAT4X(MXLAY),
      &          CLDDATMOMX(0:16,MXLAY)
-      REAL*8 SEMISS(NBANDS),ZENITH,ADJFLUX
+      REAL*8 SEMISSX(NBANDS),ZENITHX,ADJFLUXX(NBANDS)
       REAL*8 ssaaerx(mxlay,nbands), phasex(mcmu,mxlay,nbands), 
      &       tauaerx(mxlay,nbands)
 
@@ -112,12 +112,13 @@ C  Initialize molecular amount and cross section arrays to zero here.
 C     No cross-sections implemented in shortwave.
       IXSECT = 0
 
+c mji - switch to 2-stream only
+c      IF (ISCAT .NE. 0) THEN
       IF (ISCAT .NE. 1) THEN
          PRINT *,' INVALID SCATTERING OPTION CHOSEN'
          STOP
       ENDIF
 
-c mji - 2 stream version only
       IF (ISTRM .EQ. 0) THEN 
          NSTR = 2
       ELSE 
@@ -125,19 +126,49 @@ c mji - 2 stream version only
          STOP
       ENDIF
 
+C      IF (ISTRM .EQ. 0) THEN 
+C         NSTR = 4
+C      ELSE IF  (ISTRM .EQ. 1) THEN
+C         NSTR = 8
+C      ELSE IF  (ISTRM .EQ. 2) THEN
+C         NSTR = 16
+C      ELSE 
+C         PRINT *, 'INVALID VALUE FOR ISTRM'
+C         STOP
+C      ENDIF
+
       IF (IAER.EQ.10) CALL READAER
 
 C     If clouds are present, read in appropriate input file, IN_CLD_RRTM.
       IF (ICLD .EQ. 1) CALL READCLD
 
 
-      READ (IRD,9020) JULDAT, SZA
+      READ (IRD,9020) JULDAT, SZA, ISOLVAR, (SOLVAR(IB),IB=IB1,IB2)
+
       ZENITH = COS(SZA * PI / 180.)
       IF (JULDAT .EQ. 0) THEN
-         ADJFLUX = 1.
+         ADJFLUX_JD = 1.
       ELSE
-         ADJFLUX = EARTH_SUN (JULDAT)
+         ADJFLUX_JD = EARTH_SUN (JULDAT)
       ENDIF
+
+      IF (ISOLVAR .EQ. 0) THEN
+         DO 1400 IB = IB1,IB2
+            ADJFLUX(IB) = ADJFLUX_JD
+ 1400    CONTINUE
+      ELSEIF (ISOLVAR .EQ. 1) THEN
+         DO 1450 IB=IB1,IB2
+            ADJFLUX(IB) = ADJFLUX_JD * SOLVAR(IB1)
+ 1450    CONTINUE
+      ELSEIF (ISOLVAR .EQ. 2) THEN
+         DO 1475 IB=IB1,IB2
+            ADJFLUX(IB) = ADJFLUX_JD * SOLVAR(IB)
+ 1475    CONTINUE
+      ELSE
+         PRINT *, 'ISOLVAR = ', ISOLVAR, ' NOT A VALID INPUT VALUE'
+         STOP
+      ENDIF
+
       READ (IRD,9012) IEMIS, IREFLECT, (SEMISS(IB),IB=IB1,IB2)
       IF (IEMIS .EQ. 0) THEN
          DO 1500 IB = IB1, IB2
@@ -235,17 +266,10 @@ C     Test for mixing ratio input.
          ENDIF
  5000 CONTINUE
 
-c mji out
-c      DO L = 1, NLAYERS
-c        print*, L,PAVEL(L),TAVEL(L),
-c     &              (WKL(JA,L),JA=1,4),WKL(6,L),COLDRY(L)
-cc9200  format(1x,'READPROF ',I3,2F7.1,6E13.5)
-c      END DO
-c!
 
       CLOSE(IRD)
 
-C Pass RRTM COMMON arrays into dummy arrays 
+C mji - Pass RRTM COMMON arrays into dummy arrays 
       NLAYERSX = NLAYERS
       IOUTX = IOUT
       ICLDX = ICLD
@@ -284,26 +308,12 @@ C Pass RRTM COMMON arrays into dummy arrays
  7300    CONTINUE
  7400    CONTINUE
  7500 CONTINUE
-
-c mji out
-c      DO JB=16,29
-c        DO JK=1,NLAYERS
-c         print*, JB,JK,TAUAERX(JK,JB),SSAAERX(JK,JB),
-c     &      PHASEX(1,JK,JB)
-c 9102    format(1x,'RDPROF Aerx :',2I3,7E12.5)
-c        END DO
-c      END DO
-c      DO L = 1, NLAYERS
-c        print*, L,PAVELX(L),TAVELX(L),
-c     &              (WKLX(JA,L),JA=1,4),WKLX(6,L),COLDRYX(L)
-c9210  format(1x,'READPROF(X) ',I3,2F7.1,6E13.5)
-c      END DO
-c      DO L = 1, NLAYERS
-c        print*, L,CLDFRACX(L),CLDDAT1X(L),CLDDAT2X(L),CLDDAT3X(L),
-c     &              CLDDAT4X(L),(CLDDATMOMX(NS,L),NS=0,NSTR)
-c9220  format(1x,'READPROF(CLDX) ',I3,22E13.5)
-c      END DO
-c!
+      ZENITHX = ZENITH
+      DO 7600 NB = IB1,IB2
+        SEMISSX(NB) = SEMISS(NB)
+        ADJFLUXX(NB) = ADJFLUX(NB)
+ 7600 CONTINUE
+      
 
       GO TO 9000
 
@@ -317,7 +327,7 @@ c!
  9011 FORMAT (18X,I2,29X,I1,32X,I1,1X,I1,2X,I3,4X,I1,3x,i1,i1)
  9012 FORMAT (11X,I1,2X,I1,14F5.3)
  9013 FORMAT (1X,I1,I3,I5)                                     
- 9020 format (12X, I3, 3X, F7.4)
+ 9020 format (12X, I3, 3X, F7.4, 4X, I1,14F5.3)
  9300 FORMAT (I5)
  9301 FORMAT (1X,I1)
 
@@ -331,7 +341,7 @@ C************************  SUBROUTINE READCLD  *****************************C
 C     Purpose:  To read in IN_CLD_RRTM_SW, the file that contains input 
 C               cloud properties.
 
-c param.f 
+c mji - add param.f 
 c      INCLUDE 'param.f'
       parameter (mxlay = 203, nbands = 29)
       parameter (ib1 = 16, ib2 = 29)
@@ -342,7 +352,6 @@ c      INCLUDE 'param.f'
      &                   DELWAVE(IB1:IB2)
 c
 
-c
       COMMON /CONTROL/   IAER, NSTR, IOUT, ISTART, IEND, ICLD,
      &                   idelm, isccos
       COMMON /PROFILE/   NLAYERS,PAVEL(MXLAY),TAVEL(MXLAY),
@@ -397,14 +406,6 @@ C     cloudy layers to process.
  9000    CONTINUE
       ENDIF
 
-c mji out
-c      DO L = 1, NLAYERS
-c        print 9210, L,CLDFRAC(L),CLDDAT1(L),CLDDAT2(L),CLDDAT3(L),
-c     &              CLDDAT4(L),(CLDDATMOM(NS,L),NS=0,NSTR)
-c9210  format(1x,'READPROF(CLD) ',I3,22E13.5)
-c      END DO
-
-
       CLOSE(IRDCLD)
 
  9050 FORMAT (3X,I2,4X,I1,4X,I1)
@@ -420,7 +421,7 @@ C************************  SUBROUTINE READAER  *****************************C
 C     Purpose:  To read in IN_AER_RRTM, the file that contains input
 C               aerosol properties.
 
-c param.f 
+c mji - add param.f 
 c      INCLUDE 'param.f'
       parameter (mxlay = 203, nbands = 29)
       parameter (ib1 = 16, ib2 = 29)
@@ -429,8 +430,6 @@ c      INCLUDE 'param.f'
       COMMON /BANDS/     WAVENUM1(IB1:IB2),
      &                   WAVENUM2(IB1:IB2),
      &                   DELWAVE(IB1:IB2)
-c
-
 c
 
       PARAMETER (MCMU = 32)
@@ -502,7 +501,6 @@ C        Store a nonzero optical depth in aod to check for double
 C        specification.
          do il = 1, nlay
             read(irdaer, 9012) lay(il), (aod1(ib), ib = ib1,ib2)
-
             if (aod(lay(il)) .lt. eps) then
                if (iaod .eq. 0) then
                   aod(lay(il)) = aod1(ib1)
@@ -521,6 +519,7 @@ C        specification.
                stop
             endif
          enddo
+
 
 c        For this aerosol, read and store optical properties
          read (irdaer, 9013) (ssa(ib), ib = ib1,ib2)
@@ -564,13 +563,14 @@ c        For this aerosol, read and store optical properties
  9000 CONTINUE
       CLOSE(IRDAER)
 
- 9010 format (4x, i1)
+ 9010 format (3x, i2)
  9011 format (2x, i3, 4x, i1, 4x, i1, 4x, i1, 3f8.3)
  9012 format (2x, i3, 14f7.4)
  9013 format (14f5.3)
 
       RETURN
       END
+
 
 C************************  SUBROUTINE XSIDENT  *****************************C
 
@@ -645,7 +645,7 @@ C        Left-justify all inputed names.
 *****************************************************************
       BLOCK DATA
 
-c param.f 
+c mji - add param.f 
 c      INCLUDE 'param.f'
       parameter (mxlay = 203, nbands = 29)
       parameter (ib1 = 16, ib2 = 29)
@@ -656,34 +656,75 @@ c      INCLUDE 'param.f'
      &                   DELWAVE(IB1:IB2)
 c
 
-      COMMON /HVERSN/ HVRRTM,HVRRTR,HVRATM,HVRSET,HVRTAU,
-     *                HVDUM1(4),HVRUTL,HVREXT,
-     *                HVRD1M,HVRR1M,HVREPK,HVRLPK,HVRAER,HVRBKA,
-     *                HVRBKB,HVRCLD,HVRDIS,HVRLAM,HVRPAR
+      COMMON /CVRRTM/    HNAMRTM,HVRRTM
+      COMMON /CVRSET/    HNAMSET,HVRSET
+      COMMON /CVRATM/    HNAMATM,HVRATM
+      COMMON /CVRUTL/    HNAMUTL,HVRUTL
+      COMMON /CVRTAU/    HNAMTAU,HVRTAU
+      COMMON /CVRCLD/    HNAMCLD,HVRCLD
+      COMMON /CVREXT/    HNAMEXT,HVREXT
+      COMMON /CVRRTR/    HNAMRTR,HVRRTR
+      COMMON /CVRRDI/    HNAMRDI,HVRRDI
+      COMMON /CVRERR/    HNAMERR,HVRERR
+      COMMON /CVRLPK/    HNAMLPK,HVRLPK
+      COMMON /CVRDIS/    HNAMDIS,HVRDIS
 
-      COMMON /HVRSNB/    HVRKG(16:29)
-
-      CHARACTER*15 HVRRTM,HVRRTR,HVRATM,HVRSET,HVRTAU,
-     *            HVDUM1,HVRUTL,HVREXT,
-     *            HVRD1M,HVRR1M,HVREPK,HVRLPK,HVRAER,HVRBKA,
-     *            HVRBKB,HVRCLD,HVRDIS,HVRLAM,HVRPAR
-
+      COMMON /CVRSN16/   HNAMKG16,HVRKG16
+      COMMON /CVRSN17/   HNAMKG17,HVRKG17
+      COMMON /CVRSN18/   HNAMKG18,HVRKG18
+      COMMON /CVRSN19/   HNAMKG19,HVRKG19
+      COMMON /CVRSN20/   HNAMKG20,HVRKG20
+      COMMON /CVRSN21/   HNAMKG21,HVRKG21
+      COMMON /CVRSN22/   HNAMKG22,HVRKG22
+      COMMON /CVRSN23/   HNAMKG23,HVRKG23
+      COMMON /CVRSN24/   HNAMKG24,HVRKG24
+      COMMON /CVRSN25/   HNAMKG25,HVRKG25
+      COMMON /CVRSN26/   HNAMKG26,HVRKG26
+      COMMON /CVRSN27/   HNAMKG27,HVRKG27
+      COMMON /CVRSN28/   HNAMKG28,HVRKG28
+      COMMON /CVRSN29/   HNAMKG29,HVRKG29
 
       COMMON /CONSTANTS/ FLUXFAC,HEATFAC
       COMMON /FEATURES/  NG(IB1:IB2),NSPA(IB1:IB2),NSPB(IB1:IB2)
 
+      CHARACTER*18 HVRRTM,HVRSET,HVRATM,HVRUTL,HVRTAU,
+     *             HVRCLD,HVREXT,HVRRTR,HVRRDI,HVRERR,
+     *             HVRLPK,HVRDIS
+
+      CHARACTER*18 HNAMRTM,HNAMSET,HNAMATM,HNAMUTL,HNAMTAU,
+     *             HNAMCLD,HNAMEXT,HNAMRTR,HNAMRDI,HNAMERR,
+     *             HNAMLPK,HNAMDIS
+
+      CHARACTER*18 HNAMKG26
+
+      CHARACTER*18 HVRKG26
+
+
       DATA HVRRTM / 'NOT USED' /,  
      *     HVRRTR / 'NOT USED' /,   HVRATM / 'NOT USED' /,
      *     HVRSET / 'NOT USED' /,   HVRTAU / 'NOT USED' /,
-     *     HVDUM1 / 4*'NOT USED' /, HVRUTL / 'NOT USED' /,
+     *     HVRUTL / 'NOT USED' /,
      *     HVREXT / 'NOT USED' /, 
-     *     HVRD1M / 'NOT USED' /,   HVRR1M / 'NOT USED' /,
-     *     HVREPK / 'NOT USED' /,   HVRLPK / 'NOT USED' /,
-     *     HVRAER / 'NOT USED' /,
+     *     HVRRDI / 'NOT USED' /,
+     *     HVRERR / 'NOT USED' /,   HVRLPK / 'NOT USED' /,
      *     HVRCLD / 'NOT USED' /,
-     *     HVRDIS / 'NOT USED' /,   HVRLAM / 'NOT USED' /,
-     *     HVRPAR / 'NOT USED' /
+     *     HVRDIS / 'NOT USED' / 
+ 
+      DATA HNAMRTM / '           rrtm.f:' /,
+     *     HNAMSET / '        setcoef.f:' /,
+     *     HNAMATM / '         rrtatm.f:' /,
+     *     HNAMUTL / '       util_xxx.f:' /,
+     *     HNAMTAU / '      taumoldis.f:' /,
+     *     HNAMCLD / '        cldprop.f:' /,
+     *     HNAMEXT / '          extra.f:' /,
+     *     HNAMRTR / '         rtrdis.f:' /,
+     *     HNAMRDI / '       RDI1MACH.f:' /,
+     *     HNAMERR / '        ErrPack.f:' /,
+     *     HNAMLPK / '         LINPAK.f:' /,
+     *     HNAMDIS / '         disort.f:' /
 
+      DATA HVRKG26 / ' ' /
+      DATA HNAMKG26 / ' '/
 
       DATA WAVENUM1(16) /2600./,WAVENUM2(16) /3250./,DELWAVE(16) /650./
       DATA WAVENUM1(17) /3250./,WAVENUM2(17) /4000./,DELWAVE(17) /750./
@@ -719,7 +760,7 @@ c
       COMMON /CONSTS/ PI,PLANCK,BOLTZ,CLIGHT,AVOGAD,ALOSMT,GASCON,
      *                RADCN1,RADCN2 
 c
-      DATA PI / 3.1415927410125732 /
+      DATA PI / 3.141592654 /
 c
 c    Constants from NIST 01/11/2002
 c

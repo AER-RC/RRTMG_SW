@@ -64,6 +64,7 @@ SUBROUTINE RRTMG_SW_SPCVRT &
 !        ORIGINAL : 03-02-27
 !        Add adjustment for Earth/Sun distance : MJIacono, AER, October 2003
 !        Bug fix for use of PALBP and PALBD: MJIacono, AER, November 2003
+!        Bug fix to apply delta scaling to clear sky: AER, December 2004
 !     ------------------------------------------------------------------
 
 
@@ -92,7 +93,7 @@ REAL_B :: CO2MULT(JPLAY) , COLCH4(JPLAY)  , COLCO2(JPLAY)   , COLH2O(JPLAY)
 REAL_B :: COLN2O(JPLAY)  , COLO2(JPLAY)   , COLO3(JPLAY)
 REAL_B :: FORFAC(JPLAY)  , FORFRAC(JPLAY) , SELFFAC(JPLAY)  , SELFFRAC(JPLAY)
 REAL_B :: FAC00(JPLAY)   ,   FAC01(JPLAY) , FAC10(JPLAY)    , FAC11(JPLAY)
-REAL_B :: ADJFLUX
+REAL_B :: ADJFLUX(JPBAND)
 
 INTEGER_M :: INDFOR(JPLAY), INDSELF(JPLAY)
 INTEGER_M :: JP(JPLAY)    , JT(JPLAY)     , JT1(JPLAY)
@@ -336,8 +337,8 @@ DO JB = IB1, IB2
 ! mji - add adjustment for correct Earth/Sun distance
 !    ZINCFLX(IW)=ZSFLXZEN(JG)*PRMU0
 !    ZINCFLUX   =ZINCFLUX+ZSFLXZEN(JG)*PRMU0           
-    ZINCFLX(IW)=ADJFLUX*ZSFLXZEN(JG)*PRMU0
-    ZINCFLUX   =ZINCFLUX+ADJFLUX*ZSFLXZEN(JG)*PRMU0           
+    ZINCFLX(IW)=ADJFLUX(JB)*ZSFLXZEN(JG)*PRMU0
+    ZINCFLUX   =ZINCFLUX+ADJFLUX(JB)*ZSFLXZEN(JG)*PRMU0           
 
 !-- CALL to compute layer reflectances and transmittances for direct 
 !  and diffuse sources, first clear then cloudy
@@ -425,7 +426,16 @@ DO JB = IB1, IB2
 
     END DO    
 
-   
+!-- bug fix - add delta scaling for clear sky
+    DO JK=1,KLEV
+      ZF=ZGCC(JK)*ZGCC(JK)
+      ZWF=ZOMCC(JK)*ZF
+      ZTAUC(JK)=(1._JPRB-ZWF)*ZTAUC(JK)
+      ZOMCC(JK)=(ZOMCC(JK)-ZWF)/(1._JPRB-ZWF)
+      ZGCC (JK)=(ZGCC(JK)-ZF)/(1._JPRB-ZF)
+    END DO
+!
+
     CALL RRTMG_SW_REFTRA ( KLEV, KMODTS &
       &, LRTCHK, ZGCC  , PRMU0, ZTAUC , ZOMCC &
       &, ZREFC , ZREFDC, ZTRAC, ZTRADC )

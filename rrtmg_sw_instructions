@@ -1,3 +1,13 @@
+C
+C  --------------------------------------------------------------------------
+C |                                                                          |
+C |  Copyright 2002, 2003, Atmospheric & Environmental Research, Inc. (AER). |
+C |  This software may be used, copied, or redistributed as long as it is    |
+C |  not sold and this copyright notice is reproduced on each copy made.     |
+C |  This model is provided as is without any express or implied warranties. |
+C |                       (http://www.rtweb.aer.com/)                        |
+C |                                                                          |
+C  --------------------------------------------------------------------------
 
 
 
@@ -6,9 +16,9 @@
 
 
 
-                           USER INSTRUCTIONS FOR RRTM_SW
+                         USER INSTRUCTIONS FOR RRTMG_SW
  
-                                   April 2002
+                                 December 2004
 
 
 
@@ -53,12 +63,12 @@
 	  IATM   (0,1)   flag for RRTATM    1 = yes
 
           ISCAT  (0,1) switch for DISORT or simple two-stream scattering 
-                  = 0  DISORT (unavailable)
+                  = 0  DISORT     (unavailable)
                   = 1  two-stream (default)
 
           ISTRM   flag for number of streams used in DISORT  (ISCAT must be equal to 0)
-                  = 0  - 4 streams (unavailable)
-                  = 1  - 8 streams (unavailable)
+                  = 0  - 4 streams  (unavailable)
+                  = 1  - 8 streams  (unavailable)
                   = 2  - 16 streams (unavailable)
 
 	  IOUT    = -1 if no output is to be printed out.
@@ -69,7 +79,7 @@
 		       for the full shortwave spectrum (820-50000 cm-1), and one 
 		       for each of the 14 bands.
  
-	  ICLD   (0,1) flag for clouds   (currently not implemented)
+	  ICLD   (0,1) flag for clouds     
                   = 0  no cloudy layers in atmosphere
                   = 1  one or more cloudy layers present in atmosphere
                        (requires the presence of file IN_CLD_RRTM)
@@ -96,11 +106,11 @@
 
  RECORD 1.2.1  
 
-           JULDAT,      SZA
+           JULDAT,      SZA, ISOLVAR, (SOLVAR(IB),IB=16,29)
 
-            13-15,    17-20
+            13-15,    19-25,     30, 31 - 121
 
-        12X,   I3, 3X, F7.4
+        12X,   I3, 3X, F7.4, 4X, I1, 14F5.3
 
 	
         JULDAT       Julian day associated with calculation (1-365/366 starting January 1).
@@ -108,6 +118,21 @@
 	             of solar source function using earth-sun distance.
 
         SZA          Solar zenith angle in degrees (0 deg is overhead).
+
+        ISOLVAR      Solar variability option
+
+		     = 0 each band uses standard solar source function, corresponding
+                         to present day conditions.
+
+		     = 1 scale solar source function, each band will have the same
+                         scale factor applied, (equal to SOLVAR(16))
+
+		     = 2 scale solar source function, each band has different scale
+	 	         factors (for band IB, equal to SOLVAR(IB))
+
+	SOLVAR       the solar source function scale factor for each band.  If 
+	             ISOLVAR = 1, only the first value of SOLVAR (SOLVAR(16)) is 
+                     considered.  If ISOLVAR = 2, values must be provided for all bands.
 
  
  RECORD 1.4  
@@ -128,7 +153,7 @@
 			is equal at all angles
                   = 1 for specular reflection at surface, i.e. reflected radiance at angle
 			is equal to downward surface radiance at same angle multiplied by
-			the reflectance
+			the reflectance.  THIS OPTION CURRENTLY NOT IMPLEMENTED.
 
          SEMISS   the surface emissivity for each band (see Table I).  All values must be 
                   greater than 0 and less than or equal to 1.  If IEMIS = 1, only
@@ -675,9 +700,9 @@ Band #   Wavenumber Range (cm-1)       1050 - 96 mb      96 - 0.01 mb
 
              5
 
-        4X, I1
+        3X, I2
  
-      NAER   number of different aerosol types (maximum of 4).  An aerosol type is characterized by a specified 
+      NAER   number of different aerosol types (maximum of 99).  An aerosol type is characterized by a specified 
              spectral dependence of aerosol optical depth, single-scattering albedo, and phase function; a change
              to any of these quantities requires a new aerosol type.  Each aerosol type requires the presence of 
              Records A2.1 - A2.3.
@@ -689,7 +714,7 @@ Band #   Wavenumber Range (cm-1)       1050 - 96 mb      96 - 0.01 mb
 
              5,     10,     15,     20,              21-44 
 
-        4X, I1, 4X, I1, 4X, I1, 4X, I1,              3F8.2
+        3X, I2, 4X, I1, 4X, I1, 4X, I1,              3F8.2
 
       NLAY   number of layers containing the aerosol with the specified properties:  spectral dependence of aerosol 
              optical depth (IAOD,AERPAR), single-scattering albedo (ISSA, SSA), and phase function (IPHA,PHASE).

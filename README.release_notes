@@ -1,6 +1,76 @@
 NOTE:
 ** CVS rtags can't accept "." in strings, substitute "_"
 
+December 15, 2004:
+
+	Release_2_2 - This version contains modifications to include 
+                some of the updates added to RRTM_SW V2.5 and includes
+                a bug fix to module rrtmg_sw_spcvrt.F90.
+
+                1) Changed module rdprof.f to accomodate updated version
+                of rrtatm.f (that is shared with RRTM_SW).
+
+                2) Added new solar variability option (ISOLVAR)
+
+                3) Changed format statement in subroutine readaer to allow
+                more than 4 aerosol layers (naer, format statement 9010).
+
+                4) Updated instruction manual.
+
+                5) Modified module rrtmg_sw_spcvrt.F90 to apply bug fix
+                that adds delta-scaling to clear sky calculations, which
+                has most significant impact in profiles with aerosols 
+                having moderate to high optical depth. 
+
+		This release was distributed to J.-J. Morcrette at ECMWF,
+                Yu-Tai Hou at NCEP, Jimy Dudhia at NCAR, and Dave Hogan
+                for NPOESS applications, and it was distributed (in 224 
+                g-point mode) to Tim Shippert (PNL) for BBHRP applications.
+
+
+November 24, 2004:
+
+	Release_2_1 - This version contains minor bug fixes that affect
+                the subroutine (GCM) version of the code only, including
+                changing the parameter NMOL from 6 to 7 to include oxygen.  
+
+		This release (in 224 g-point mode) was distributed to 
+                Tim Shippert for BBHRP applications.
+
+
+April 21, 2004:
+
+	Release_2_0 - This version uses a reduced set of 112 g-points for
+                improved computational efficiency.  Other minor modifications
+                were also made to enhance performance.  The original 224
+                g-point set can be restored by swapping code in one source
+                file and two modules.  Two bug fixes were made to the source
+                file rrtmg_sw_reftra.F90 to correct the computation of
+                reflectivity and transmissivity in the presence of aerosols. 
+                This fix was accomplished by restoring the syntax in this F90 
+                version of the code to that used in the original F77 source.  
+                An additional bug fix corrects the use of the parallel and
+                direct components of the surface albedo, PALBP and PALBD.
+
+		This release was distributed to Jimy Dudhia at NCAR for
+		testing in their mesoscale model (MM5) and the Weather
+		Research and Forecasting (WRF) model, to Yu-Tai Hou (NCEP)
+                for testing in the GFS model, and to Kerry Emanuel (MIT). 
+
+	
+November 18, 2003:
+
+	Release_1_1 - Includes two bug fixes that prevent execution of the
+		code with a solar zenith angle of exactly zero (a small
+		epsilon is substituted) and corrects variable assignments of
+		the seperate diffuse and direct values of surface albedo.
+		No reference
+
+		This release was distributed to Jimy Dudhia at NCAR for
+		testing in their mesoscale model (MM5) and the Weather
+		Research and Forecasting (WRF) model.
+
+
 October 17, 2003:
 
 	RRTMG_SW is now being officially archived in CVS.  This code
@@ -22,45 +92,3 @@ October 17, 2003:
                 ECMWF did the conversion to F90 and added the 2-stream code
                 starting from RRTM_SW_v2.4, and they are testing a version
                 of this release in their forecast model. 
-	
-November 18, 2003:
-
-	Release_1_1 - Includes two bug fixes that prevent execution of the
-		code with a solar zenith angle of exactly zero (a small
-		epsilon is substituted) and corrects variable assignments of
-		the seperate diffuse and direct values of surface albedo.
-		No reference
-
-		This release was distributed to Jimy Dudhia at NCAR for
-		testing in their mesoscale model (MM5) and the Weather
-		Research and Forecasting (WRF) model.
-
-April 21, 2004:
-
-	Release_2_0 - This version uses a reduced set of 112 g-points for
-                improved computational efficiency.  Other minor modifications
-                were also made to enhance performance.  The original 224
-                g-point set can be restored by swapping code in one source
-                file and two modules.  Two bug fixes were made to the source
-                file rrtmg_sw_reftra.F90 to correct the computation of
-                reflectivity and transmissivity in the presence of aerosols. 
-                This fix was accomplished by restoring the syntax in this F90 
-                version of the code to that used in the original F77 source.  
-                An additional bug fix corrects the use of the parallel and
-                direct components of the surface albedo, PALBP and PALBD.
-
-		This release was distributed to Jimy Dudhia at NCAR for
-		testing in their mesoscale model (MM5) and the Weather
-		Research and Forecasting (WRF) model, to Yu-Tai Hou (NCEP)
-                for testing in the GFS model, and to Kerry Emanuel (MIT). 
-
-November 24, 2004:
-
-	Release_2_1 - This version contains minor bug fixes that affect
-                the subroutine (GCM) version of the code only, including
-                changing the parameter NMOL from 6 to 7 to include oxygen.  
-
-		This release (in 224 g-point mode) was distributed to 
-                Tim Shippert for BBHRP applications.
-
-
