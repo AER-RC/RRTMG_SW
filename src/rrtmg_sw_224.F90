@@ -202,7 +202,7 @@ data gravit/ 9.8066E02_JPRB  /
 ! Oxygen mass mixing ratio 
 data o2mmr /  0.23143_JPRB   /
 
-REAL_B :: ZCLEAR, ZCLOUD, ZEPSEC, ZTOTCC, ZDPGCP
+REAL_B :: ZCLEAR, ZCLOUD, ZEPSEC, ZTOTCC, ZDPGCP, ZEPZEN
 
 REAL_B :: RDAY, RG, RMD, RKBOL, RNAVO, R, RD, RCPD, RCDAY
 
@@ -210,6 +210,7 @@ REAL_B :: RDAY, RG, RMD, RKBOL, RNAVO, R, RD, RCPD, RCDAY
 !-- calculate information needed by the radiative transfer routine 
 
 ZEPSEC  = 1.E-06_JPRB
+ZEPZEN  = 1.E-10_JPRB
 ONEMINUS=_ONE_ -  ZEPSEC
 
 NSTR	= 2
@@ -440,6 +441,7 @@ DO JL = 1, KLON
    END DO
 
    ZRMU0=PRMU0(JL)
+   IF (ZRMU0.EQ.0.) ZRMU0=ZEPZEN
 
    DO JK=1,KLEV+1
       ZBBCU(JK)=_ZERO_
