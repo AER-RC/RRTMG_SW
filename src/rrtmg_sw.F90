@@ -124,7 +124,7 @@ INTEGER_M :: KLON, KLEV, KSW, KOVLP
 
 REAL_B :: PAER(JPLON,JPAER,JPLAY)
 REAL_B :: PDP(JPLON,JPLAY)
-REAL_B :: PCLFR(JPLON,JPLAY)
+!REAL_B :: PCLFR(JPLON,JPLAY)
 
 !-- Output arguments
 
@@ -207,7 +207,7 @@ ZEPZEN  = 1.E-10_JPRB
 ONEMINUS=_ONE_ -  ZEPSEC
 
 NSTR	= 2
-NMOL	= 6
+NMOL	= 7
 KLON    = JPLON
 KLEV    = JPLAY
 KSW     = JPSW
@@ -277,9 +277,9 @@ DO JL = 1, KLON
 
    TBOUND=TZ(0)
 
-   DO JK=1,KLEV 
-      PCLFR(JL,JK) = CLDFRAC(JK)
-   END DO
+!   DO JK=1,KLEV 
+!      PCLFR(JL,JK) = CLDFRAC(JK)
+!   END DO
 
    ZCLEAR=_ONE_
    ZCLOUD=_ZERO_
@@ -290,18 +290,18 @@ DO JL = 1, KLON
 ! Set up for cloud overlap
 ! Maximum-random
       IF (KOVLP == 1) THEN
-         ZCLEAR=ZCLEAR*(_ONE_-MAX(PCLFR(JL,JK),ZCLOUD)) &
+         ZCLEAR=ZCLEAR*(_ONE_-MAX(CLDFRAC(JK),ZCLOUD)) &
         &   /(_ONE_-MIN(ZCLOUD,_ONE_-ZEPSEC))
-         ZCLOUD=PCLFR(JL,JK)
+         ZCLOUD=CLDFRAC(JK)
          ZTOTCC=_ONE_-ZCLEAR
 ! Maximum
       ELSE IF (KOVLP == 2) THEN
-         ZCLOUD=MAX(ZCLOUD,PCLFR(JL,JK))
+         ZCLOUD=MAX(ZCLOUD,CLDFRAC(JK))
          ZCLEAR=_ONE_-ZCLOUD
          ZTOTCC=ZCLOUD
 ! Random
       ELSE IF (KOVLP == 3) THEN
-         ZCLEAR=ZCLEAR*(_ONE_-PCLFR(JL,JK))
+         ZCLEAR=ZCLEAR*(_ONE_-CLDFRAC(JK))
          ZCLOUD=_ONE_-ZCLEAR
          ZTOTCC=ZCLOUD
       END IF
@@ -314,7 +314,7 @@ DO JL = 1, KLON
       END DO
    ELSE
       DO JK=1,KLEV
-         ZCLFR(JK)=PCLFR(JL,JK)/ZTOTCC
+         ZCLFR(JK)=CLDFRAC(JK)/ZTOTCC
       END DO
    END IF
 

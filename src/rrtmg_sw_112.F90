@@ -147,7 +147,7 @@ REAL_B :: CLDD1SW(JPLON,JPLAY) , CLDD2SW(JPLON,JPLAY), CLDD3SW(JPLON,JPLAY)
 REAL_B :: CLDD4SW(JPLON,JPLAY) , CLDSWMOM(JPLON,0:2,JPLAY)
 REAL_B :: PTS(JPLON)           , PT(JPLON,JPLAY)     , PTH(JPLON,JPLAY+1)
 REAL_B :: PQ(JPLON,JPLAY)      , POZON(JPLON,JPLAY)  , PCLFR(JPLON,JPLAY)
-REAL_B :: PCCO2, PCH4, PN2O
+REAL_B :: PCCO2(JPLAY), PCH4(JPLAY), PN2O(JPLAY)
 
 !-- Output arguments
 
@@ -234,7 +234,7 @@ ZEPZEN  = 1.E-10_JPRB
 ONEMINUS=_ONE_ -  ZEPSEC
 
 NSTR	= 2
-NMOL	= 6
+NMOL	= 7
 KLON    = JPLON
 KLEV    = JPLAY
 KSW     = JPSW
@@ -295,7 +295,7 @@ DO JL = 1, KLON
 
 ! Determine cloud optical properties, if cloud present
    IF (ICLD.EQ.1) THEN
-      CALL RRTM_SW_CLDPROP &
+      CALL RRTMG_SW_CLDPROP &
      &( KLEV, ICLDATM, INFLAG, ICEFLAG, LIQFLAG, NSTR &
      &, CLDFRAC, CLDDAT1, CLDDAT2, CLDDAT3, CLDDAT4, CLDDATMOM &
      &, TAUCLDORIG, TAUCLOUD, SSACLOUD, XMOM &
@@ -330,10 +330,10 @@ DO JL = 1, KLON
       TZ(JK)    = pth(JL,JK+1)
       PDP(JL,JK)= (paph(JL,JK)-paph(JL,JK+1))*1.e-2
       WKL(1,JK) = pq(JL,JK)*amd/amw
-      WKL(2,JK) = pcco2*amd/amco2
+      WKL(2,JK) = pcco2(JK)*amd/amco2
       WKL(3,JK) = pozon(JL,JK)*amd/amo
-      WKL(4,JK) = pn2o*amd/amn2o
-      WKL(6,JK) = pch4*amd/amch4
+      WKL(4,JK) = pn2o(JK)*amd/amn2o
+      WKL(6,JK) = pch4(JK)*amd/amch4
       WKL(7,JK) = o2mmr*amd/amo2
       amm = (1-WKL(1,JK))*amd + WKL(1,JK)*amw
       COLDRY(JK) = (PZ(JK-1)-PZ(JK))*1.E3_JPRB*avgdro/(gravit*amm*(1+WKL(1,JK)))
@@ -341,18 +341,18 @@ DO JL = 1, KLON
 ! Set up for cloud overlap
 ! Maximum-random
       IF (KOVLP == 1) THEN
-         ZCLEAR=ZCLEAR*(_ONE_-MAX(PCLFR(JL,JK),ZCLOUD)) &
+         ZCLEAR=ZCLEAR*(_ONE_-MAX(CLDFRAC(JK),ZCLOUD)) &
         &   /(_ONE_-MIN(ZCLOUD,_ONE_-ZEPSEC))
-         ZCLOUD=PCLFR(JL,JK)
+         ZCLOUD=CLDFRAC(JK)
          ZTOTCC=_ONE_-ZCLEAR
 ! Maximum
       ELSE IF (KOVLP == 2) THEN
-         ZCLOUD=MAX(ZCLOUD,PCLFR(JL,JK))
+         ZCLOUD=MAX(ZCLOUD,CLDFRAC(JK))
          ZCLEAR=_ONE_-ZCLOUD
          ZTOTCC=ZCLOUD
 ! Random
       ELSE IF (KOVLP == 3) THEN
-         ZCLEAR=ZCLEAR*(_ONE_-PCLFR(JL,JK))
+         ZCLEAR=ZCLEAR*(_ONE_-CLDFRAC(JK))
          ZCLOUD=_ONE_-ZCLEAR
          ZTOTCC=ZCLOUD
       END IF
@@ -372,12 +372,12 @@ DO JL = 1, KLON
       END DO
    ELSE
       DO JK=1,KLEV
-         ZCLFR(JK)=PCLFR(JL,JK)/ZTOTCC
+         ZCLFR(JK)=CLDFRAC(JK)/ZTOTCC
       END DO
    END IF
 
 ! Set up coefficients for RRTM
-   CALL RRTM_SW_SETCOEF &
+   CALL RRTMG_SW_SETCOEF &
      &( KLEV   , NMOL &
      &, PAVEL  , TAVEL   , PZ     , TZ     , TBOUND &
      &, COLDRY , WKL     &
@@ -462,7 +462,7 @@ DO JL = 1, KLON
 ! Commented fields contain results for separate spectral regions
 ! (near-IR, visible, and UV).  
 
-   CALL RRTM_SW_SPCVRT &
+   CALL RRTMG_SW_SPCVRT &
      &( KLEV   , NMOL    , KSW    ,ONEMINUS, JPB1    , JPB2 &
      &, PAVEL  , TAVEL   , PZ     , TZ     , TBOUND  , ZALBD   , ZALBP &
      &, ZCLFR  , ZTAUC   , ZASYC  , ZOMGC  , ZTAUA   , ZASYA   , ZOMGA , ZRMU0   &

@@ -54,4 +54,13 @@ April 21, 2004:
 		Research and Forecasting (WRF) model, to Yu-Tai Hou (NCEP)
                 for testing in the GFS model, and to Kerry Emanuel (MIT). 
 
+November 24, 2004:
+
+	Release_2_1 - This version contains minor bug fixes that affect
+                the subroutine (GCM) version of the code only, including
+                changing the parameter NMOL from 6 to 7 to include oxygen.  
+
+		This release (in 224 g-point mode) was distributed to 
+                Tim Shippert for BBHRP applications.
+
 
