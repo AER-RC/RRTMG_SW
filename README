@@ -1,0 +1,127 @@
+C     path:      $Source$
+C     author:    $Author$
+C     revision:  $Revision$
+C     created:   $Date$
+******************************************************************************
+ RRTM Shortwave Radiative Transfer Model for GCMs (RRTMG_SW)
+ Atmospheric and Environmental Research, Inc., Cambridge, MA
+
+ Original version:   E. J. Mlawer, et al.
+ Revision for GCMs:  Michael J. Iacono (AER),
+                     Jean-Jacques Morcrette (ECMWF)
+
+ References: 
+
+******************************************************************************
+
+This directory contains the source code and sample makefile necessary to run
+RRTMG_SW version 1.0, a correlated k-distribution shortwave radiative transfer 
+model developed at AER, Inc for application to GCMs.  This version of RRTMG_SW 
+utilizes a two-stream radiative transfer method as implemented at ECMWF. Two
+modes of operation are possible.  RRTMG_SW can be run in stand-alone mode using 
+the input files and source modules described below, or it can be attached to an 
+atmospheric general circulation model as a callable subroutine. 
+
+The version of RRTMG_SW provided here utilizes the full complement of 224 
+g-points used in the standard RRTM_SW.  No g-point reduction or other
+performance enhancements have been completed for this code.  Total fluxes are
+accurate to within 1.5 W/m2 relative to the standard RRTM_SW (using DISORT) 
+in clear sky and within 10 W/m2 in cloudy sky.  RRTM_SW with DISORT is itself
+accurate to within 1 W/m2 of the data-validated multiple scattering model, CHARTS. 
+
+
+***********************
+RRTMG_SW column version
+***********************
+
+The following files (in /src directory) must be used to run RRTMG_SW in 
+stand-alone mode, in addition to the files in /include and /module:
+
+   rrtmg_sw.F90          : Main module
+   rrtmg_sw_cldprop.F90  : Cloud optical properties
+   rrtmg_sw_init.F90     : Initialization routine
+   rrtmg_sw_kgb16.F90    : Absorption coefficient block data file, band 16
+   rrtmg_sw_kgb17.F90    : Absorption coefficient block data file, band 17
+   rrtmg_sw_kgb18.F90    : Absorption coefficient block data file, band 18
+   rrtmg_sw_kgb19.F90    : Absorption coefficient block data file, band 19
+   rrtmg_sw_kgb20.F90    : Absorption coefficient block data file, band 20
+   rrtmg_sw_kgb21.F90    : Absorption coefficient block data file, band 21
+   rrtmg_sw_kgb22.F90    : Absorption coefficient block data file, band 22
+   rrtmg_sw_kgb23.F90    : Absorption coefficient block data file, band 23
+   rrtmg_sw_kgb24.F90    : Absorption coefficient block data file, band 24
+   rrtmg_sw_kgb25.F90    : Absorption coefficient block data file, band 25
+   rrtmg_sw_kgb26.F90    : Absorption coefficient block data file, band 26
+   rrtmg_sw_kgb27.F90    : Absorption coefficient block data file, band 27
+   rrtmg_sw_kgb28.F90    : Absorption coefficient block data file, band 28
+   rrtmg_sw_kgb29.F90    : Absorption coefficient block data file, band 29
+   rrtmg_sw_reftra.F90   : Calculates two-stream reflectivities and 
+                           transmissivities
+   rrtmg_sw_setcoef.F90  : Set up routine
+   rrtmg_sw_spcvrt.F90   : Top routine for two-stream model; band loop
+   rrtmg_sw_susrtaer.F90 : Initializes ECMWF aerosols
+   rrtmg_sw_susrtm.F90   : Defines bands, and reference P and T
+   rrtmg_sw_susrtop.F90  : Defines cloud optical properties
+   rrtmg_sw_taumol.F90   : Calculates optical depths and Planck fractions for 
+                           each spectral band
+   rrtmg_sw_vrtqdr.F90   : Performs two-stream vertical quadrature 
+   rrtatm.f              : Processes input data files
+   extra.f               : Processes input data files
+   rdprof.f              : Reads input profile 
+   params.f              : Sets model dimension parameters
+   util_sgi.f            : Utilities
+   make_rrtmg_sw_mod_sgi : Sample makefile for modules (must be used to 
+                           compile modules before the sources) for SGI
+   make_rrtmg_sw_sgi     : Sample makefile set up for an SGI system
+   INPUT_RRTM            : Input file for (clear sky) atmospheric profile 
+   IN_CLD_RRTM           : Input file for cloud information
+   IN_AER_RRTM           : Input file for aerosol information
+   OUTPUT_RRTM           : Output file for fluxes and heating rates
+   rrtmg_sw_instructions : Format instructions for INPUT_RRTM, IN_CLD_RRTM
+                           and IN_AER_RRTM
+
+Several sample input (and output) files are included in the /examples directory 
+Note that user-defined profiles may be used for as many as 200 layers.
+
+   input_rrtm_MLS          : Standard 51 layer mid-latitude summer profile
+   input_rrtm_MLS-cld      : Standard MLS with cloud flag turned on
+   input_rrtm_SAW          : Standard 51 layer sub-arctic winter profile
+   input_rrtm_TROP         : Standard 51 layer tropical profile
+   IN_CLD_RRTM.frac0.5     : Sample cloud input file; Single cloud in layer 11, 
+                             with cloud fraction of 0.5 and optical depth of 6.515
+
+
+***********************
+RRTMG_SW GCM version
+***********************
+
+The following files (in /src directory) are the source files needed to
+implement RRTMG_SW to a GCM (changes to the main routine may be necessary for 
+complete implementation in a specific GCM):
+
+   rrtmg_sw_224.F90      : Main module; callable subroutine
+   rrtmg_sw_cldprop.F90  : Cloud optical properties
+   rrtmg_sw_init.F90     : Initialization routine
+   rrtmg_sw_kgb16.F90    : Absorption coefficient block data file, band 16
+   rrtmg_sw_kgb17.F90    : Absorption coefficient block data file, band 17
+   rrtmg_sw_kgb18.F90    : Absorption coefficient block data file, band 18
+   rrtmg_sw_kgb19.F90    : Absorption coefficient block data file, band 19
+   rrtmg_sw_kgb20.F90    : Absorption coefficient block data file, band 20
+   rrtmg_sw_kgb21.F90    : Absorption coefficient block data file, band 21
+   rrtmg_sw_kgb22.F90    : Absorption coefficient block data file, band 22
+   rrtmg_sw_kgb23.F90    : Absorption coefficient block data file, band 23
+   rrtmg_sw_kgb24.F90    : Absorption coefficient block data file, band 24
+   rrtmg_sw_kgb25.F90    : Absorption coefficient block data file, band 25
+   rrtmg_sw_kgb26.F90    : Absorption coefficient block data file, band 26
+   rrtmg_sw_kgb27.F90    : Absorption coefficient block data file, band 27
+   rrtmg_sw_kgb28.F90    : Absorption coefficient block data file, band 28
+   rrtmg_sw_kgb29.F90    : Absorption coefficient block data file, band 29
+   rrtmg_sw_reftra.F90   : Calculates two-stream reflectivities and 
+                           transmissivities
+   rrtmg_sw_setcoef.F90  : Set up routine
+   rrtmg_sw_spcvrt.F90   : Top routine for two-stream model; band loop
+   rrtmg_sw_susrtaer.F90 : Initializes ECMWF aerosols
+   rrtmg_sw_susrtm.F90   : Defines bands, and reference P and T
+   rrtmg_sw_susrtop.F90  : Defines cloud optical properties
+   rrtmg_sw_taumol.F90   : Calculates optical depths and Planck fractions for 
+                           each spectral band
+   rrtmg_sw_vrtqdr.F90   : Performs two-stream vertical quadrature 

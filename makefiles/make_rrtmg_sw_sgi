@@ -1,0 +1,97 @@
+
+#
+.KEEP_STATE:
+.SILENT:
+.SUFFIXES: .F .F90
+
+# name of your executable
+EXECNAME = rrtmg_sw
+
+# All the .F files in your program that are recompiled in this directory
+FFILES = rdprof.f		\
+         rrtatm.f		\
+         rrtmg_sw.F90		\
+         rrtmg_sw_cldprop.F90	\
+         rrtmg_sw_init.F90	\
+         rrtmg_sw_kgb16.F90	\
+         rrtmg_sw_kgb17.F90	\
+         rrtmg_sw_kgb18.F90	\
+         rrtmg_sw_kgb19.F90	\
+         rrtmg_sw_kgb20.F90	\
+         rrtmg_sw_kgb21.F90	\
+         rrtmg_sw_kgb22.F90	\
+         rrtmg_sw_kgb23.F90	\
+         rrtmg_sw_kgb24.F90	\
+         rrtmg_sw_kgb25.F90	\
+         rrtmg_sw_kgb26.F90	\
+         rrtmg_sw_kgb27.F90	\
+         rrtmg_sw_kgb28.F90	\
+         rrtmg_sw_kgb29.F90	\
+         rrtmg_sw_reftra.F90	\
+         rrtmg_sw_setcoef.F90	\
+         rrtmg_sw_spcvrt.F90	\
+         rrtmg_sw_taumol.F90	\
+         rrtmg_sw_vrtqdr.F90	\
+         rrtmg_sw_susrtaer.F90	\
+         rrtmg_sw_susrtm.F90	\
+         rrtmg_sw_susrtop.F90	\
+         extra.f		\
+         util_sgi.f
+
+
+# All the .o files in your program 
+OBJS =   rdprof.o		\
+         rrtatm.o		\
+         rrtmg_sw.o		\
+         rrtmg_sw_cldprop.o	\
+         rrtmg_sw_init.o	\
+         rrtmg_sw_kgb16.o	\
+         rrtmg_sw_kgb17.o	\
+         rrtmg_sw_kgb18.o	\
+         rrtmg_sw_kgb19.o	\
+         rrtmg_sw_kgb20.o	\
+         rrtmg_sw_kgb21.o	\
+         rrtmg_sw_kgb22.o	\
+         rrtmg_sw_kgb23.o	\
+         rrtmg_sw_kgb24.o	\
+         rrtmg_sw_kgb25.o	\
+         rrtmg_sw_kgb26.o	\
+         rrtmg_sw_kgb27.o	\
+         rrtmg_sw_kgb28.o	\
+         rrtmg_sw_kgb29.o	\
+         rrtmg_sw_reftra.o	\
+         rrtmg_sw_setcoef.o	\
+         rrtmg_sw_spcvrt.o	\
+         rrtmg_sw_taumol.o	\
+         rrtmg_sw_vrtqdr.o	\
+         rrtmg_sw_susrtaer.o	\
+         rrtmg_sw_susrtm.o	\
+         rrtmg_sw_susrtop.o	\
+         extra.o		\
+         util_sgi.o
+
+
+# Compiler specifications
+FFF = f90
+
+##########################################
+####### options for the FORTRAN compiler #######
+##########################################
+FFOPTS = -mips4 -r10000 -lfastm -O3 -64 -TENV:X=0 -I ../include -I ../module -cpp -macro_expand -UD_LANGUAGE_FORTRAN90 -UDLANGUAGE_FORTRAN90 -ULANGUAGE_FORTRAN -U_LANGUAGE_FORTRAN
+
+
+# build the executable
+all:	$(OBJS)
+	echo "linking $@"
+	$(FFF) $(FFOPTS) -o $(EXECNAME) $(OBJS)
+
+# Define a rule for building .o from .f and .F90 files
+.f.o:
+	echo "compiling $(FFOPTS) $*.f"
+	$(FFF) $(FFOPTS) -c $*.f
+
+.F90.o:
+	echo "compiling $(FFOPTS) $*.F90"
+	$(FFF) $(FFOPTS) -c $*.F90
+
+
