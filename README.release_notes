@@ -1,6 +1,22 @@
 NOTE:
 ** CVS rtags can't accept "." in strings, substitute "_"
 
+
+March 8, 2005:
+
+	Release_2_3_1 - This version fixes a bug in the calculation
+                of the total sky asymmetry parameter in file 
+                rrtmg_sw_spcvrt.F90 when the routine cldprop is
+                used to provide scaled cloud properties.  This only
+                affected calculations that included both clouds and
+                aerosols.
+
+		This release was distributed to J.-J. Morcrette at ECMWF,
+                Yu-Tai Hou at NCEP, Jimy Dudhia at NCAR, Dave Hogan
+                for NPOESS applications, and it was provided to
+                Tim Shippert (PNL) for BBHRP applications.
+
+
 January 27, 2005:
 
 	Release_2_3 - This version contains modifications to include 
@@ -21,6 +37,11 @@ January 27, 2005:
                 IDELM=0 option (unscaled "true" direct and diffuse flux)
                 is the default and that the IDELM=1 option is not 
                 available. 
+
+		This release was distributed to J.-J. Morcrette at ECMWF,
+                Yu-Tai Hou at NCEP, and Dave Hogan for NPOESS applications, 
+                and it was distributed (in 224 g-point mode) to Tim Shippert 
+                (PNL) for BBHRP applications.
 
 
 December 15, 2004:
@@ -44,10 +65,8 @@ December 15, 2004:
                 has most significant impact in profiles with aerosols 
                 having moderate to high optical depth. 
 
-		This release was distributed to J.-J. Morcrette at ECMWF,
-                Yu-Tai Hou at NCEP, Jimy Dudhia at NCAR, and Dave Hogan
-                for NPOESS applications, and it was distributed (in 224 
-                g-point mode) to Tim Shippert (PNL) for BBHRP applications.
+		This release was distributed to Yu-Tai Hou at NCEP, and 
+                Dave Hogan for NPOESS applications.
 
 
 November 24, 2004:

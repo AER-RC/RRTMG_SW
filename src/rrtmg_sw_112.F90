@@ -173,7 +173,7 @@ REAL_B :: DIRDOWNFLUX(JPLON,JPLAY+1), DIFDOWNFLUX(JPLON,JPLAY+1)
 
 !-- dummy integers
 
-INTEGER_M :: ICLD,ICLDATM, INFLAG, ICEFLAG, LIQFLAG, NMOL, NSTR
+INTEGER_M :: ICLD,ICLDATM, INFLAG, ICEFLAG, LIQFLAG, NMOL, NSTR, ICPR
 INTEGER_M :: IK, IMOL, J1, J2, JA, JAE, JL, JK, JMOM, JSW, IB
 
 INTEGER_M :: LAYTROP, LAYSWTCH, LAYLOW
@@ -255,6 +255,7 @@ KLEV    = JPLAY
 KSW     = JPSW
 KOVLP   = 1
 ICLD    = 0
+ICPR    = 0
 
 !     RCDAY is the factor by which one must multiply delta-flux/ 
 !     delta-pressure, with flux in w/m-2 and pressure in mbar, to get 
@@ -326,6 +327,7 @@ DO JL = 1, KLON
      &, CLDFRAC, CLDDAT1, CLDDAT2, CLDDAT3, CLDDAT4, CLDDATMOM &
      &, TAUCLDORIG, TAUCLOUD, SSACLOUD, XMOM &
      &)
+      ICPR = _ONE_
    ENDIF
 
 !- coefficients for the temperature and pressure dependence of the 
@@ -497,7 +499,7 @@ DO JL = 1, KLON
      &, PAVEL  , TAVEL   , PZ     , TZ     , TBOUND  , ZALBD   , ZALBP &
      &, ZCLFR  , ZTAUC   , ZASYC  , ZOMGC  , ZTAUCORIG &
      &, ZTAUA  , ZASYA   , ZOMGA  , ZRMU0   &
-     &, COLDRY , WKL     , ADJFLUX  &	 
+     &, COLDRY , WKL     , ADJFLUX, ICPR    &	 
      &, LAYTROP, LAYSWTCH, LAYLOW &
      &, CO2MULT, COLCH4  , COLCO2 , COLH2O , COLMOL  , COLN2O  , COLO2 , COLO3 &
      &, FORFAC , FORFRAC , INDFOR , SELFFAC, SELFFRAC, INDSELF &

@@ -8,7 +8,7 @@ SUBROUTINE RRTMG_SW_SPCVRT &
  &, PAVEL  , TAVEL   , PZ     , TZ     , TBOUND  , PALBD   , PALBP &
  &, PCLFR  , PTAUC   , PASYC  , POMGC  , PTAUCORIG &
  &, PTAUA  , PASYA   , POMGA  , PRMU0   &
- &, COLDRY , WKL     , ADJFLUX  &
+ &, COLDRY , WKL     , ADJFLUX, ICPR    &
  &, LAYTROP, LAYSWTCH, LAYLOW &
  &, CO2MULT, COLCH4  , COLCO2 , COLH2O , COLMOL  , COLN2O  , COLO2 , COLO3 &
  &, FORFAC , FORFRAC , INDFOR , SELFFAC, SELFFRAC, INDSELF &
@@ -86,7 +86,7 @@ IMPLICIT NONE
 !*       0.1   ARGUMENTS
 !              ---------
 
-INTEGER_M :: KAER   , KLEV    , KMOL  , KSW, ISTART, IEND
+INTEGER_M :: KAER   , KLEV    , KMOL  , KSW, ISTART, IEND, ICPR
 INTEGER_M :: LAYTROP, LAYSWTCH, LAYLOW
 
 REAL_B :: ONEMINUS
@@ -455,29 +455,32 @@ DO JB = IB1, IB2
 
 !-- total sky optical parameters (cloud properties already delta-scaled)
 !   Use this code if cloud properties are derived in rrtmg_sw_cldprop       
-      ZTAUO(JK) = ZTAUC(JK) + PTAUC(IKL,IBM)
-      ZOMCO(JK) = ZTAUC(JK)*ZOMCC(JK) + PTAUC(IKL,IBM)*POMGC(IKL,IBM) 
-      ZGCO (JK) = (PTAUC(IKL,IBM)*POMGC(IKL,IBM)*PASYC(IKL,IBM)  &
-        &       +  ZTAUC(JK)*ZOMCC(JK)*PASYA(IKL,IBM)) /  ZOMCO(JK)
-      ZOMCO(JK) = ZOMCO(JK) / ZTAUO(JK)
+      IF (ICPR .EQ. 1) THEN
+         ZTAUO(JK) = ZTAUC(JK) + PTAUC(IKL,IBM)
+         ZOMCO(JK) = ZTAUC(JK)*ZOMCC(JK) + PTAUC(IKL,IBM)*POMGC(IKL,IBM) 
+         ZGCO (JK) = (PTAUC(IKL,IBM)*POMGC(IKL,IBM)*PASYC(IKL,IBM)  &
+           &       +  ZTAUC(JK)*ZOMCC(JK)*ZGCC(JK)) /  ZOMCO(JK)
+         ZOMCO(JK) = ZOMCO(JK) / ZTAUO(JK)
 
 !-- total sky optical parameters (if cloud properties not delta scaled)
 !   Use this code if cloud properties are not derived in rrtmg_sw_cldprop       
-!      ZTAUO(JK) = ZTAUR(IKL,JG) + ZTAUG(IKL,JG) + PTAUA(IKL,IBM) + PTAUC(IKL,IBM)
-!      ZOMCO(JK) = PTAUA(IKL,IBM)*POMGA(IKL,IBM) + PTAUC(IKL,IBM)*POMGC(IKL,IBM) &
-!        &       + ZTAUR(IKL,JG)*_ONE_
-!      ZGCO (JK) = (PTAUC(IKL,IBM)*POMGC(IKL,IBM)*PASYC(IKL,IBM)  &
-!        &       +  PTAUA(IKL,IBM)*POMGA(IKL,IBM)*PASYA(IKL,IBM)) &
-!        &       /  ZOMCO(JK)
-!      ZOMCO(JK) = ZOMCO(JK) / ZTAUO(JK)
-!
+      ELSE IF (ICPR .EQ. 0) THEN
+         ZTAUO(JK) = ZTAUR(IKL,JG) + ZTAUG(IKL,JG) + PTAUA(IKL,IBM) + PTAUC(IKL,IBM)
+         ZOMCO(JK) = PTAUA(IKL,IBM)*POMGA(IKL,IBM) + PTAUC(IKL,IBM)*POMGC(IKL,IBM) &
+           &       + ZTAUR(IKL,JG)*_ONE_
+         ZGCO (JK) = (PTAUC(IKL,IBM)*POMGC(IKL,IBM)*PASYC(IKL,IBM)  &
+           &       +  PTAUA(IKL,IBM)*POMGA(IKL,IBM)*PASYA(IKL,IBM)) &
+           &       /  ZOMCO(JK)
+         ZOMCO(JK) = ZOMCO(JK) / ZTAUO(JK)
+
 !-- Delta scaling - clouds; Use only if subroutine rrtmg_sw_cldprop 
 !   is not used to get cloud properties and to apply delta scaling
-!      ZF=ZGCO(JK)*ZGCO(JK)
-!      ZWF=ZOMCO(JK)*ZF
-!      ZTAUO(JK)=(1._JPRB-ZWF)*ZTAUO(JK)
-!      ZOMCO(JK)=(ZOMCO(JK)-ZWF)/(1._JPRB-ZWF)
-!      ZGCO (JK)=(ZGCO(JK)-ZF)/(1._JPRB-ZF)
+         ZF=ZGCO(JK)*ZGCO(JK)
+         ZWF=ZOMCO(JK)*ZF
+         ZTAUO(JK)=(1._JPRB-ZWF)*ZTAUO(JK)
+         ZOMCO(JK)=(ZOMCO(JK)-ZWF)/(1._JPRB-ZWF)
+         ZGCO (JK)=(ZGCO(JK)-ZF)/(1._JPRB-ZF)
+      ENDIF 
 
     END DO    
 
