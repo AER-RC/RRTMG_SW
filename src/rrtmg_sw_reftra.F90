@@ -3,6 +3,16 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+!  --------------------------------------------------------------------------
+! |                                                                          |
+! |  Copyright 2002-2005, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  This software may be used, copied, or redistributed as long as it is    |
+! |  not sold and this copyright notice is reproduced on each copy made.     |
+! |  This model is provided as is without any express or implied warranties. |
+! |                       (http://www.rtweb.aer.com/)                        |
+! |                                                                          |
+!  --------------------------------------------------------------------------
+
 SUBROUTINE RRTMG_SW_REFTRA &
   &( KLEV  , KMODTS &
   &, LRTCHK &
@@ -78,9 +88,9 @@ USE PARSRTM , ONLY : JPLAY
 IMPLICIT NONE
 
 !     DUMMY INTEGER SCALARS
-INTEGER_M :: KIDIA, KFDIA, KLON
-INTEGER_M :: KLEV
-INTEGER_M :: KMODTS
+INTEGER_B :: KIDIA, KFDIA, KLON
+INTEGER_B :: KLEV
+INTEGER_B :: KMODTS
 
 LOGICAL :: LRTCHK(JPLAY)
 
@@ -91,7 +101,7 @@ REAL_B :: PREF(JPLAY),PREFD(JPLAY), PTRA(JPLAY), PTRAD(JPLAY)
 !     ------------------------------------------------------------------
 
 !     LOCAL INTEGER SCALARS
-INTEGER_M :: JK, JL
+INTEGER_B :: JK, JL
 
 REAL_B :: ZA, ZA1, ZA2
 REAL_B :: ZBETA, ZDEND, ZDENR, ZDENT

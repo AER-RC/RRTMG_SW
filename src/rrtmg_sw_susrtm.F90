@@ -3,6 +3,16 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+!  --------------------------------------------------------------------------
+! |                                                                          |
+! |  Copyright 2002-2005, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  This software may be used, copied, or redistributed as long as it is    |
+! |  not sold and this copyright notice is reproduced on each copy made.     |
+! |  This model is provided as is without any express or implied warranties. |
+! |                       (http://www.rtweb.aer.com/)                        |
+! |                                                                          |
+!  --------------------------------------------------------------------------
+
 SUBROUTINE SUSRTM
 
 !     Adapted from E.J. Mlawer, J. Delamere, Atmospheric & Environmental Research.

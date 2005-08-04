@@ -3,6 +3,16 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+!  --------------------------------------------------------------------------
+! |                                                                          |
+! |  Copyright 2002-2005, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  This software may be used, copied, or redistributed as long as it is    |
+! |  not sold and this copyright notice is reproduced on each copy made.     |
+! |  This model is provided as is without any express or implied warranties. |
+! |                       (http://www.rtweb.aer.com/)                        |
+! |                                                                          |
+!  --------------------------------------------------------------------------
+
 SUBROUTINE RRTMG_SW_INIT
 
 #include "tsmbkind.h"
@@ -14,7 +24,7 @@ USE YOESRTWN , ONLY : NG, NSPA, NSPB, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: IGC, IGCSM, IBND, IG, IND, IPR, IPRSM
+INTEGER_B :: IGC, IGCSM, IBND, IG, IND, IPR, IPRSM
 REAL_B :: WTSUM
 
 
@@ -141,7 +151,7 @@ USE YOESRTA16, ONLY : KA, KB, SELFREF, FORREF, SFLUXREF, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: JN, JT, JP, IGC, IPR, IPRSM
+INTEGER_B :: JN, JT, JP, IGC, IPR, IPRSM
 REAL_B :: SUMK, SUMF
 
       DO 2000 JN = 1,9
@@ -225,7 +235,7 @@ USE YOESRTA17, ONLY : KA, KB, SELFREF, FORREF, SFLUXREF, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: JN, JT, JP, IGC, IPR, IPRSM
+INTEGER_B :: JN, JT, JP, IGC, IPR, IPRSM
 REAL_B :: SUMK, SUMF
 
       DO 2000 JN = 1,9
@@ -312,7 +322,7 @@ USE YOESRTA18, ONLY : KA, KB, SELFREF, FORREF, SFLUXREF, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: JN, JT, JP, IGC, IPR, IPRSM
+INTEGER_B :: JN, JT, JP, IGC, IPR, IPRSM
 REAL_B :: SUMK, SUMF
 
       DO 2000 JN = 1,9
@@ -398,7 +408,7 @@ USE YOESRTA19, ONLY : KA, KB, SELFREF, FORREF, SFLUXREF, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: JN, JT, JP, IGC, IPR, IPRSM
+INTEGER_B :: JN, JT, JP, IGC, IPR, IPRSM
 REAL_B :: SUMK, SUMF
 
       DO 2000 JN = 1,9
@@ -484,7 +494,7 @@ USE YOESRTA20, ONLY : KA, KB, SELFREF, FORREF, ABSCH4, SFLUXREF, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: JT, JP, IGC, IPR, IPRSM
+INTEGER_B :: JT, JP, IGC, IPR, IPRSM
 REAL_B :: SUMK, SUMF1, SUMF2
 
       DO 2000 JT = 1,5
@@ -567,7 +577,7 @@ USE YOESRTA21, ONLY : KA, KB, SELFREF, FORREF, SFLUXREF, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: JN, JT, JP, IGC, IPR, IPRSM
+INTEGER_B :: JN, JT, JP, IGC, IPR, IPRSM
 REAL_B :: SUMK, SUMF
 
       DO 2000 JN = 1,9
@@ -654,7 +664,7 @@ USE YOESRTA22, ONLY : KA, KB, SELFREF, FORREF, SFLUXREF, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: JN, JT, JP, IGC, IPR, IPRSM
+INTEGER_B :: JN, JT, JP, IGC, IPR, IPRSM
 REAL_B :: SUMK, SUMF
 
       DO 2000 JN = 1,9
@@ -740,7 +750,7 @@ USE YOESRTA23, ONLY : KA, SELFREF, FORREF, SFLUXREF, RAYL, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: JT, JP, IGC, IPR, IPRSM
+INTEGER_B :: JT, JP, IGC, IPR, IPRSM
 REAL_B :: SUMK, SUMF1, SUMF2
 
       DO 2000 JT = 1,5
@@ -814,7 +824,7 @@ USE YOESRTA24, ONLY : KA, KB, SELFREF, FORREF, SFLUXREF, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: JN, JT, JP, IGC, IPR, IPRSM
+INTEGER_B :: JN, JT, JP, IGC, IPR, IPRSM
 REAL_B :: SUMK, SUMF1, SUMF2, SUMF3
 
       DO 2000 JN = 1,9
@@ -919,7 +929,7 @@ USE YOESRTA25, ONLY : KA, SFLUXREF, ABSO3A, ABSO3B, RAYL, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: JT, JP, IGC, IPR, IPRSM
+INTEGER_B :: JT, JP, IGC, IPR, IPRSM
 REAL_B :: SUMK, SUMF1, SUMF2, SUMF3, SUMF4
 
       DO 2000 JT = 1,5
@@ -973,7 +983,7 @@ USE YOESRTA26, ONLY : SFLUXREF, RAYL, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: IGC, IPR, IPRSM
+INTEGER_B :: IGC, IPR, IPRSM
 REAL_B :: SUMF1, SUMF2
 
       IPRSM = 0
@@ -1007,7 +1017,7 @@ USE YOESRTA27, ONLY : KA, KB, SFLUXREF, RAYL, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: JT, JP, IGC, IPR, IPRSM
+INTEGER_B :: JT, JP, IGC, IPR, IPRSM
 REAL_B :: SUMK, SUMF1, SUMF2
 
       DO 2000 JT = 1,5
@@ -1066,7 +1076,7 @@ USE YOESRTA28, ONLY : KA, KB, SFLUXREF, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: JN, JT, JP, IGC, IPR, IPRSM
+INTEGER_B :: JN, JT, JP, IGC, IPR, IPRSM
 REAL_B :: SUMK, SUMF
 
       DO 2000 JN = 1,9
@@ -1131,7 +1141,7 @@ USE YOESRTA29, ONLY : KA, KB, SELFREF, FORREF, SFLUXREF, &
 IMPLICIT NONE
 
 ! Local variables
-INTEGER_M :: JT, JP, IGC, IPR, IPRSM
+INTEGER_B :: JT, JP, IGC, IPR, IPRSM
 REAL_B :: SUMK, SUMF1, SUMF2, SUMF3
 
       DO 2000 JT = 1,5

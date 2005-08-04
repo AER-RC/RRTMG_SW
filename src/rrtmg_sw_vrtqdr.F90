@@ -3,6 +3,16 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+!  --------------------------------------------------------------------------
+! |                                                                          |
+! |  Copyright 2002-2005, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  This software may be used, copied, or redistributed as long as it is    |
+! |  not sold and this copyright notice is reproduced on each copy made.     |
+! |  This model is provided as is without any express or implied warranties. |
+! |                       (http://www.rtweb.aer.com/)                        |
+! |                                                                          |
+!  --------------------------------------------------------------------------
+
 SUBROUTINE RRTMG_SW_VRTQDR &
  &( KLEV , KW &
  &, PREF , PREFD, PTRA , PTRAD &
@@ -66,7 +76,7 @@ IMPLICIT NONE
 !*       0.1   ARGUMENTS
 !              ---------
 
-INTEGER_M :: KLEV, KW
+INTEGER_B :: KLEV, KW
 
 REAL_B :: PREF(JPLAY+1), PREFD(JPLAY+1), PTRA(JPLAY+1), PTRAD(JPLAY+1)
 REAL_B :: PDBT(JPLAY+1), PRDND(JPLAY+1), PRUP(JPLAY+1), PRUPD(JPLAY+1), PTDBT(JPLAY+1)
@@ -81,7 +91,7 @@ REAL_B :: PFD(JPLAY+1,JPGPT), PFU(JPLAY+1,JPGPT)
 REAL_B :: ZTDN(JPLAY+1)  
 
 !     LOCAL INTEGER SCALARS
-INTEGER_M :: IKP, IKX, JK
+INTEGER_B :: IKP, IKX, JK
 
 !     LOCAL REAL SCALARS
 REAL_B :: ZREFLECT

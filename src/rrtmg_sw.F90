@@ -3,11 +3,15 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
-! Copyright 2002, 2003, 2004, Atmospheric & Environmental Research, Inc. (AER).
-! This software may be used, copied, or redistributed as long as it is
-! not sold and this copyright notice is reproduced on each copy made.
-! This model is provided as is without any express or implied warranties.
-!                      (http://www.rtweb.aer.com/)
+!  --------------------------------------------------------------------------
+! |                                                                          |
+! |  Copyright 2002-2005, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  This software may be used, copied, or redistributed as long as it is    |
+! |  not sold and this copyright notice is reproduced on each copy made.     |
+! |  This model is provided as is without any express or implied warranties. |
+! |                       (http://www.rtweb.aer.com/)                        |
+! |                                                                          |
+!  --------------------------------------------------------------------------
 !
 !***************************************************************************
 !                                                                          *
@@ -127,7 +131,7 @@ IMPLICIT NONE
 
 !-- Input arguments
 
-INTEGER_M :: KLON, KLEV, KSW, KOVLP
+INTEGER_B :: KLON, KLEV, KSW, KOVLP
 
 REAL_B :: PAER(JPLON,JPAER,JPLAY)
 REAL_B :: PDP(JPLON,JPLAY)
@@ -145,13 +149,13 @@ REAL_B :: DIRDOWNFLUX(JPLON,JPLAY+1), DIFDOWNFLUX(JPLON,JPLAY+1)
 
 !-- dummy integers
 
-INTEGER_M :: ICLDATM, INFLAG, ICEFLAG, LIQFLAG, NMOL, NSTR, IWR, ICPR
-INTEGER_M :: I, IK, IMOL, J1, J2, JA, JAE, JL, JK, JMOM, JSW
-INTEGER_M :: NLAYERS, ISTART, IEND, IFLAG, IOUT, ICLD, IAER, ISCCOS, IDELM, INDFORM
+INTEGER_B :: ICLDATM, INFLAG, ICEFLAG, LIQFLAG, NMOL, NSTR, IWR, ICPR
+INTEGER_B :: I, IK, IMOL, J1, J2, JA, JAE, JL, JK, JMOM, JSW
+INTEGER_B :: NLAYERS, ISTART, IEND, IFLAG, IOUT, ICLD, IAER, ISCCOS, IDELM, INDFORM
 
-INTEGER_M :: LAYTROP, LAYSWTCH, LAYLOW
-INTEGER_M :: INDFOR(JPLAY), INDSELF(JPLAY)
-INTEGER_M :: JP(JPLAY), JT(JPLAY), JT1(JPLAY)
+INTEGER_B :: LAYTROP, LAYSWTCH, LAYLOW
+INTEGER_B :: INDFOR(JPLAY), INDSELF(JPLAY)
+INTEGER_B :: JP(JPLAY), JT(JPLAY), JT1(JPLAY)
 
 !-- dummy reals
 
@@ -190,13 +194,13 @@ CHARACTER*50 OUTFORM(7)
 !     Setup format statements for output
 
 DATA OUTFORM &
-   &/'(1X,I3,3X,F7.6,4X,4(F10.4,4X),F10.4,4X,F10.5)',&
-   & '(1X,I3,4X,F6.5,4X,4(F10.4,4X),F10.4,4X,F10.5)',&
-   & '(1X,I3,5X,F5.4,4X,4(F10.4,4X),F10.4,4X,F10.5)',&
-   & '(1X,I3,5X,F5.3,4X,4(F10.4,4X),F10.4,4X,F10.5)',&
-   & '(1X,I3,5X,F5.2,4X,4(F10.4,4X),F10.4,4X,F10.5)',&
-   & '(1X,I3,5X,F5.1,4X,4(F10.4,4X),F10.4,4X,F10.5)',&
-   & '(1X,I3,4X,F6.1,4X,4(F10.4,4X),F10.4,4X,F10.5)'/
+   &/'(1X,I3,3X,F7.6,4X,4(F10.4,4X),F11.6,4X,F10.5)',&
+   & '(1X,I3,4X,F6.5,4X,4(F10.4,4X),F11.6,4X,F10.5)',&
+   & '(1X,I3,4X,F6.4,4X,4(F10.4,4X),F11.6,4X,F10.5)',&
+   & '(1X,I3,4X,F6.3,4X,4(F10.4,4X),F11.6,4X,F10.5)',&
+   & '(1X,I3,4X,F6.2,4X,4(F10.4,4X),F11.6,4X,F10.5)',&
+   & '(1X,I3,4X,F6.1,4X,4(F10.4,4X),F11.6,4X,F10.5)',&
+   & '(1X,I3,4X,F6.1,4X,4(F10.4,4X),F11.6,4X,F10.5)'/
 
 !      HVRRTM = '$Revision$'
 !      CHARACTER*15 HVRRTM,HVRRTR,HVRATM,HVRSET,HVRTAU,
@@ -340,7 +344,6 @@ DO JL = 1, KLON
      &, JP     , JT      , JT1	 &
      &)
   
-
 !- Call the radiation transfer routine
 
 !- Put cloud optical properties in arrays for 2-stream 
@@ -517,11 +520,11 @@ DO JL = 1, KLON
       write(iwr,9879)
    endif
 
-!   if (idelm .eq. 0) then
-!      write(iwr,9883)
-!   else
-!      write(iwr,9882)
-!   endif
+   if (idelm .eq. 0) then
+      write(iwr,9883)
+   else
+      write(iwr,9882)
+   endif
 
    WRITE(IWR,9899)WAVENUM1(ISTART),WAVENUM2(IEND)
    WRITE(IWR,9900)
@@ -620,7 +623,7 @@ FUNCTION EARTH_SUN(IDN)
 !  IDN        : Day of the year
 !  EARTH_SUN  : square of the ratio of mean to actual Earth-Sun distance
 
-PI   =  3.141592654
+PI   =  3.1415926535
 GAMMA = 2.*PI*(IDN-1)/365.
 
 !  Use Iqbal's equation 1.2.1

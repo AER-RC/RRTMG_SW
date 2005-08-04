@@ -11,7 +11,7 @@ SAVE
 !     BAND 18:  4000-4650 cm-1 (low - H2O,CH4; high - CH4)
 !     -----------------------------------------------------------------
 
-INTEGER_M, PARAMETER :: JPG = 16, NG18 = 16
+INTEGER_B, PARAMETER :: JPG = 16, NG18 = 16
 
 REAL_B :: KA(9,5,13,JPG)
 REAL_B :: KB(5,13:59,JPG)
@@ -19,7 +19,7 @@ REAL_B :: SELFREF(10,JPG),FORREF(3,JPG)
 REAL_B :: SFLUXREF(JPG,9)
 REAL_B :: RAYL,STRRAT
 
-INTEGER_M :: LAYREFFR
+INTEGER_B :: LAYREFFR
 
 REAL_B :: KAC(9,5,13,NG18) ,ABSA(585,NG18)
 REAL_B :: KBC(5,13:59,NG18),ABSB(235,NG18)

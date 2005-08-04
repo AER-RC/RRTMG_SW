@@ -15,7 +15,7 @@ C     created:   $Date$
 ******************************************************************************
 
 This directory contains the source code and sample makefile necessary to run
-RRTMG_SW version 2.0, a correlated k-distribution shortwave radiative transfer 
+RRTMG_SW version 2.6, a correlated k-distribution shortwave radiative transfer 
 model developed at AER, Inc for application to GCMs.  This version of RRTMG_SW 
 utilizes a two-stream radiative transfer method as implemented at ECMWF. Two
 modes of operation are possible.  RRTMG_SW can be run in stand-alone mode using 
@@ -36,7 +36,7 @@ RRTMG_SW column version
 ***********************
 
 The following files (in /src directory) must be used to run RRTMG_SW in 
-stand-alone mode, in addition to the files in /include and /module:
+stand-alone mode:
 
    rrtmg_sw.F90          : Main module
    rrtmg_sw_cldprop.F90  : Cloud optical properties
@@ -69,17 +69,18 @@ stand-alone mode, in addition to the files in /include and /module:
    extra.f               : Processes input data files
    rdprof.f              : Reads input profile 
    params.f              : Sets model dimension parameters
-   util_sgi.f            : Utilities
+   util_sgi.f            : Utilities (also provided for other platforms)
    make_rrtmg_sw_mod_sgi : Sample makefile for modules (must be used to 
                            compile modules before the sources) for SGI
    make_rrtmg_sw_sgi     : Sample makefile set up for an SGI system
-   INPUT_RRTM            : Input file for (clear sky) atmospheric profile 
-   IN_CLD_RRTM           : Input file for cloud information
-   IN_AER_RRTM           : Input file for aerosol information
+   INPUT_RRTM            : Input file for atmospheric profile 
+   IN_CLD_RRTM           : Input file for layer cloud information
+   IN_AER_RRTM           : Input file for layer aerosol information
    OUTPUT_RRTM           : Output file for fluxes and heating rates
    rrtmg_sw_instructions : Format instructions for INPUT_RRTM, IN_CLD_RRTM
                            and IN_AER_RRTM
 
+Additional files are provided in the /include and /module directories.
 Several sample input (and output) files are included in the /examples directory 
 Note that user-defined profiles may be used for as many as 200 layers.
 
@@ -90,7 +91,7 @@ Note that user-defined profiles may be used for as many as 200 layers.
    IN_CLD_RRTM.frac0.5     : Sample cloud input file; Single cloud in layer 11, 
                              with cloud fraction of 0.5 and optical depth of 6.515
 
-***Notes regarding column version***
+***NOTES regarding column version***
 1) The code modules in the /module directory must be compiled before the 
 source files.  The modules and the source may be complied with the supplied
 makefiles (on SGI) by linking these makefiles to the /module and /src directories.
@@ -135,7 +136,7 @@ for complete implementation in a specific GCM), in addition to the files in
    rrtmg_sw_vrtqdr.F90   : Performs two-stream vertical quadrature 
 
 
-Notes regarding GCM version:
+***NOTES regarding GCM version***
 1) RRTMG_SW_INIT is an initialization routine that has to be called only once.
 The call to this routine currently in RRTMG_SW_112 should be moved to the GCM
 initialization area if this code is used in a GCM. 

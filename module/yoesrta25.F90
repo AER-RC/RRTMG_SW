@@ -11,12 +11,12 @@ SAVE
 !     BAND 25: 16000-22650 cm-1 (low - H2O; high - nothing)
 !     -----------------------------------------------------------------
 
-INTEGER_M, PARAMETER :: JPG = 16, NG25 = 16
+INTEGER_B, PARAMETER :: JPG = 16, NG25 = 16
 
 REAL_B :: KA(5,13,JPG)
 REAL_B :: SFLUXREF(JPG)
 REAL_B :: RAYL(JPG), ABSO3A(JPG), ABSO3B(JPG)
-INTEGER_M :: LAYREFFR
+INTEGER_B :: LAYREFFR
 
 REAL_B :: KAC(5,13,NG25) ,ABSA(65,NG25)
 REAL_B :: SFLUXREFC(NG25)

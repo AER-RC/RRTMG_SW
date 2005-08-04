@@ -3,6 +3,16 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+!  --------------------------------------------------------------------------
+! |                                                                          |
+! |  Copyright 2002-2005, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  This software may be used, copied, or redistributed as long as it is    |
+! |  not sold and this copyright notice is reproduced on each copy made.     |
+! |  This model is provided as is without any express or implied warranties. |
+! |                       (http://www.rtweb.aer.com/)                        |
+! |                                                                          |
+!  --------------------------------------------------------------------------
+
 SUBROUTINE RRTMG_SW_SPCVRT &
  &( KLEV   , KMOL    , KSW    , ONEMINUS,ISTART  , IEND &
  &, PAVEL  , TAVEL   , PZ     , TZ     , TBOUND  , PALBD   , PALBP &
@@ -86,8 +96,8 @@ IMPLICIT NONE
 !*       0.1   ARGUMENTS
 !              ---------
 
-INTEGER_M :: KAER   , KLEV    , KMOL  , KSW, ISTART, IEND, ICPR
-INTEGER_M :: LAYTROP, LAYSWTCH, LAYLOW
+INTEGER_B :: KAER   , KLEV    , KMOL  , KSW, ISTART, IEND, ICPR
+INTEGER_B :: LAYTROP, LAYSWTCH, LAYLOW
 
 REAL_B :: ONEMINUS
 REAL_B :: PALBD(KSW)     , PALBP(KSW)     , PRMU0 
@@ -102,8 +112,8 @@ REAL_B :: FORFAC(JPLAY)  , FORFRAC(JPLAY) , SELFFAC(JPLAY)  , SELFFRAC(JPLAY)
 REAL_B :: FAC00(JPLAY)   ,   FAC01(JPLAY) , FAC10(JPLAY)    , FAC11(JPLAY)
 REAL_B :: ADJFLUX(JPBAND)
 
-INTEGER_M :: INDFOR(JPLAY), INDSELF(JPLAY)
-INTEGER_M :: JP(JPLAY)    , JT(JPLAY)     , JT1(JPLAY)
+INTEGER_B :: INDFOR(JPLAY), INDSELF(JPLAY)
+INTEGER_B :: JP(JPLAY)    , JT(JPLAY)     , JT1(JPLAY)
 
 REAL_B :: &
   &   PBBCD(JPLAY+1)          , PBBCU(JPLAY+1) &
@@ -145,7 +155,7 @@ REAL_B :: &
   
 
 !     LOCAL INTEGER SCALARS
-INTEGER_M :: IB1, IB2, IBM, IGT, IKL, IKP, IKX, IW, JB, JG, JL, JK, KGS, KMODTS
+INTEGER_B :: IB1, IB2, IBM, IGT, IKL, IKP, IKX, IW, JB, JG, JL, JK, KGS, KMODTS
 
 !     LOCAL REAL SCALARS
 REAL_B :: ZDBTMC, ZDBTMO, ZF, ZGW, ZINCFLUX, ZREFLECT, ZWF, TAUORIG

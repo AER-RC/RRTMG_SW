@@ -3,26 +3,33 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+!  --------------------------------------------------------------------------
+! |                                                                          |
+! |  Copyright 2002-2005, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  This software may be used, copied, or redistributed as long as it is    |
+! |  not sold and this copyright notice is reproduced on each copy made.     |
+! |  This model is provided as is without any express or implied warranties. |
+! |                       (http://www.rtweb.aer.com/)                        |
+! |                                                                          |
+!  --------------------------------------------------------------------------
+!
+
 SUBROUTINE RRTMG_SW_CLDPROP &
   &( KLEV, ICLDATM, INFLAG, ICEFLAG, LIQFLAG, NSTR &
   &, CLDFRAC, CLDDAT1, CLDDAT2, CLDDAT3, CLDDAT4, CLDDATMOM &
   &, TAUCLDORIG, TAUCLOUD, SSACLOUD, XMOM &
   &)
 
-!  path:      $Source$
-!  author:    $Author$
-!  revision:  $Revision$
-!  created:   $Date$
-
 !  PURPOSE:  COMPUTE THE CLOUD OPTICAL DEPTH(S) FOR EACH CLOUDY
-!  LAYER.  NOTE:  ONLY INFLAG = 0 AND INFLAG=2/LIQFLAG=1/ICEFLAG=3
-!  (HU & STAMNES, Q. FU) ARE IMPLEMENTED.
+!  LAYER.  NOTE:  ONLY INFLAG = 0 AND INFLAG=2/LIQFLAG=1/ICEFLAG=2,3
+!  (HU & STAMNES, KEY, Q. FU) ARE IMPLEMENTED.
 
 
 #include "tsmbkind.h"
 
 USE PARSRTM ,  ONLY : JPLAY, JPBAND, JPB1, JPB2
 USE YOESRTOP,  ONLY : EXTLIQ1, SSALIQ1, ASYLIQ1 &
+                   &, EXTICE2, SSAICE2, ASYICE2 &
                    &, EXTICE3, SSAICE3, ASYICE3, FDLICE3 &
                    &, FDELTA , ABSCLD1 &
 		   &, ABSCOICE, EXTCOICE, SSACOICE, GICE, FORWICE &
@@ -41,8 +48,8 @@ REAL_B :: CLDDATMOM(0:16,JPLAY)
 
 !-- integer arguments
 
-INTEGER_M :: KLEV
-INTEGER_M :: ICLDATM, INFLAG, ICEFLAG, LIQFLAG, NSTR
+INTEGER_B :: KLEV
+INTEGER_B :: ICLDATM, INFLAG, ICEFLAG, LIQFLAG, NSTR
 
 !-- real locals
 
@@ -53,8 +60,8 @@ REAL_B :: TAUICEORIG, SCATICE, SSAICE, TAUICE &
        &, TAULIQORIG, SCATLIQ, SSALIQ, TAULIQ
 
 !-- integer locals
-INTEGER_M :: NCBANDS, NLAYERS
-INTEGER_M :: IB, IB1, IB2, LAY, ISTR , INDEX
+INTEGER_B :: NCBANDS, NLAYERS
+INTEGER_B :: IB, IB1, IB2, LAY, ISTR , INDEX
 
 
 ! HVRCLD = '$Revision$'
@@ -115,16 +122,32 @@ DO LAY = 1, NLAYERS
        IF (FICE .EQ. 0.0) THEN
          DO IB = IB1 , IB2
            EXTCOICE(IB) = 0.0_JPRB
-           SSACOICE(IB) = 1.0_JPRB
-           GICE(IB)     = 1.0_JPRB
+           SSACOICE(IB) = 0.0_JPRB
+           GICE(IB)     = 0.0_JPRB
            FORWICE(IB)  = 0.0_JPRB
          END DO
 
-       ELSE IF (ICEFLAG .EQ. 3) THEN
-         IF (RADICE .LT. 10.0 .OR. RADICE .GT. 140.0) STOP 'ICE EFFECTIVE SIZE OUT OF BOUNDS'
-         FACTOR = (RADICE - 5._JPRB)/5._JPRB
+       ELSEIF (ICEFLAG .EQ. 2) THEN
+         IF (RADICE .LT. 5.0 .OR. RADICE .GT. 131.) STOP 'ICE RADIUS OUT OF BOUNDS'
+         FACTOR = (RADICE - 2.)/3.
          INDEX = INT(FACTOR)
-         IF (INDEX .EQ. 27) INDEX = 26
+         IF (INDEX .EQ. 43) INDEX = 42
+         FINT = FACTOR - FLOAT(INDEX)
+         DO IB = IB1, IB2
+            EXTCOICE(IB) = FICE * (EXTICE2(INDEX,IB) + FINT * &
+     &                     (EXTICE2(INDEX+1,IB) -  EXTICE2(INDEX,IB)))
+            SSACOICE(IB) = SSAICE2(INDEX,IB) + FINT * &
+     &                     (SSAICE2(INDEX+1,IB) -  SSAICE2(INDEX,IB))
+            GICE(IB) = ASYICE2(INDEX,IB) + FINT * &
+     &                     (ASYICE2(INDEX+1,IB) -  ASYICE2(INDEX,IB))
+            FORWICE(IB) = GICE(IB)**NSTR
+         END DO
+
+       ELSE IF (ICEFLAG .EQ. 3) THEN
+         IF (RADICE .LT. 5.0 .OR. RADICE .GT. 140.0) STOP 'ICE EFFECTIVE SIZE OUT OF BOUNDS'
+         FACTOR = (RADICE - 2._JPRB)/3._JPRB
+         INDEX = INT(FACTOR)
+         IF (INDEX .EQ. 46) INDEX = 45
          FINT = FACTOR - FLOAT(INDEX)
 
          DO IB = IB1 , IB2
@@ -156,8 +179,8 @@ DO LAY = 1, NLAYERS
        IF (FLIQ .EQ. 0.0) THEN
          DO IB = IB1 , IB2
            EXTCOLIQ(IB) = 0.0
-           SSACOLIQ(IB) = 1.0
-           GLIQ(IB) = 1.0
+           SSACOLIQ(IB) = 0.0
+           GLIQ(IB) = 0.0
            FORWLIQ(IB) = 0.0
          END DO
 
@@ -207,24 +230,25 @@ DO LAY = 1, NLAYERS
      &                 TAUCLOUD(LAY,IB)
          XMOM(0,LAY,IB) = 1.0
 
-         DO ISTR = 1, NSTR
-!This commented code is the standard method for delta-m scaling. In accordance
-!  with the 1996 Fu paper, equation A.3, the moments for ice were calculated
-!  as in the uncommented code.
-!                     XMOM(ISTR,LAY,IB) = (SCATLIQ *  &
-!     &                    (GLIQ(IB)**ISTR - FORWLIQ(IB)) / &
-!     &                    (1. - FORWLIQ(IB)) &
-!     &                    + SCATICE * &
-!     &                    (GICE(IB)**ISTR - FORWICE(IB)) /  &
-!     &                    (1. - FORWICE(IB)))/(SCATLIQ + SCATICE)
-
-           XMOM(ISTR,LAY,IB) = (1.0/(scatliq+scatice))* &
-     &                    (SCATLIQ*(GLIQ(IB)**ISTR - FORWLIQ(IB)) / &
-     &                    (1. - FORWLIQ(IB)) &
-     &                    + SCATICE * &
-     &               ((gice(ib)-forwice(ib))/(1.0-forwice(ib)))**ISTR)
-         END DO
-
+         IF (ICEFLAG .EQ. 3) THEN
+!     In accordance with the 1996 Fu paper, equation A.3, 
+!     the moments for ice were calculated depending on whether using spheres
+!     or hexagonal ice crystals.
+             DO ISTR = 1, NSTR
+                XMOM(ISTR,LAY,IB) = (1.0/(SCATLIQ+SCATICE))* &
+     &              (SCATLIQ*(GLIQ(IB)**ISTR - FORWLIQ(IB)) / &
+     &              (1. - FORWLIQ(IB)) + SCATICE * ((GICE(IB)-FORWICE(IB))/ &
+     &              (1.0 - FORWICE(IB)))**ISTR)
+             END DO
+         ELSE 
+!     This code is the standard method for delta-m scaling. 
+             DO ISTR = 1, NSTR
+                XMOM(ISTR,LAY,IB) = (SCATLIQ *  &
+     &              (GLIQ(IB)**ISTR - FORWLIQ(IB)) / &
+     &              (1. - FORWLIQ(IB)) + SCATICE * (GICE(IB)**ISTR - FORWICE(IB)) / &
+     &              (1. - FORWICE(IB)))/(SCATLIQ + SCATICE)
+             END DO
+         ENDIF 
        END DO
 
      ENDIF

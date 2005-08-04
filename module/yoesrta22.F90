@@ -11,14 +11,14 @@ SAVE
 !     BAND 22:  7700-8050 cm-1 (low - H2O,O2; high - O2)
 !     -----------------------------------------------------------------
 
-INTEGER_M, PARAMETER :: JPG = 16, NG22 = 16
+INTEGER_B, PARAMETER :: JPG = 16, NG22 = 16
 
 REAL_B :: KA(9,5,13,JPG)
 REAL_B :: KB(5,13:59,JPG)
 REAL_B :: SELFREF(10,JPG),FORREF(3,JPG)
 REAL_B :: SFLUXREF(JPG,9)
 REAL_B :: RAYL,STRRAT
-INTEGER_M :: LAYREFFR
+INTEGER_B :: LAYREFFR
 
 REAL_B :: KAC(9,5,13,NG22) ,ABSA(585,NG22)
 REAL_B :: KBC(5,13:59,NG22),ABSB(235,NG22)

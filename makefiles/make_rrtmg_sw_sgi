@@ -1,11 +1,17 @@
+# $Id$
+# Makefile for rrtmg_sw - SGI platform
 
+################################
+# Set variables
+################################
 #
 .KEEP_STATE:
 .SILENT:
 .SUFFIXES: .F .F90
 
-# name of your executable
-EXECNAME = rrtmg_sw
+PLATFORM = sgi
+VERSION = v2.6
+OUTPUT = rrtmg_sw_$(PLATFORM)_$(VERSION)
 
 # All the .F files in your program that are recompiled in this directory
 FFILES = rdprof.f		\
@@ -77,13 +83,13 @@ FFF = f90
 ##########################################
 ####### options for the FORTRAN compiler #######
 ##########################################
-FFOPTS = -mips4 -r10000 -lfastm -O3 -64 -TENV:X=0 -I ../include -I ../module -cpp -macro_expand -UD_LANGUAGE_FORTRAN90 -UDLANGUAGE_FORTRAN90 -ULANGUAGE_FORTRAN -U_LANGUAGE_FORTRAN
+FFOPTS = -mips4 -r10000 -lfastm -O3 -64 -r8 -i8 -TENV:X=0 -I ../include -I ../module -cpp -macro_expand -UD_LANGUAGE_FORTRAN90 -UDLANGUAGE_FORTRAN90 -ULANGUAGE_FORTRAN -U_LANGUAGE_FORTRAN
 
 
 # build the executable
 all:	$(OBJS)
 	echo "linking $@"
-	$(FFF) $(FFOPTS) -o $(EXECNAME) $(OBJS)
+	$(FFF) $(FFOPTS) -o $(OUTPUT) $(OBJS)
 
 # Define a rule for building .o from .f and .F90 files
 .f.o:

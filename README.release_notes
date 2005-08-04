@@ -2,6 +2,41 @@ NOTE:
 ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+August 4, 2005:
+
+	Release_2_6 - This version contains modifications to include some
+                of the updates added to RRTM_SW_V2.5 and RRTM_SW_V2.6.
+                Release number raised to 2.6 for consistency with RRTM_SW.
+
+		This version was not publicly released.
+
+                * Improved cloud properties routine to:
+
+                  a) include scattering properties of spheres, based on the
+                     parameterization by Key et al. in the STREAMER v3.0 RT code.
+
+                  b) convert cloud properties for Fu parameterization to a
+                     finer grid.
+
+                * Updated to rrtatm.f, which is compatible with lblatm.f CVS 
+                  revision 9.3.
+
+                * Increased number of significant digits in the net flux
+                  output in OUTPUT_RRTM for the stand-alone version in
+                  src file rrtmg_sw.F90.
+
+                * Updated makefiles to compile with r8 and i8.  Modified 
+                  F90-style integer type set in rrtmg_sw modules and source
+                  files for consistency with i8.
+
+                * Updated digits in value of PI to be consistent with rrtmg_lw. 
+ 
+                * Changed CO2, N2O, and CH4 mixing ratio arrays to be dimensioned
+                  on both longitude and layer in rrtmg_sw_112.F90, the callable 
+                  subroutine version of RRTMG_SW for interfacing to a GCM. 
+ 
+                * Added patent statement to each src file.
+
 March 8, 2005:
 
 	Release_2_3_1 - This version fixes a bug in the calculation

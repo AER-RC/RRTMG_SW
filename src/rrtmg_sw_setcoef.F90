@@ -3,6 +3,16 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+!  --------------------------------------------------------------------------
+! |                                                                          |
+! |  Copyright 2002-2005, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  This software may be used, copied, or redistributed as long as it is    |
+! |  not sold and this copyright notice is reproduced on each copy made.     |
+! |  This model is provided as is without any express or implied warranties. |
+! |                       (http://www.rtweb.aer.com/)                        |
+! |                                                                          |
+!  --------------------------------------------------------------------------
+
 SUBROUTINE RRTMG_SW_SETCOEF &
   &( KLEV   , NMOL    &
   &, PAVEL  , TAVEL   , PZ     , TZ     , TBOUND  &
@@ -34,7 +44,7 @@ IMPLICIT NONE
 
 !-- Input arguments
 
-INTEGER_M :: KLEV, NMOL
+INTEGER_B :: KLEV, NMOL
 
 REAL_B :: PAVEL(JPLAY) , TAVEL(JPLAY) , PZ(0:JPLAY)  , TZ(0:JPLAY)
 REAL_B :: COLDRY(JPLAY), COLMOL(JPLAY), WKL(35,JPLAY)
@@ -42,9 +52,9 @@ REAL_B :: COLDRY(JPLAY), COLMOL(JPLAY), WKL(35,JPLAY)
 
 !-- Output arguments
 
-INTEGER_M :: LAYTROP       , LAYSWTCH     , LAYLOW
-INTEGER_M :: JP(JPLAY)     , JT(JPLAY)    , JT1(JPLAY)
-INTEGER_M :: INDSELF(JPLAY), INDFOR(JPLAY)
+INTEGER_B :: LAYTROP       , LAYSWTCH     , LAYLOW
+INTEGER_B :: JP(JPLAY)     , JT(JPLAY)    , JT1(JPLAY)
+INTEGER_B :: INDSELF(JPLAY), INDFOR(JPLAY)
 
 REAL_B :: COLH2O(JPLAY), COLCO2(JPLAY) , COLN2O(JPLAY)
 REAL_B :: COLO2(JPLAY) , COLO3(JPLAY)  , COLCH4(JPLAY) , CO2MULT(JPLAY)
@@ -55,8 +65,8 @@ REAL_B :: TBOUND
 
 !-- local integers
 
-INTEGER_M :: NLAYERS, INDBOUND, INDLEV0, LAY
-INTEGER_M :: JP1
+INTEGER_B :: NLAYERS, INDBOUND, INDLEV0, LAY
+INTEGER_B :: JP1
 
 !-- local reals
 

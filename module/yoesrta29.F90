@@ -11,14 +11,14 @@ SAVE
 !     BAND 29:  820-2600 cm-1 (low - H2O; high - CO2)
 !     -----------------------------------------------------------------
 
-INTEGER_M, PARAMETER :: JPG = 16, NG29 = 16
+INTEGER_B, PARAMETER :: JPG = 16, NG29 = 16
 
 REAL_B :: KA(5,13,JPG)
 REAL_B :: KB(5,13:59,JPG)
 REAL_B :: SELFREF(10,JPG),FORREF(4,JPG)
 REAL_B :: SFLUXREF(JPG)  ,ABSH2O(JPG)  , ABSCO2(JPG)
 REAL_B :: RAYL
-INTEGER_M :: LAYREFFR
+INTEGER_B :: LAYREFFR
 
 REAL_B :: KAC(5,13,NG29)   ,ABSA(65,NG29)
 REAL_B :: KBC(5,13:59,NG29),ABSB(235,NG29)

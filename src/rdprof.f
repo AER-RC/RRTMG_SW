@@ -3,6 +3,16 @@ C     author:    $Author$
 C     revision:  $Revision$
 C     created:   $Date$
 
+C  --------------------------------------------------------------------------
+C |                                                                          |
+C |  Copyright 2002-2005, Atmospheric & Environmental Research, Inc. (AER).  |
+C |  This software may be used, copied, or redistributed as long as it is    |
+C |  not sold and this copyright notice is reproduced on each copy made.     |
+C |  This model is provided as is without any express or implied warranties. |
+C |                       (http://www.rtweb.aer.com/)                        |
+C |                                                                          |
+C  --------------------------------------------------------------------------
+C
 C************************  SUBROUTINE READPROF  *****************************C
 
       SUBROUTINE READPROF(NLAYERSX,IOUTX,ICLDX,IAERX,ISCCOSX,IDELMX,
@@ -62,14 +72,13 @@ C      PARAMETER (MAXPROD = MXLAY*MAXXSEC)
       common /AERDAT/    ssaaer(mxlay,nbands), phase(mcmu,mxlay,nbands), 
      &                   tauaer(mxlay,nbands)
 
-      REAL*8 PAVELX(MXLAY),TAVELX(MXLAY),PZX(0:MXLAY),TZX(0:MXLAY)
-      REAL*8 COLDRYX(MXLAY),WKLX(35,MXLAY)
-      REAL*8 CLDFRACX(MXLAY),CLDDAT1X(MXLAY),CLDDAT2X(MXLAY),
-     &          CLDDAT3X(MXLAY),CLDDAT4X(MXLAY),
-     &          CLDDATMOMX(0:16,MXLAY)
-      REAL*8 SEMISSX(NBANDS),ZENITHX,ADJFLUXX(NBANDS)
-      REAL*8 ssaaerx(mxlay,nbands), phasex(mcmu,mxlay,nbands), 
-     &       tauaerx(mxlay,nbands)
+      REAL PAVELX(MXLAY),TAVELX(MXLAY),PZX(0:MXLAY),TZX(0:MXLAY)
+      REAL COLDRYX(MXLAY),WKLX(35,MXLAY)
+      REAL CLDFRACX(MXLAY),CLDDAT1X(MXLAY),CLDDAT2X(MXLAY),
+     &     CLDDAT3X(MXLAY),CLDDAT4X(MXLAY),CLDDATMOMX(0:16,MXLAY)
+      REAL SEMISSX(NBANDS),ZENITHX,ADJFLUXX(NBANDS)
+      REAL ssaaerx(mxlay,nbands), phasex(mcmu,mxlay,nbands), 
+     &     tauaerx(mxlay,nbands)
 
       CHARACTER*80 FORM1(0:1),FORM2(0:1),FORM3(0:1)
       CHARACTER*1 CTEST, CDOLLAR, CDUM
@@ -103,7 +112,7 @@ C  Initialize molecular amount and cross section arrays to zero here.
       IF (CTEST .NE. CDOLLAR) GO TO 1000
       READ (IRD,9011) IAER, IATM, ISCAT, ISTRM, IOUT, ICLD, IDELM, ICOS
 
-      if (idelm.gt.1 .or. idelm.lt.0 .or. icos.gt.2 .or. icos.lt.0) then
+      if (idelm.gt.0 .or. idelm.lt.0 .or. icos.gt.0 .or. icos.lt.0) then
          print *,'INVALID MEASUREMENT COMPARISON FLAG'
          stop
       endif
@@ -141,7 +150,6 @@ C      ENDIF
 
 C     If clouds are present, read in appropriate input file, IN_CLD_RRTM.
       IF (ICLD .EQ. 1) CALL READCLD
-
 
       READ (IRD,9020) JULDAT, SZA, ISOLVAR, (SOLVAR(IB),IB=IB1,IB2)
 
@@ -270,6 +278,7 @@ C     Test for mixing ratio input.
       CLOSE(IRD)
 
 C mji - Pass RRTM COMMON arrays into dummy arrays 
+
       NLAYERSX = NLAYERS
       IOUTX = IOUT
       ICLDX = ICLD
@@ -314,7 +323,6 @@ C mji - Pass RRTM COMMON arrays into dummy arrays
         ADJFLUXX(NB) = ADJFLUX(NB)
  7600 CONTINUE
       
-
       GO TO 9000
 
  8800 CONTINUE
@@ -760,7 +768,7 @@ c
       COMMON /CONSTS/ PI,PLANCK,BOLTZ,CLIGHT,AVOGAD,ALOSMT,GASCON,
      *                RADCN1,RADCN2 
 c
-      DATA PI / 3.141592654 /
+      DATA PI / 3.1415926535 /
 c
 c    Constants from NIST 01/11/2002
 c

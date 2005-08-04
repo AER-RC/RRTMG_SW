@@ -11,13 +11,13 @@ SAVE
 !     BAND 23:  8050-12850 cm-1 (low - H2O; high - nothing)
 !     -----------------------------------------------------------------
 
-INTEGER_M, PARAMETER :: JPG = 16, NG23 = 16
+INTEGER_B, PARAMETER :: JPG = 16, NG23 = 16
 
 REAL_B :: KA(5,13,JPG)
 REAL_B :: SELFREF(10,JPG),FORREF(3,JPG)
 REAL_B :: SFLUXREF(JPG)  ,RAYL(JPG)
 REAL_B :: GIVFAC
-INTEGER_M :: LAYREFFR
+INTEGER_B :: LAYREFFR
 
 REAL_B :: KAC(5,13,NG23)   ,ABSA(65,NG23)
 REAL_B :: SELFREFC(10,NG23),FORREFC(3,NG23)

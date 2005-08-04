@@ -11,13 +11,13 @@ SAVE
 !     BAND 27: 29000-38000 cm-1 (low - O3; high - O3)
 !     -----------------------------------------------------------------
 
-INTEGER_M, PARAMETER :: JPG = 16, NG27 = 16
+INTEGER_B, PARAMETER :: JPG = 16, NG27 = 16
 
 REAL_B :: KA(5,13,JPG)
 REAL_B :: KB(5,13:59,JPG)
 REAL_B :: SFLUXREF(JPG),RAYL(JPG)
 REAL_B :: SCALEKUR
-INTEGER_M :: LAYREFFR
+INTEGER_B :: LAYREFFR
 
 REAL_B :: KAC(5,13,NG27)   ,ABSA(65,NG27)
 REAL_B :: KBC(5,13:59,NG27),ABSB(235,NG27)

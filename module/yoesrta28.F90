@@ -11,13 +11,13 @@ SAVE
 !     BAND 28: 38000-50000 cm-1 (low - O3, O2; high - O3, O2)
 !     -----------------------------------------------------------------
 
-INTEGER_M, PARAMETER :: JPG = 16, NG28 = 16
+INTEGER_B, PARAMETER :: JPG = 16, NG28 = 16
 
 REAL_B :: KA(9,5,13,JPG)
 REAL_B :: KB(5,5,13:59,JPG)
 REAL_B :: SFLUXREF(JPG,5)
 REAL_B :: RAYL,STRRAT
-INTEGER_M :: LAYREFFR
+INTEGER_B :: LAYREFFR
 
 REAL_B :: KAC(9,5,13,NG28)   ,ABSA(585,NG28)
 REAL_B :: KBC(5,5,13:59,NG28),ABSB(1175,NG28)

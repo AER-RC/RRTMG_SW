@@ -1,7 +1,7 @@
 C
 C  --------------------------------------------------------------------------
 C |                                                                          |
-C |  Copyright 2002, 2003, Atmospheric & Environmental Research, Inc. (AER). |
+C |  Copyright 2002-2005, Atmospheric & Environmental Research, Inc. (AER).  |
 C |  This software may be used, copied, or redistributed as long as it is    |
 C |  not sold and this copyright notice is reproduced on each copy made.     |
 C |  This model is provided as is without any express or implied warranties. |
@@ -18,7 +18,7 @@ C  --------------------------------------------------------------------------
 
                          USER INSTRUCTIONS FOR RRTMG_SW
  
-                                 December 2004
+                                 August 2005
 
 
 
@@ -89,17 +89,17 @@ C  --------------------------------------------------------------------------
                   = 0  output "true" direct and diffuse downwelling fluxes (default)
                   = 1  output direct and diffuse downwelling fluxes computed with delta-M approximation
                        (unavailable)
-                 (Note:  The delta-M approximation is always used internally in RRTM_SW to compute the total
+                 (Note:  The delta-M approximation is always used internally in RRTMG_SW to compute the total
                  downwelling flux at each level.  What the IDELM flag determines is whether the components 
                  of the downwelling flux, the direct and diffuse fluxes, that are output are the actual direct
                  and diffuse fluxes (IDELM = 0) or are those computed using the delta-M approximation (IDELM = 1).
-                 If the computed direct and diffuse fluxes are being compared with corresponding measured fluxes 
-                 and a nontrivial amount of forward scattered radiation is likely to have been included in the
-                 measurement of the direct flux, then IDELM should be set to 1.)
+                 Only the IDELM=0 option is available in RRTMG_SW.
 
-          ICOS   = 0 there is no need to account for instrumental cosine response
+          ICOS   = 0 there is no need to account for instrumental cosine response (default)
                  = 1 to account for instrumental cosine response in the computation of the direct and diffuse fluxes 
+                     (unavailable)
                  = 2 to account for instrumental cosine response in the computation of the diffuse fluxes only
+                     (unavailable)
                  (Note:  ICOS = 1 and ICOS = 2 requires the presence of the file COSINE_RESPONSE, which should 
                  consist of lines containing pairs of numbers (ANG, COSFAC), where COSFAC is the instrumental cosine
                  response at the angle ANG.) 
@@ -598,14 +598,20 @@ Band #   Wavenumber Range (cm-1)       1050 - 96 mb      96 - 0.01 mb
                        is also needed.  If ICEFLAG = 1, generalized effective size is
 		       is also needed.
 
-            ICEFLAG = 3 the optical depths are computed by a method based on the parameterization
+            ICEFLAG = 2 the optical properties are computed by a method based on the parameterization
+                        of spherical ice particles in the RT code, STREAMER v3.0 (Reference: 
+                        Key. J., Streamer User's Guide, Cooperative Institute for
+                        Meteorological Satellite Studies, 2001, 96 pp.).
+
+                    = 3 the optical depths are computed by a method based on the parameterization
 			of ice clouds due to Q. Fu, J. Clim., 9, 2058 (1996).
 
             LIQFLAG = 1 the optical depths (non-gray) due to water clouds are computed by a method
                         based on the parameterization of water clouds due to Y.X. Hu and K. Stamnes,
                         J. Clim., 6, 728-742 (1993).
                        
-	     These methods are further detailed in the comments in the routine 'cldprop_sw.f'.
+	     These methods are further detailed in the comments in the file 'rrtmg_sw_cldprop.F90'
+             and the module 'rrtmg_sw_susrtop.F90'.
 
 
 
@@ -681,9 +687,16 @@ Band #   Wavenumber Range (cm-1)       1050 - 96 mb      96 - 0.01 mb
             FRACICE    (INFLAG = 2) fraction of the layer's cloud water path in the form
                        of ice particles  
 
-            EFFSIZEICE  (INFLAG = 2 and ICEFLAG = 3) Generalized effective size of 
+            EFFSIZEICE (INFLAG = 2 and ICEFLAG = 2) Effective radius of spherical  
+	               ice crystals, re (see STREAMER manual for defition of this parameter)
+	               Valid sizes are 5.0 - 131.0 microns. 
+                  
+                       (INFLAG = 2 and ICEFLAG = 3) Generalized effective size of hexagonal
 	               ice crystals, dge (see Q. Fu, 1996, for definition of this parameter)
-	               Valid sizes are 5.0 - 140.0 microns.
+	               Valid sizes are 5.0 - 140.0 microns.  
+
+		       NOTE: The size descriptions for the two iceflag options are NOT
+		       equivalent.  See the particular references for the appropriate definition.
 
             EFFSIZELIQ  (INFLAG = 2 and LIQFLAG = 1) liquid droplet effective radius, re (microns) 
                        Valid sizes are 2.5 - 60.0 microns.

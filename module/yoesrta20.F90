@@ -11,14 +11,14 @@ SAVE
 !     BAND 20:  5150-6150 cm-1 (low - H2O; high - H2O)
 !     -----------------------------------------------------------------
 
-INTEGER_M, PARAMETER :: JPG = 16, NG20 = 16
+INTEGER_B, PARAMETER :: JPG = 16, NG20 = 16
 
 REAL_B :: KA(5,13,JPG)
 REAL_B :: KB(5,13:59,JPG)
 REAL_B :: SELFREF(10,JPG),FORREF(4,JPG)
 REAL_B :: SFLUXREF(JPG)  ,ABSCH4(JPG)
 REAL_B :: RAYL
-INTEGER_M :: LAYREFFR
+INTEGER_B :: LAYREFFR
 
 REAL_B :: KAC(5,13,NG20)   ,ABSA(65,NG20)
 REAL_B :: KBC(5,13:59,NG20),ABSB(235,NG20)

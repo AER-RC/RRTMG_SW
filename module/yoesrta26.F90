@@ -11,7 +11,7 @@ SAVE
 !     BAND 26: 22650-29000 cm-1 (low - nothing; high - nothing)
 !     -----------------------------------------------------------------
 
-INTEGER_M, PARAMETER :: JPG = 16, NG26 = 16
+INTEGER_B, PARAMETER :: JPG = 16, NG26 = 16
 
 REAL_B :: SFLUXREF(JPG), RAYL(JPG)
 

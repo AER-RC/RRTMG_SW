@@ -3,7 +3,7 @@
 #
 FC        = f90
 CC        = cc
-FFLAGS    = -mips4 -r10000 -lfastm -O3 -64 -TENV:X=0 -I ../include -I ../module -I ../src -cpp -macro_expand -LIST:options=ON -UD_LANGUAGE_FORTRAN90 -UDLANGUAGE_FORTRAN90 -ULANGUAGE_FORTRAN -U_LANGUAGE_FORTRAN
+FFLAGS    = -mips4 -r10000 -lfastm -O3 -64 -r8 -i8 -TENV:X=0 -I ../include -I ../module -I ../src -cpp -macro_expand -LIST:options=ON -UD_LANGUAGE_FORTRAN90 -UDLANGUAGE_FORTRAN90 -ULANGUAGE_FORTRAN -U_LANGUAGE_FORTRAN
 
 #   VPP option file
 CP_OPT  =  
@@ -69,3 +69,4 @@ YOESRTA29.mod: ./yoesrta29.o
 YOESRTAER.mod: ./yoesrtaer.o
 YOESRTOP.mod: ./yoesrtop.o
 YOESRTWN.mod: ./yoesrtwn.o
+

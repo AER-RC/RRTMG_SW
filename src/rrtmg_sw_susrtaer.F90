@@ -3,6 +3,16 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+!  --------------------------------------------------------------------------
+! |                                                                          |
+! |  Copyright 2002-2005, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  This software may be used, copied, or redistributed as long as it is    |
+! |  not sold and this copyright notice is reproduced on each copy made.     |
+! |  This model is provided as is without any express or implied warranties. |
+! |                       (http://www.rtweb.aer.com/)                        |
+! |                                                                          |
+!  --------------------------------------------------------------------------
+
 SUBROUTINE SUSRTAER 
 
 !**** *SUSRTAER*   - INITIALIZE COMMON YOESRTAER
@@ -60,7 +70,7 @@ IMPLICIT NONE
 REAL_B :: ZTAUA14(JPSW,JPAER),ZPIZA14(JPSW,JPAER),ZCGA14(JPSW,JPAER)
 
 !     LOCAL INTEGER SCALARS
-INTEGER_M :: JAER, JNU
+INTEGER_B :: JAER, JNU
 
 !      ----------------------------------------------------------------
 
