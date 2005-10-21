@@ -2,6 +2,14 @@ NOTE:
 ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+October 21, 2005:
+
+	Release_2_6_1 - This version contains minor modifications to exclude
+                an extraneous variable and to update the instructions file.
+
+		This version was publicly released on rtweb.aer.com.
+
+
 August 4, 2005:
 
 	Release_2_6 - This version contains modifications to include some
@@ -36,6 +44,7 @@ August 4, 2005:
                   subroutine version of RRTMG_SW for interfacing to a GCM. 
  
                 * Added patent statement to each src file.
+
 
 March 8, 2005:
 

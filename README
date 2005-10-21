@@ -10,7 +10,7 @@ C     created:   $Date$
                      Jean-Jacques Morcrette (ECMWF)
  Original version:   Eli. J. Mlawer, S. A. Clough, et al. (AER)
 
- References: 
+ References:  Clough, S.A., et al., JQSRT, 2005. 
 
 ******************************************************************************
 
@@ -23,12 +23,14 @@ the input files and source modules described below, or it can be attached to an
 atmospheric general circulation model as a callable subroutine. 
 
 The version of RRTMG_SW provided here utilizes a reduced complement of 112 
-g-points, which is half of the 224 g-points used in the standard RRTM_SW.  
-Additional minor changes have been made to enhance computational performance.  
-Total fluxes are accurate to within 1.5 W/m2 relative to the standard RRTM_SW 
-(using DISORT) in clear sky and within 10 W/m2 in cloudy sky.  RRTM_SW with 
-DISORT is itself accurate to within 2 W/m2 of the data-validated multiple 
-scattering model, CHARTS. 
+g-points, which is half of the 224 g-points used in the standard RRTM_SW, and
+a two-stream method for radiative transfer. Additional minor changes have been 
+made to enhance computational performance.  Total fluxes are accurate to within 
+1-2 W/m2 relative to the standard RRTM_SW (using DISORT) in clear sky and in the
+presence of aerosols and within 8 W/m2 in overcast sky.  RRTM_SW with DISORT is
+itself accurate to within 2 W/m2 of the data-validated multiple scattering 
+model, CHARTS.  Flux accuracy is lower in profiles with fractional cloud cover 
+and cloud overlap, which is performed with an algorithm typical to GCMs.  
 
 
 ***********************
@@ -143,3 +145,4 @@ initialization area if this code is used in a GCM.
 2) JPLAY (number of layers) is currently set to 203, the maximum number of 
 allowable layers.  For use in a GCM or SCM, this should be set to the actual
 number of model layers. 
+

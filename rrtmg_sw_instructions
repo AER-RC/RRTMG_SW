@@ -18,7 +18,7 @@ C  --------------------------------------------------------------------------
 
                          USER INSTRUCTIONS FOR RRTMG_SW
  
-                                 August 2005
+                                October 2005
 
 
 
@@ -617,7 +617,7 @@ Band #   Wavenumber Range (cm-1)       1050 - 96 mb      96 - 0.01 mb
 
  RECORD C1.2  (one record for each cloudy layer, if INFLAG = 0)
 
-      TESTCHAR,    LAY, CLDFRAC**,   TAUCLD or CWP,SINGLE-SCAT, PMOM(0:NSTR)
+      TESTCHAR,    LAY, CLDFRAC,   TAUCLD or CWP,SINGLE-SCAT, PMOM(0:NSTR)
 						   ALBEDO	
              1,    3-5,    6-15,           16-25,   26-35,     36-196
 
@@ -639,8 +639,7 @@ Band #   Wavenumber Range (cm-1)       1050 - 96 mb      96 - 0.01 mb
                        numbers can be determined by running RRTM for the cloudless case
                        and examining the TAPE6 output from this run.
                        
-            CLDFRAC    cloud fraction for the layer (**NOTE: In this version of RRTM_SW,
-		       CLDFRAC must be set to 1.  Partial cloudiness routine not yet implemented.)
+            CLDFRAC    cloud fraction for the layer 
 
             TAUCLD     (INFLAG = 0 only) total (ice and water) optical depth for the layer
 
@@ -656,7 +655,7 @@ Band #   Wavenumber Range (cm-1)       1050 - 96 mb      96 - 0.01 mb
 
  RECORD C1.3  (one record for each cloudy layer, INFLAG = 2)
 
-      TESTCHAR,    LAY, CLDFRAC**,   TAUCLD or CWP, FRACICE, EFFSIZEICE, EFFSIZELIQ
+      TESTCHAR,    LAY, CLDFRAC,   TAUCLD or CWP, FRACICE, EFFSIZEICE, EFFSIZELIQ
 
              1,    3-5,    6-15,           16-25,   26-35,     36-45,     46-55
 
@@ -678,8 +677,7 @@ Band #   Wavenumber Range (cm-1)       1050 - 96 mb      96 - 0.01 mb
                        numbers can be determined by running RRTM for the cloudless case
                        and examining the TAPE6 output from this run.
                        
-            CLDFRAC    cloud fraction for the layer.(**NOTE: In this version of RRTM_SW,
-		       CLDFRAC must be set to 1.  Partial cloudiness routine not yet implemented.)
+            CLDFRAC    cloud fraction for the layer.
 
             TAUCLD     (INFLAG = 0 only) total (ice and water) optical depth for the layer
      or     CWP        (INFLAG > 0) cloud water path for the layer (g/m2)
