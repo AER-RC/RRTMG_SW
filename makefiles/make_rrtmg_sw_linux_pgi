@@ -1,5 +1,5 @@
 # $Id$
-# Makefile for rrtmg_sw - SGI platform
+# Makefile for rrtmg_sw - LINUX platform (PGI compiler)
 
 SHELL  = /bin/sh
 
@@ -7,17 +7,17 @@ SHELL  = /bin/sh
 # Set variables
 ################################
 
-PLATFORM = sgi
+PLATFORM = linux_pgi
 VERSION = v3.0
 
 ##################################
 # Options for the FORTRAN compiler
 ##################################
 
-FC = f90
-FCOPTS = -mips4 -r10000 -lfastm -O3 -64 -r8 -i8 -TENV:X=0
+FC = pgf90
+FCOPTS = -fast -r8 -i8
 # Compile absorption coefficient data without optimization
-FCOPTK = -mips4 -r10000 -lfastm -O0 -64 -r8 -i8 -TENV:X=0
+FCOPTK = -O0 -r8 -i8
 
 #################
 # Executable name

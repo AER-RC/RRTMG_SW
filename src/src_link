@@ -5,7 +5,6 @@
 #directory to this src directory.
 
 ln -s /storm/rc1/rrtm_sw_local_version/src/extra.f .
-ln -s /storm/rc1/rrtm_sw_local_version/src/param.f .
 ln -s /storm/rc1/rrtm_sw_local_version/src/rrtatm.f .
 
 

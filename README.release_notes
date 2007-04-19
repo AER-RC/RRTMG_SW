@@ -1,13 +1,43 @@
-NOTE:
-** CVS rtags can't accept "." in strings, substitute "_"
 
+RRTMG_SW Release Notes
+
+NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
+
+
+April 17, 2007:
+
+	Release_3_0
+
+        Major source code format revisions and addition of McICA capability.
+
+        Publicly released in April 2007.
+
+        - Reformatted entire model for consistency with RRTMG_LW to use modules
+          and subroutine call array passing.  Excluded from the reformatting
+          are files rrtatm.f, extra.f, and util_*.f, which are shared with and
+          retain the formatting of RRTM_SW.
+        - Code package can be used as a stand-alone column model or as a callable
+          subroutine (such as in a GCM).
+        - McICA capability has been added for stochastic representation of sub-grid
+          cloud variability such as cloud fraction and cloud overlap.
+        - Sub-column generator for McICA is called from within main source module
+          in column mode, but it must be called prior to RRTMG_SW in GCM mode.
+        - Installed two options for the random number generator required for 
+          McICA (selected by changing the hard-wired flag irnd). 
+        - Modified code to accept either cloud physical properties or cloud optical
+          properties when using McICA.
+        - Created makefiles consistent RRTMG_LW for SGI, SUN, LINUX (pgi) and 
+          OS_X (g95) platforms.
+       
 
 October 21, 2005:
 
-	Release_2_6_1 - This version contains minor modifications to exclude
-                an extraneous variable and to update the instructions file.
+	Release_2_6_1 
 
-		This version was publicly released on rtweb.aer.com.
+        This version contains minor modifications to exclude
+        an extraneous variable and to update the instructions file.
+
+        This version was not publicly released.
 
 
 August 4, 2005:

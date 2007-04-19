@@ -44,11 +44,11 @@ C  --------------------------------------------------------------------------
 
  RECORD 1.2
  
-      IAER,    IATM,   ISCAT,  ISTRM,   IOUT,   ICLD,  IDELM, ICOS
+      IAER,    IATM,   ISCAT,  ISTRM,   IOUT,   IMCA, ICLD,  IDELM, ICOS
  
-        20,      50,      83,     85,  88-90,     95,     99,  100
+        20,      50,      83,     85,  88-90,     94,   95,     99,  100
  
-   18x, I2, 29X, I1, 32X, I1, 1X, I1, 2X, I3, 4X, I1, 3X, I1,   I1
+   18x, I2, 29X, I1, 32X, I1, 1X, I1, 2X, I3, 3X, I1,   I1, 3X, I1,   I1
  
  
 	  IAER   (0,10)   flag for aerosols
@@ -79,6 +79,12 @@ C  --------------------------------------------------------------------------
 		       for the full shortwave spectrum (820-50000 cm-1), and one 
 		       for each of the 14 bands.
  
+	  IMCA   (0,1) flag for McICA (Monte Carlo Independent Column Approximation)
+                  = 0  standard forward calculation; do not use McICA (valid for
+                       clear or overcast conditions only)
+                  = 1  use McICA (will perform statistical sample of 200 forward
+                       calculations and output average flux and heating rates)
+  
 	  ICLD   (0,1) flag for clouds     
                   = 0  no cloudy layers in atmosphere
                   = 1  one or more cloudy layers present in atmosphere

@@ -1,5 +1,5 @@
 # $Id$
-# Makefile for rrtmg_sw - SGI platform
+# Makefile for rrtmg_sw - SUN platform
 
 SHELL  = /bin/sh
 
@@ -7,7 +7,7 @@ SHELL  = /bin/sh
 # Set variables
 ################################
 
-PLATFORM = sgi
+PLATFORM = sun
 VERSION = v3.0
 
 ##################################
@@ -15,9 +15,9 @@ VERSION = v3.0
 ##################################
 
 FC = f90
-FCOPTS = -mips4 -r10000 -lfastm -O3 -64 -r8 -i8 -TENV:X=0
+FCOPTS = -fast -xarch=generic -xtypemap=real:64,double:64,integer:64
 # Compile absorption coefficient data without optimization
-FCOPTK = -mips4 -r10000 -lfastm -O0 -64 -r8 -i8 -TENV:X=0
+FCOPTK = -xarch=generic -xtypemap=real:64,double:64,integer:64
 
 #################
 # Executable name
