@@ -15,12 +15,11 @@
 
 !  name     type     purpose
 ! -----  :  ----   : ----------------------------------------------
-! nlon   :  integer: number of columns or longitudes
 ! mxlay  :  integer: maximum number of layers
 ! mg     :  integer: number of original g-intervals per spectral band
 ! nbndsw :  integer: number of spectral bands
-! naer   :  integer: number of aerosols
-! ngpt   :  integer: total number of reduced g-intervals for rrtmg_lw
+! naerec :  integer: number of aerosols (iaer=6, ecmwf aerosol option)
+! ngptsw :  integer: total number of reduced g-intervals for rrtmg_lw
 ! ngNN   :  integer: number of reduced g-intervals per spectral band
 ! ngsNN  :  integer: cumulative number of g-intervals per band
 !------------------------------------------------------------------
@@ -28,18 +27,17 @@
 ! Settings for single column mode.
 ! For GCM use, set nlon to number of longitudes, and
 ! mxlay to number of model layers
-      integer(kind=jpim), parameter :: nlon   = 1      !jplon, klon
       integer(kind=jpim), parameter :: mxlay  = 203    !jplay, klev
       integer(kind=jpim), parameter :: mg     = 16     !jpg
       integer(kind=jpim), parameter :: nbndsw = 14     !jpsw, ksw
-      integer(kind=jpim), parameter :: naer   = 6      !jpaer
+      integer(kind=jpim), parameter :: naerec  = 6     !jpaer
       integer(kind=jpim), parameter :: mxmol  = 38
       integer(kind=jpim), parameter :: nstr   = 2
       integer(kind=jpim), parameter :: nmol   = 7
 ! Use for 112 g-point model   
-      integer(kind=jpim), parameter :: ngpt   = 112    !jpgpt
+      integer(kind=jpim), parameter :: ngptsw = 112    !jpgpt
 ! Use for 224 g-point model   
-!      integer(kind=jpim), parameter :: ngpt   = 224   !jpgpt
+!      integer(kind=jpim), parameter :: ngptsw = 224   !jpgpt
 
 ! may need to rename these - from v2.6
       integer(kind=jpim), parameter :: jpband   = 29

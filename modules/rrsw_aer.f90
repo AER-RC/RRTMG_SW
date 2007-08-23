@@ -1,7 +1,7 @@
       module rrsw_aer
 
       use parkind, only : jpim, jprb
-      use parrrsw, only : nbndsw, naer
+      use parrrsw, only : nbndsw, naerec
 
       implicit none
       save
@@ -51,9 +51,9 @@
 ! rsrasya : real   : average asymmetry parameter (unitless)
 !------------------------------------------------------------------
 
-      real(kind=jprb) :: rsrtaua(nbndsw,naer)
-      real(kind=jprb) :: rsrpiza(nbndsw,naer)
-      real(kind=jprb) :: rsrasya(nbndsw,naer)
+      real(kind=jprb) :: rsrtaua(nbndsw,naerec)
+      real(kind=jprb) :: rsrpiza(nbndsw,naerec)
+      real(kind=jprb) :: rsrasya(nbndsw,naerec)
 
       end module rrsw_aer
 

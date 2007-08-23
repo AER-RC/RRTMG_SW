@@ -3,6 +3,8 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+      module rrtmg_sw_cldprop
+
 !  --------------------------------------------------------------------------
 ! |                                                                          |
 ! |  Copyright 2002-2007, Atmospheric & Environmental Research, Inc. (AER).  |
@@ -13,18 +15,10 @@
 ! |                                                                          |
 !  --------------------------------------------------------------------------
 
-      subroutine cldprop_sw(nlayers, inflag, iceflag, liqflag, cldfrac, &
-                            tauc, ssac, asmc, ciwp, clwp, rei, rel, &
-                            taucldorig, taucloud, ssacloud, asmcloud)
-
-! Purpose: Compute the cloud optical properties for each cloudy layer.
-! Note: Only inflag = 0 and inflag=2/liqflag=1/iceflag=2,3 are available;
-! (Hu & Stamnes, Key, and Fu) are implemented.
-
 ! ------- Modules -------
 
       use parkind, only : jpim, jprb
-      use parrrsw, only : mxlay, nbndsw, nstr, jpband, jpb1, jpb2
+      use parrrsw, only : nbndsw, jpband, jpb1, jpb2
       use rrsw_cld, only : extliq1, ssaliq1, asyliq1, &
                            extice2, ssaice2, asyice2, &
                            extice3, ssaice3, asyice3, fdlice3, &
@@ -34,52 +28,75 @@
 
       implicit none
 
+      contains
 
-! ------- Declarations -------
+! ----------------------------------------------------------------------------
+      subroutine cldprop_sw(nlayers, inflag, iceflag, liqflag, cldfrac, &
+                            tauc, ssac, asmc, ciwp, clwp, rei, rel, &
+                            taucldorig, taucloud, ssacloud, asmcloud)
+! ----------------------------------------------------------------------------
 
-! Input
+! Purpose: Compute the cloud optical properties for each cloudy layer.
+! Note: Only inflag = 0 and inflag=2/liqflag=1/iceflag=2,3 are available;
+! (Hu & Stamnes, Key, and Fu) are implemented.
 
-      integer(kind=jpim), intent(in) :: nlayers
-      integer(kind=jpim), intent(in) :: inflag
-      integer(kind=jpim), intent(in) :: iceflag
-      integer(kind=jpim), intent(in) :: liqflag
+! ------- Input -------
 
-      real(kind=jprb), intent(in) :: cldfrac(mxlay)
-      real(kind=jprb), intent(in) :: tauc(nbndsw,mxlay)
-      real(kind=jprb), intent(in) :: ssac(nbndsw,mxlay)
-      real(kind=jprb), intent(in) :: asmc(nbndsw,mxlay)
-      real(kind=jprb), intent(in) :: ciwp(mxlay)
-      real(kind=jprb), intent(in) :: clwp(mxlay)
-      real(kind=jprb), intent(in) :: rei(mxlay)
-      real(kind=jprb), intent(in) :: rel(mxlay)
+      integer(kind=jpim), intent(in) :: nlayers         ! total number of layers
+      integer(kind=jpim), intent(in) :: inflag          ! see definitions
+      integer(kind=jpim), intent(in) :: iceflag         ! see definitions
+      integer(kind=jpim), intent(in) :: liqflag         ! see definitions
 
-! Output
+      real(kind=jprb), intent(in) :: cldfrac(:)         ! cloud fraction
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: ciwp(:)            ! cloud ice water path
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: clwp(:)            ! cloud liquid water path
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: rei(:)             ! cloud ice particle size
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: rel(:)             ! cloud liquid particle size
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: tauc(:,:)          ! cloud optical depth
+                                                        !    Dimensions: (nbndsw,nlayers)
+      real(kind=jprb), intent(in) :: ssac(:,:)          ! single scattering albedo
+                                                        !    Dimensions: (nbndsw,nlayers)
+      real(kind=jprb), intent(in) :: asmc(:,:)          ! asymmetry parameter
+                                                        !    Dimensions: (nbndsw,nlayers)
 
-      real(kind=jprb), intent(out) :: taucloud(mxlay,jpband)
-      real(kind=jprb), intent(out) :: taucldorig(mxlay,jpband)
-      real(kind=jprb), intent(out) :: ssacloud(mxlay,jpband)
-      real(kind=jprb), intent(out) :: asmcloud(mxlay,jpband)
+! ------- Output -------
 
-! Local
+      real(kind=jprb), intent(out) :: taucloud(:,:)     ! cloud optical depth (delta scaled)
+                                                        !    Dimensions: (nlayers,jpband)
+      real(kind=jprb), intent(out) :: taucldorig(:,:)   ! cloud optical depth (non-delta scaled)
+                                                        !    Dimensions: (nlayers,jpband)
+      real(kind=jprb), intent(out) :: ssacloud(:,:)     ! single scattering albedo (delta scaled)
+                                                        !    Dimensions: (nlayers,jpband)
+      real(kind=jprb), intent(out) :: asmcloud(:,:)     ! asymmetry parameter (delta scaled)
+                                                        !    Dimensions: (nlayers,jpband)
+
+! ------- Local -------
 
 !      integer(kind=jpim) :: ncbands
       integer(kind=jpim) :: ib, ib1, ib2, lay, istr, index, icx
 
-      real(kind=jprb) :: eps                   !
-      real(kind=jprb) :: cwp                   ! cloud water path
-      real(kind=jprb) :: radliq                ! cloud liquid droplet radius (microns)
-      real(kind=jprb) :: radice                ! cloud ice effective radius (microns)
-      real(kind=jprb) :: dgeice                ! cloud ice generalized effective size
+      real(kind=jprb) :: eps                            ! epsilon
+      real(kind=jprb) :: cwp                            ! total cloud water path
+      real(kind=jprb) :: radliq                         ! cloud liquid droplet radius (microns)
+      real(kind=jprb) :: radice                         ! cloud ice effective radius (microns)
+      real(kind=jprb) :: dgeice                         ! cloud ice generalized effective size
       real(kind=jprb) :: factor
       real(kind=jprb) :: fint
-      real(kind=jprb) :: tauctot(mxlay)        ! band integrated cloud optical depth
+      real(kind=jprb) :: tauctot(nlayers)               ! band integrated cloud optical depth
 
       real(kind=jprb) :: taucldorig_a, ssacloud_a, taucloud_a, ffp, ffp1, ffpssa
       real(kind=jprb) :: tauiceorig, scatice, ssaice, tauice, tauliqorig, scatliq, ssaliq, tauliq
 
       real(kind=jprb) :: fdelta(jpb1:jpb2)
-      real(kind=jprb) :: extcoice(jpb1:jpb2), gice(jpb1:jpb2), ssacoice(jpb1:jpb2), forwice(jpb1:jpb2)
-      real(kind=jprb) :: extcoliq(jpb1:jpb2), gliq(jpb1:jpb2), ssacoliq(jpb1:jpb2), forwliq(jpb1:jpb2)
+      real(kind=jprb) :: extcoice(jpb1:jpb2), gice(jpb1:jpb2)
+      real(kind=jprb) :: ssacoice(jpb1:jpb2), forwice(jpb1:jpb2)
+      real(kind=jprb) :: extcoliq(jpb1:jpb2), gliq(jpb1:jpb2)
+      real(kind=jprb) :: ssacoliq(jpb1:jpb2), forwliq(jpb1:jpb2)
 
 ! Initialize
 
@@ -379,8 +396,7 @@
 ! End layer loop
       enddo
 
-      return
-      end
+      end subroutine cldprop_sw
 
 !***********************************************************************
       subroutine swcldpr
@@ -390,13 +406,6 @@
 !          and asymmetry parameter data.
 !
 
-      use parkind, only : jpim, jprb
-      use rrsw_cld, only : extliq1, ssaliq1, asyliq1, &
-                           extice2, ssaice2, asyice2, &
-                           extice3, ssaice3, asyice3, fdlice3, &
-                           abari, bbari, cbari, dbari, ebari, fbari
-
-      implicit none
       save
 
 !-----------------------------------------------------------------------
@@ -2164,7 +2173,8 @@
         & 1.603020e-02_jprb,1.490925e-02_jprb,1.372635e-02_jprb,1.247363e-02_jprb,1.114319e-02_jprb,&
         & 9.727157e-03_jprb /)
 
-      return
-      end
+      end subroutine swcldpr
+
+      end module rrtmg_sw_cldprop
 
 

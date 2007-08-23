@@ -1,10 +1,12 @@
-C     path:      $Source$
-C     author:    $Author$
-C     revision:  $Revision$
-C     created:   $Date$
-******************************************************************************
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
+!------------------------------------------------------------------------
+
  RRTMG_SW: Shortwave Radiative Transfer Model for GCMs
- Atmospheric and Environmental Research, Inc., Cambridge, MA
+ Atmospheric and Environmental Research, Inc., 
+ 131 Hartwell Avenue, Lexington, MA 02421
 
  Original version:   Eli. J. Mlawer, J. S. Delamere, et al. (AER)
  Revision for GCMs:  Michael J. Iacono (AER)
@@ -28,7 +30,7 @@ C     created:   $Date$
 ******************************************************************************
 
 This directory contains the source code and sample makefile necessary to run
-RRTMG_SW version 3.0, a correlated k-distribution shortwave radiative transfer 
+RRTMG_SW version 3.1, a correlated k-distribution shortwave radiative transfer 
 model developed at AER, Inc. for application to GCMs.  This version of RRTMG_SW 
 utilizes a two-stream radiative transfer method as implemented at ECMWF. This
 code has also been modified to utilize FORTRAN90 coding features. Two modes of
@@ -58,8 +60,12 @@ RRTMG_SW column version
 ***********************
 
 DOCUMENTATION:
+   The following text files (some in /column_model/doc directory) provide information
+   on using and running RRTMG_SW:
+
    README                    : Basic code package information (this file)
-   rrtmg_sw_instructions     : Input instructions for files INPUT_RRTM, IN_CLD_RRTM 
+   release_notes.txt         : Code archive update information
+   rrtmg_sw_instructions.txt : Input instructions for files INPUT_RRTM, IN_CLD_RRTM 
                                and IN_AER_RRTM
 
 
@@ -89,7 +95,7 @@ SOURCE CODE:
 
 
    The following module files (in /column_model/modules directory) must be used to run 
-   RRTMG_LW in stand-alone mode as a column model (these must be compiled before the
+   RRTMG_SW in stand-alone mode as a column model (these must be compiled before the
    source code files):
 
    parkind.f90               : real and integer kind type parameters
@@ -99,18 +105,20 @@ SOURCE CODE:
    rrsw_con.f90              : constants
    rrsw_kg**.f90             : absorption coefficient arrays for 16 spectral bands
    rrsw_ref.f90              : reference atmosphere data arrays
+   rrsw_tbl.f90              : exponential lookup table arrays
    rrsw_vsn.f90              : version number information
    rrsw_wvn.f90              : spectral band and g-interval array information
 
 
 MAKEFILES:
-   The following files (in directory /column_model/makefiles) can be used to compile 
+   The following files (in directory /column_model/build/makefiles) can be used to compile 
    RRTMG_SW in stand-alone mode as a column model on various platforms.  Link one of 
-   these into the /column_model directory to compile. 
+   these into the /column_model/build directory to compile. 
 
    make_rrtmg_sw_sgi         : Sample makefile for SGI
    make_rrtmg_sw_sun         : Sample makefile for SUN
    make_rrtmg_sw_linux_pgi   : Sample makefile for LINUX (PGI compiler)
+   make_rrtmg_sw_aix_xlf90   : Sample makefile for AIX (XLF90 compiler)
    make_rrtmg_sw_OS_X_g95    : Sample makefile for OS_X (G95 compiler)
 
 
@@ -179,6 +187,7 @@ SOURCE CODE:
    rrsw_con.f90              : constants
    rrsw_kg**.f90             : absorption coefficient arrays for 16 spectral bands
    rrsw_ref.f90              : reference atmosphere data arrays
+   rrsw_tbl.f90              : exponential lookup table arrays
    rrsw_vsn.f90              : version number information
    rrsw_wvn.f90              : spectral band and g-interval array information
 
@@ -189,11 +198,11 @@ Notes regarding GCM version:
       called only once.  The call to this subroutine should be moved to the 
       initialization section of the host model if RRTMG_SW is called by a GCM or SCM. 
 
-   2) The number of model layers is set by default to the maximum allowable number
-      (203) in parrrsw.f90.  For use in a GCM this should be changed to the actual 
-      number of layers used in the GCM to conserve memory.
+   2) The number of model layers and the number of columns to be looped over should
+      be passed into RRTMG_SW through the subroutine call along with the other model
+      profile arrays.
 
-   3) To utilize McICA, the sub-column generator (mcica_subcol_gen_le.f90) must be
+   3) To utilize McICA, the sub-column generator (mcica_subcol_gen_sw.f90) must be
       implemented in the GCM so that it is called just before RRTMG.
       If McICA is utilized, this will run only a single statistical sample per
       model grid box.  There are two options for the random number generator used

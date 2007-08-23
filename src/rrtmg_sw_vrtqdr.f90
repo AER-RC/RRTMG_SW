@@ -3,6 +3,8 @@
 !     revision:  $Revision$
 !     created:   $Date$
 !
+      module rrtmg_sw_vrtqdr
+
 !  --------------------------------------------------------------------------
 ! |                                                                          |
 ! |  Copyright 2002-2007, Atmospheric & Environmental Research, Inc. (AER).  |
@@ -13,10 +15,21 @@
 ! |                                                                          |
 !  --------------------------------------------------------------------------
 
+! ------- Modules -------
+
+      use parkind, only: jpim, jprb
+!      use parrrsw, only: ngptsw
+
+      implicit none
+
+      contains
+
+! --------------------------------------------------------------------------
       subroutine vrtqdr_sw(klev, kw, &
                            pref, prefd, ptra, ptrad, &
                            pdbt, prdnd, prup, prupd, ptdbt, &
                            pfd, pfu)
+! --------------------------------------------------------------------------
  
 ! Purpose: This routine performs the vertical quadrature integration
 !
@@ -30,41 +43,48 @@
 !
 !-----------------------------------------------------------------------
 
-! ------- Modules -------
-
-      use parkind, only: jpim, jprb
-      use parrrsw, only: mxlay, ngpt
-
-      implicit none
-
 ! ------- Declarations -------
 
 ! Input
 
-      integer(kind=jpim), intent (in) :: klev, kw
+      integer(kind=jpim), intent (in) :: klev                   ! number of model layers
+      integer(kind=jpim), intent (in) :: kw                     ! g-point index
 
-      real(kind=jprb), intent(in) :: pref(mxlay+1)
-      real(kind=jprb), intent(in) :: prefd(mxlay+1)
-      real(kind=jprb), intent(in) :: ptra(mxlay+1)
-      real(kind=jprb), intent(in) :: ptrad(mxlay+1)
+      real(kind=jprb), intent(in) :: pref(:)                    ! direct beam reflectivity
+                                                                 !   Dimensions: (nlayers+1)
+      real(kind=jprb), intent(in) :: prefd(:)                   ! diffuse beam reflectivity
+                                                                 !   Dimensions: (nlayers+1)
+      real(kind=jprb), intent(in) :: ptra(:)                    ! direct beam transmissivity
+                                                                 !   Dimensions: (nlayers+1)
+      real(kind=jprb), intent(in) :: ptrad(:)                   ! diffuse beam transmissivity
+                                                                 !   Dimensions: (nlayers+1)
 
-      real(kind=jprb), intent(in) :: pdbt(mxlay+1)
-      real(kind=jprb), intent(in) :: ptdbt(mxlay+1)
+      real(kind=jprb), intent(in) :: pdbt(:)
+                                                                 !   Dimensions: (nlayers+1)
+      real(kind=jprb), intent(in) :: ptdbt(:)
+                                                                 !   Dimensions: (nlayers+1)
 
-      real(kind=jprb), intent(inout) :: prdnd(mxlay+1)
-      real(kind=jprb), intent(inout) :: prup(mxlay+1)
-      real(kind=jprb), intent(inout) :: prupd(mxlay+1)
+      real(kind=jprb), intent(inout) :: prdnd(:)
+                                                                 !   Dimensions: (nlayers+1)
+      real(kind=jprb), intent(inout) :: prup(:)
+                                                                 !   Dimensions: (nlayers+1)
+      real(kind=jprb), intent(inout) :: prupd(:)
+                                                                 !   Dimensions: (nlayers+1)
 
 ! Output
-      real(kind=jprb), intent(out) :: pfd(mxlay+1,ngpt)
-      real(kind=jprb), intent(out) :: pfu(mxlay+1,ngpt) 
+      real(kind=jprb), intent(out) :: pfd(:,:)                   ! downwelling flux (W/m2)
+                                                                 !   Dimensions: (nlayers+1,ngptsw)
+                                                                 ! unadjusted for earth/sun distance or zenith angle
+      real(kind=jprb), intent(out) :: pfu(:,:)                   ! upwelling flux (W/m2)
+                                                                 !   Dimensions: (nlayers+1,ngptsw)
+                                                                 ! unadjusted for earth/sun distance or zenith angle
 
 ! Local
 
       integer(kind=jpim) :: ikp, ikx, jk
 
       real(kind=jprb) :: zreflect
-      real(kind=jprb) :: ztdn(mxlay+1)  
+      real(kind=jprb) :: ztdn(klev+1)  
 
 ! Definitions
 !
@@ -129,8 +149,6 @@
                       ptdbt(jk) * prup(jk) * prdnd(jk)) * zreflect
       enddo
 
-      return
-      end
+      end subroutine vrtqdr_sw
 
-
-
+      end module rrtmg_sw_vrtqdr

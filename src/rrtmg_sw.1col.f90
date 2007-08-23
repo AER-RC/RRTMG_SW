@@ -2,6 +2,9 @@
 !     author:    $Author$
 !     revision:  $Revision$
 !     created:   $Date$
+!
+
+      program rrtmg_sw
 
 !  --------------------------------------------------------------------------
 ! |                                                                          |
@@ -39,17 +42,15 @@
 ! *                                                                          *
 ! *                                                                          *
 ! *                                                                          *
+! *                      email:  miacono@aer.com                             *
 ! *                      email:  emlawer@aer.com                             *
 ! *                      email:  jdelamer@aer.com                            *
-! *                      email:  miacono@aer.com                             *
 ! *                                                                          *
 ! *       The authors wish to acknowledge the contributions of the           *
 ! *       following people: Steven J. Taubman, Patrick D. Brown,             *
 ! *       Ronald E. Farren, Luke Chen, Robert Bergstrom.                     *
 ! *                                                                          *
 ! ****************************************************************************
-
-      program rrtmg_sw
 
 ! ------- Description -------
 
@@ -59,7 +60,7 @@
 !  capability using McICA.
 
 ! This routine
-!    a) calls RRTMG_SW_INIT to initialize data and to perform
+!    a) calls RRTMG_SW_INI to initialize data and to perform
 !       the g-point interval reduction from 224 to 112
 !    b) calls READPROF to read in the atmospheric profile;
 !       all layering in RRTMG is ordered from surface to toa. 
@@ -135,16 +136,22 @@
 ! --------- Modules ---------
 
       use parkind, only : jpim, jprb
-      use parrrsw, only : nlon, mxlay, naer, nbndsw, nstr, nmol, ngpt, mxmol, &
+      use parrrsw, only : mxlay, nbndsw, ngptsw, naerec, nstr, nmol, mxmol, &
                           jpband, jpb1, jpb2
       use rrsw_aer, only : rsrtaua, rsrpiza, rsrasya
       use rrsw_con, only : heatfac, oneminus, pi
       use rrsw_wvn, only : wavenum1, wavenum2
       use rrsw_vsn
       use mcica_subcol_gen_sw, only: mcica_subcol_sw
+      use rrtmg_sw_cldprop, only: cldprop_sw
+      use rrtmg_sw_cldprmc, only: cldprmc_sw
+      use rrtmg_sw_init, only: rrtmg_sw_ini
+      use rrtmg_sw_setcoef, only: setcoef_sw
+      use rrtmg_sw_spcvrt, only: spcvrt_sw
+      use rrtmg_sw_spcvmc, only: spcvmc_sw
 
       implicit none
-     
+
 ! ------- Declarations
 
 ! ----- Local -----
@@ -169,6 +176,8 @@
       integer(kind=jpim) :: ims                 ! mcica statistical loop index
       integer(kind=jpim) :: imca                ! flag for mcica [0=off, 1=on]
       integer(kind=jpim) :: nmca                ! number of mcica samples (mcica mode)
+      integer(kind=jpim), parameter :: ncol = 1 ! total number of columns
+
       integer(kind=jpim) :: iout1, iout2        ! output control flags
       integer(kind=jpim) :: indform             ! output control flag
       character page 
@@ -190,7 +199,7 @@
       real(kind=jprb) :: wkl(mxmol,mxlay)       ! molecular amounts (mol/cm-2)
 
       real(kind=jprb) :: cossza, zenith         ! cosine of solar zenith angle 
-      real(kind=jprb) :: earth_sun              ! function for Earth/Sun distance factor
+!      real(kind=jprb) :: earth_sun              ! function for Earth/Sun distance factor
       real(kind=jprb) :: adjflux(jpband)        ! adjustment for current Earth/Sun distance
       real(kind=jprb) :: solvar(jpband)         ! solar constant scaling factor from rrtmg_sw
                                                 !  default value of 1368.22 Wm-2 at 1 AU
@@ -205,25 +214,25 @@
       real(kind=jprb) :: asmaer(mxlay,jpband)   ! aerosol asymmetry parameter (iaer=10 only)
                                                 ! (non-delta scaled)      
                                                 !   first moment of input phase function
-      real(kind=jprb) :: ecaer(mxlay,naer)      ! aerosol optical thickness at 0.55 micron (iaer=6 only)
+      real(kind=jprb) :: ecaer(mxlay,naerec)    ! aerosol optical thickness at 0.55 micron (iaer=6 only)
                                                 ! (non-delta scaled)      
 
 ! Atmosphere - setcoef
-      integer(kind=jpim) :: laytrop            ! tropopause layer index
-      integer(kind=jpim) :: layswtch           ! tropopause layer index
-      integer(kind=jpim) :: laylow             ! tropopause layer index
-      integer(kind=jpim) :: jp(mxlay)          ! 
-      integer(kind=jpim) :: jt(mxlay)          !
-      integer(kind=jpim) :: jt1(mxlay)         !
+      integer(kind=jpim) :: laytrop             ! tropopause layer index
+      integer(kind=jpim) :: layswtch            ! tropopause layer index
+      integer(kind=jpim) :: laylow              ! tropopause layer index
+      integer(kind=jpim) :: jp(mxlay)           ! 
+      integer(kind=jpim) :: jt(mxlay)           !
+      integer(kind=jpim) :: jt1(mxlay)          !
 
-      real(kind=jprb) :: colh2o(mxlay)         ! column amount (h2o)
-      real(kind=jprb) :: colco2(mxlay)         ! column amount (co2)
-      real(kind=jprb) :: colo3(mxlay)          ! column amount (o3)
-      real(kind=jprb) :: coln2o(mxlay)         ! column amount (n2o)
-      real(kind=jprb) :: colch4(mxlay)         ! column amount (ch4)
-      real(kind=jprb) :: colo2(mxlay)          ! column amount (o2)
-      real(kind=jprb) :: colmol(mxlay)         ! column amount
-      real(kind=jprb) :: co2mult(mxlay)        ! column amount 
+      real(kind=jprb) :: colh2o(mxlay)          ! column amount (h2o)
+      real(kind=jprb) :: colco2(mxlay)          ! column amount (co2)
+      real(kind=jprb) :: colo3(mxlay)           ! column amount (o3)
+      real(kind=jprb) :: coln2o(mxlay)          ! column amount (n2o)
+      real(kind=jprb) :: colch4(mxlay)          ! column amount (ch4)
+      real(kind=jprb) :: colo2(mxlay)           ! column amount (o2)
+      real(kind=jprb) :: colmol(mxlay)          ! column amount
+      real(kind=jprb) :: co2mult(mxlay)         ! column amount 
 
       integer(kind=jpim) :: indself(mxlay)
       integer(kind=jpim) :: indfor(mxlay)
@@ -232,7 +241,7 @@
       real(kind=jprb) :: forfac(mxlay)
       real(kind=jprb) :: forfrac(mxlay)
 
-      real(kind=jprb) :: &                     !
+      real(kind=jprb) :: &                      !
                          fac00(mxlay), fac01(mxlay), &
                          fac10(mxlay), fac11(mxlay) 
 
@@ -242,31 +251,30 @@
       integer(kind=jpim) :: iceflag             ! flag for ice cloud properties
       integer(kind=jpim) :: liqflag             ! flag for liquid cloud properties
 
-      real(kind=jprb) :: cldfrac(mxlay)           ! layer cloud fraction
-      real(kind=jprb) :: tauc(nbndsw,mxlay)       ! cloud optical depth (non-delta scaled)
-      real(kind=jprb) :: ssac(nbndsw,mxlay)       ! cloud single scattering albedo (non-delta scaled)
-      real(kind=jprb) :: asmc(nbndsw,mxlay)       ! cloud asymmetry parameter (non-delta scaled)
-      real(kind=jprb) :: ciwp(mxlay)              ! cloud ice water path
-      real(kind=jprb) :: clwp(mxlay)              ! cloud liquid water path
-      real(kind=jprb) :: fice(mxlay)              ! cloud ice fraction
-      real(kind=jprb) :: rei(mxlay)               ! cloud ice particle size
-      real(kind=jprb) :: rel(mxlay)               ! cloud liquid particle size
+      real(kind=jprb) :: cldfrac(mxlay)         ! layer cloud fraction
+      real(kind=jprb) :: tauc(nbndsw,mxlay)     ! cloud optical depth (non-delta scaled)
+      real(kind=jprb) :: ssac(nbndsw,mxlay)     ! cloud single scattering albedo (non-delta scaled)
+      real(kind=jprb) :: asmc(nbndsw,mxlay)     ! cloud asymmetry parameter (non-delta scaled)
+      real(kind=jprb) :: ciwp(mxlay)            ! cloud ice water path
+      real(kind=jprb) :: clwp(mxlay)            ! cloud liquid water path
+      real(kind=jprb) :: rei(mxlay)             ! cloud ice particle size
+      real(kind=jprb) :: rel(mxlay)             ! cloud liquid particle size
 
-      real(kind=jprb) :: taucloud(mxlay,jpband)   ! cloud optical depth
-      real(kind=jprb) :: taucldorig(mxlay,jpband) ! cloud optical depth (non-delta scaled)
-      real(kind=jprb) :: ssacloud(mxlay,jpband)   ! cloud single scattering albedo
-      real(kind=jprb) :: asmcloud(mxlay,jpband)   ! cloud asymmetry parameter
+      real(kind=jprb) :: taucloud(mxlay,jpband) ! cloud optical depth
+      real(kind=jprb) :: taucldorig(mxlay,jpband)! cloud optical depth (non-delta scaled)
+      real(kind=jprb) :: ssacloud(mxlay,jpband) ! cloud single scattering albedo
+      real(kind=jprb) :: asmcloud(mxlay,jpband) ! cloud asymmetry parameter
 
 ! Atmosphere/clouds - cldprmc [mcica]
-      real(kind=jprb) :: cldfmc(ngpt,mxlay)     ! cloud fraction [mcica]
-      real(kind=jprb) :: ciwpmc(ngpt,mxlay)     ! cloud ice water path [mcica]
-      real(kind=jprb) :: clwpmc(ngpt,mxlay)     ! cloud liquid water path [mcica]
+      real(kind=jprb) :: cldfmc(ngptsw,mxlay)   ! cloud fraction [mcica]
+      real(kind=jprb) :: ciwpmc(ngptsw,mxlay)   ! cloud ice water path [mcica]
+      real(kind=jprb) :: clwpmc(ngptsw,mxlay)   ! cloud liquid water path [mcica]
       real(kind=jprb) :: relqmc(mxlay)          ! liquid particle size (microns)
       real(kind=jprb) :: reicmc(mxlay)          ! ice partcle size (microns)
-      real(kind=jprb) :: taucmc(ngpt,mxlay)     ! cloud optical depth [mcica]
-      real(kind=jprb) :: taormc(ngpt,mxlay)     ! unscaled cloud optical depth [mcica]
-      real(kind=jprb) :: ssacmc(ngpt,mxlay)     ! cloud single scattering albedo [mcica]
-      real(kind=jprb) :: asmcmc(ngpt,mxlay)     ! cloud asymmetry parameter [mcica]
+      real(kind=jprb) :: taucmc(ngptsw,mxlay)   ! cloud optical depth [mcica]
+      real(kind=jprb) :: taormc(ngptsw,mxlay)   ! unscaled cloud optical depth [mcica]
+      real(kind=jprb) :: ssacmc(ngptsw,mxlay)   ! cloud single scattering albedo [mcica]
+      real(kind=jprb) :: asmcmc(ngptsw,mxlay)   ! cloud asymmetry parameter [mcica]
 
 ! Atmosphere/clouds/aerosol - spcvrt,spcvmc
       real(kind=jprb) :: ztauc(mxlay,nbndsw)    ! cloud optical depth
@@ -278,11 +286,11 @@
       real(kind=jprb) :: zasya(mxlay,nbndsw)    ! total aerosol asymmetry parameter 
       real(kind=jprb) :: zomga(mxlay,nbndsw)    ! total aerosol single scattering albedo
 
-      real(kind=jprb) :: zcldfmc(mxlay,ngpt)    ! cloud fraction [mcica]
-      real(kind=jprb) :: ztaucmc(mxlay,ngpt)    ! cloud optical depth [mcica]
-      real(kind=jprb) :: ztaormc(mxlay,ngpt)    ! unscaled cloud optical depth [mcica]
-      real(kind=jprb) :: zasycmc(mxlay,ngpt)    ! cloud asymmetry parameter [mcica] 
-      real(kind=jprb) :: zomgcmc(mxlay,ngpt)    ! cloud single scattering albedo [mcica]
+      real(kind=jprb) :: zcldfmc(mxlay,ngptsw)  ! cloud fraction [mcica]
+      real(kind=jprb) :: ztaucmc(mxlay,ngptsw)  ! cloud optical depth [mcica]
+      real(kind=jprb) :: ztaormc(mxlay,ngptsw)  ! unscaled cloud optical depth [mcica]
+      real(kind=jprb) :: zasycmc(mxlay,ngptsw)  ! cloud asymmetry parameter [mcica] 
+      real(kind=jprb) :: zomgcmc(mxlay,ngptsw)  ! cloud single scattering albedo [mcica]
 
       real(kind=jprb) :: zbbfu(mxlay+1)         ! temporary upward shortwave flux (w/m2)
       real(kind=jprb) :: zbbfd(mxlay+1)         ! temporary downward shortwave flux (w/m2)
@@ -391,16 +399,13 @@
           '(1x,i3,4x,f6.1,4x,4(f10.4,4x),f11.6,4x,f10.5)',&
           '(1x,i3,4x,f6.1,4x,4(f10.4,4x),f11.6,4x,f10.5)'/
 
-!      cldfmcsum(:ngpt,:mxlay) = 0._jprb
-      uflxsum(0:mxlay) = 0._jprb
-      dflxsum(0:mxlay) = 0._jprb
-      dirdsum(0:mxlay) = 0._jprb
-      difdsum(0:mxlay) = 0._jprb
-      fnetsum(0:mxlay) = 0._jprb
-      htrsum(0:mxlay) = 0._jprb
+      uflxsum(0:) = 0._jprb
+      dflxsum(0:) = 0._jprb
+      dirdsum(0:) = 0._jprb
+      difdsum(0:) = 0._jprb
+      fnetsum(0:) = 0._jprb
+      htrsum(0:) = 0._jprb
 
-! In a GCM with or without McICA, set nlon to the longitude dimension
-!
 ! Set imca to select calculation type:
 !  (read by subroutine readprof from input file INPUT_RRTM):  
 ! imca = 0, use standard forward model calculation (clear and overcast only)
@@ -421,7 +426,7 @@
 ! In a GCM this call should be placed in the model initialization
 ! area, since this has to be called only once.  
 
-      call rrtmg_sw_init
+      call rrtmg_sw_ini
 
 ! Open the input set of atmospheres
       open (ird,file='INPUT_RRTM',form='formatted')
@@ -431,13 +436,13 @@
 
 ! This is the main longitude/column loop within rrtmg.
 
-      do iplon = 1, nlon
+      do iplon = 1, ncol
 
 ! Input atmospheric profile from INPUT_RRTM. 
         call readprof(ird, nlayers, iout, imca, icld, iaer, isccos, idelm, pdp, &
                        pavel, tavel, pz, tz, tbound, semiss, zenith, adjflux, &
                        coldry, wkl, inflag, iceflag, liqflag, &
-                       cldfrac, tauc, ssac, asmc, fice, ciwp, clwp, rei, rel, &
+                       cldfrac, tauc, ssac, asmc, ciwp, clwp, rei, rel, &
                        tauaer, ssaaer, asmaer)
 
          istart = jpb1                 ! jpb1 = 16
@@ -527,15 +532,15 @@
 ! Clouds
             if (icld.eq.0) then
 
-               ztauc(:mxlay,:nbndsw) = 0._jprb
-               ztaucorig(:mxlay,:nbndsw) = 0._jprb
-               zasyc(:mxlay,:nbndsw) = 0._jprb
-               zomgc(:mxlay,:nbndsw) = 0._jprb
-               zcldfmc(:mxlay,:ngpt) = 0._jprb
-               ztaucmc(:mxlay,:ngpt) = 0._jprb
-               ztaormc(:mxlay,:ngpt) = 0._jprb
-               zasycmc(:mxlay,:ngpt) = 0._jprb
-               zomgcmc(:mxlay,:ngpt) = 0._jprb
+               ztauc(:,:) = 0._jprb
+               ztaucorig(:,:) = 0._jprb
+               zasyc(:,:) = 0._jprb
+               zomgc(:,:) = 0._jprb
+               zcldfmc(:,:) = 0._jprb
+               ztaucmc(:,:) = 0._jprb
+               ztaormc(:,:) = 0._jprb
+               zasycmc(:,:) = 0._jprb
+               zomgcmc(:,:) = 0._jprb
 
             elseif (icld.ge.1) then
                if (imca.eq.0) then
@@ -551,7 +556,7 @@
                   enddo
                else
                   do i=1,nlayers
-                     do ig=1,ngpt
+                     do ig=1,ngptsw
                         zcldfmc(i,ig) = cldfmc(ig,i)
                         ztaucmc(i,ig) = taucmc(ig,i)
                         ztaormc(i,ig) = taormc(ig,i)
@@ -566,9 +571,9 @@
 ! IAER = 0: no aerosols
             if (iaer.eq.0) then
 
-               ztaua(:mxlay,:nbndsw) = 0._jprb
-               zasya(:mxlay,:nbndsw) = 0._jprb
-               zomga(:mxlay,:nbndsw) = 0._jprb
+               ztaua(:,:) = 0._jprb
+               zasya(:,:) = 0._jprb
+               zomga(:,:) = 0._jprb
 
 ! IAER = 6: Use ECMWF six aerosol types. See rrsw_aer.f90 for details.
 ! Input aerosol optical thickness at 0.55 micron for each aerosol type (ecaer)
@@ -576,7 +581,7 @@
             elseif (iaer.eq.6) then
 
                do i = 1, nlayers
-                  do ia = 1, naer
+                  do ia = 1, naerec
                      ecaer(i,ia) = 1.0e-15_jprb
 !                      ecaer(i,ia) = 1.0e-04_jprb
                   enddo
@@ -587,7 +592,7 @@
                      ztaua(i,ib) = 0._jprb
                      zasya(i,ib) = 0._jprb
                      zomga(i,ib) = 0._jprb
-                     do ia = 1, naer
+                     do ia = 1, naerec
                         ztaua(i,ib) = ztaua(i,ib) + rsrtaua(ib,ia) * ecaer(i,ia)
                         zomga(i,ib) = zomga(i,ib) + rsrtaua(ib,ia) * ecaer(i,ia) * &
                                       rsrpiza(ib,ia)
@@ -867,11 +872,10 @@
  9910 format('  Modules and versions used in this calculation:',/,/, &
               7(5x,a20,2x,a18,10x,a20,2x,a18,/))
 
-      stop
-      end program rrtmg_sw
+      contains
 
 !*************************************************************************
-      real function earth_sun(idn)
+      real(kind=jprb) function earth_sun(idn)
 !*************************************************************************
 !
 !  Purpose: Function to calculate the correction factor of Earth's orbit
@@ -898,69 +902,7 @@
       earth_sun = 1.000110_jprb + .034221_jprb * cos(gamma) + .001289_jprb * sin(gamma) + &
                    .000719_jprb * cos(2._jprb*gamma) + .000077_jprb * sin(2._jprb*gamma)
 
-      return
       end function earth_sun
-
-!***************************************************************************
-      subroutine swdatinit
-!***************************************************************************
-
-! --------- Modules ----------
-
-      use parkind, only : jpim, jprb 
-      use rrsw_con, only: heatfac, grav, planck, boltz, &
-                          clight, avogad, alosmt, gascon, radcn1, radcn2 
-      use rrsw_wvn, only: ng, nspa, nspb, wavenum1, wavenum2, delwave
-      use rrsw_vsn
-
-      implicit none
-      save 
- 
-! Shortwave spectral band limits (wavenumbers)
-      wavenum1(:) = (/2600._jprb, 3250._jprb, 4000._jprb, 4650._jprb, 5150._jprb, 6150._jprb, 7700._jprb, &
-                      8050._jprb,12850._jprb,16000._jprb,22650._jprb,29000._jprb,38000._jprb,  820._jprb/)
-      wavenum2(:) = (/3250._jprb, 4000._jprb, 4650._jprb, 5150._jprb, 6150._jprb, 7700._jprb, 8050._jprb, &
-                     12850._jprb,16000._jprb,22650._jprb,29000._jprb,38000._jprb,50000._jprb, 2600._jprb/)
-      delwave(:) =  (/ 650._jprb,  750._jprb,  650._jprb,  500._jprb, 1000._jprb, 1550._jprb,  350._jprb, &
-                      4800._jprb, 3150._jprb, 6650._jprb, 6350._jprb, 9000._jprb,12000._jprb, 1780._jprb/)
-
-! Spectral band information
-      ng(:) = (/16,16,16,16,16,16,16,16,16,16,16,16,16,16/)
-      nspa(:) = (/9,9,9,9,1,9,9,1,9,1,0,1,9,1/)
-      nspb(:) = (/1,5,1,1,1,5,1,0,1,0,0,1,5,1/)
-
-!     Heatfac is the factor by which one must multiply delta-flux/ 
-!     delta-pressure, with flux in w/m-2 and pressure in mbar, to get 
-!     the heating rate in units of degrees/day.  It is equal to 
-!           (g)x(#sec/day)x(1e-5)/(specific heat of air at const. p)
-!        =  (9.8066)(86400)(1e-5)/(1.004)
-      heatfac = 8.4391_jprb
-
-!     Modified values for consistency with CAM3:
-!        =  (9.80616)(86400)(1e-5)/(1.00464)
-!      heatfac = 8.43339130434_jprb
-
-!    Constants from NIST 01/11/2002
-
-      grav = 9.8066_jprb
-      planck = 6.62606876e-27_jprb
-      boltz = 1.3806503e-16_jprb
-      clight = 2.99792458e+10_jprb
-      avogad = 6.02214199e+23_jprb
-      alosmt = 2.6867775e+19_jprb
-      gascon = 8.31447200e+07_jprb
-      radcn1 = 1.191042722e-12_jprb
-      radcn2 = 1.4387752_jprb
-!
-!     units are generally cgs
-!
-!     The first and second radiation constants are taken from NIST.
-!     They were previously obtained from the relations:
-!          radcn1 = 2.*planck*clight*clight*1.e-07
-!          radcn2 = planck*clight/boltz
-
-      return
-      end
 
 !************************************************************************
       subroutine readprof(ird_in, nlayers_out, iout_out, imca, icld_out, &
@@ -968,7 +910,7 @@
            pavel_out, tavel_out, pz_out, tz_out, tbound_out, semiss_out, &
            zenith_out, adjflux_out, &
            coldry_out, wkl_out, inflag_out, iceflag_out,liqflag_out, &
-           cldfrac_out, tauc, ssac, asmc, fice, ciwp, clwp, rei, rel, &
+           cldfrac_out, tauc, ssac, asmc, ciwp, clwp, rei, rel, &
            tauaer_out, ssaaer_out, asmaer_out)
 !************************************************************************
 
@@ -986,16 +928,19 @@
 !                                                                         
 ! Purpose: Read in atmospheric profile.
 
+      implicit integer(i-n), real(a-h,o-z)
+
 ! ------- Parameters -------
-      parameter (mxlay = 203, jpbands = 29)
-      parameter (ib1 = 16, ib2 = 29)
+      parameter (mxlay = 203)
       parameter (nbndsw = 14)
+      parameter (jpbands = 29)
+      parameter (ib1 = 16, ib2 = 29)
       parameter (mg = 16)
       parameter (mxstr = 16)
       parameter (mcmu = 32)
       parameter (mxmol = 38)
-      parameter (maxinpx=35)
-      parameter (maxxsec=4)
+      parameter (maxinpx = 35)
+      parameter (maxxsec = 4)
 
       dimension altz(0:mxlay),ixtrans(14)
       dimension solvar(jpbands)
@@ -1058,7 +1003,6 @@
       real(kind=jprb), intent(out) :: asmc(nbndsw,mxlay)         ! cloud asymmetry parameter (non-delta scaled)
       real(kind=jprb), intent(out) :: ciwp(mxlay)                ! cloud ice water path
       real(kind=jprb), intent(out) :: clwp(mxlay)                ! cloud liquid water path
-      real(kind=jprb), intent(out) :: fice(mxlay)                ! cloud ice fraction
       real(kind=jprb), intent(out) :: rei(mxlay)                 ! cloud ice particle size
       real(kind=jprb), intent(out) :: rel(mxlay)                 ! cloud liquid particle size
       real(kind=jprb), intent(out) :: tauaer_out(mxlay,jpbands)   ! aerosol optical depth
@@ -1068,12 +1012,12 @@
 !
 ! Local
       integer(kind=jpim) :: juldat                               ! day of year
+      real(kind=jprb) :: fice(mxlay)                             ! cloud ice fraction
 
 ! Initializations
 
       data cdollar /'$'/
       data ixtrans /0,0,0,1,2,3,0,0,0,0,0,4,0,0/
-!      data wx /maxprod*0.0/
 
       form1(0) = '(3f10.4,a3,i2,1x,2(f7.2,f8.3,f7.2))'
       form2(0) = '(3f10.4,a3,i2,23x,(f7.2,f8.3,f7.2))'
@@ -1299,21 +1243,21 @@
                ssac(n,l) = clddat2(l)
                asmc(n,l) = clddatmom(1,l)
             enddo
-            ciwp(l) = 0.
-            clwp(l) = 0.
-            fice(l) = 0.
-            rei(l) = 0.
-            rel(l) = 0.
+            ciwp(l) = 0._jprb
+            clwp(l) = 0._jprb
+            fice(l) = 0._jprb
+            rei(l) = 0._jprb
+            rel(l) = 0._jprb
          else
             do n = 1, nbndsw
-               tauc(n,l) = 0.
-               ssac(n,l) = 1.
-               asmc(n,l) = 1.
+               tauc(n,l) = 0._jprb
+               ssac(n,l) = 1._jprb
+               asmc(n,l) = 1._jprb
             enddo
             cwp = clddat1(l)
             fice(l) = clddat2(l)
             ciwp(l) = cwp * fice(l)
-            clwp(l) = cwp * (1. - fice(l))
+            clwp(l) = cwp * (1._jprb - fice(l))
             rei(l) = clddat3(l)
             rel(l) = clddat4(l)
          endif 
@@ -1348,15 +1292,18 @@
  9300 format (i5)
  9301 format (1x,i1)
 
-      return
-      end 
+      end subroutine readprof
 
 !***************************************************************************
       subroutine readcld
 !***************************************************************************
 
+      use parkind, only : jpim, jprb
+
 ! Purpose:  To read in IN_CLD_RRTM_SW, the file that contains input 
 !           cloud properties.
+
+      implicit integer(i-n), real(a-h,o-z)
 
 ! ------- Parameters ------- 
       parameter (mxlay = 203, jpbands = 29)
@@ -1384,7 +1331,7 @@
       read(irdcld,9050) inflag, iceflag, liqflag
 
       do lay = 1, nlayers
-         cldfrac(lay) = 0.
+         cldfrac(lay) = 0._jprb
       enddo
 
       if (inflag .eq. 0) then
@@ -1421,12 +1368,14 @@
  9050 format (3x,i2,4x,i1,4x,i1)
  9099 format (a1,1x,i3,19e10.5)
  9100 format (a1,1x,i3,5e10.5)
-      return
-      end
+
+      end subroutine readcld
 
 !***************************************************************************
       subroutine readaer
 !***************************************************************************
+
+      use parkind, only : jpim, jprb
 
 ! Purpose:  To read in IN_AER_RRTM, the file that contains input
 !           aerosol properties.
@@ -1434,6 +1383,8 @@
 ! -------- Modules --------
 
       use rrsw_wvn, only : wavenum1, wavenum2
+
+      implicit integer(i-n), real(a-h,o-z)
 
 ! ------- Parameters -------
       parameter (mxlay = 203, jpbands = 29)
@@ -1457,20 +1408,21 @@
 
       data cpercent /'%'/
 
-      data rnu0 /2903.,3601.,4310.,4892.,5623.,6872.,7872., &
-                 10590.,14420.,18970.,25015.,30390.,43507.,1412./
-      data rnu1 /10530.7,14293.3,18678.0,24475.1/
+      data rnu0 /2903._jprb,3601._jprb,4310._jprb,4892._jprb,5623._jprb,6872._jprb, &
+                 7872._jprb,10590._jprb,14420._jprb,18970._jprb,25015._jprb,30390._jprb, & 
+                 43507._jprb,1412._jprb/
+      data rnu1 /10530.7_jprb,14293.3_jprb,18678.0_jprb,24475.1_jprb/
  
-      data f1  /0.9929,0.9883,0.978,0.9696/
-      data od0 /0.1084,0.167,0.245,0.3611/
-      data od1 /0.3144,0.4822,0.7013,1.0239/
+      data f1  /0.9929_jprb,0.9883_jprb,0.978_jprb,0.9696_jprb/
+      data od0 /0.1084_jprb,0.167_jprb,0.245_jprb,0.3611_jprb/
+      data od1 /0.3144_jprb,0.4822_jprb,0.7013_jprb,1.0239_jprb/
 
-      eps = 1.e-10
+      eps = 1.e-10_jprb
       irdaer = 12
       open(irdaer,file='IN_AER_RRTM',form='formatted')
 
-      aod(:) = 0.0
-      tauaer(:,ib1:ib2) = 0.0
+      aod(:) = 0.0_jprb
+      tauaer(:,ib1:ib2) = 0.0_jprb
 
 ! Read in number of different aerosol models option.
       read (irdaer, 9010) naer
@@ -1486,12 +1438,12 @@
 
          if (iaod .eq. 0) then
 ! Set defaults to get standard Angstrom relation.
-            if (aerpar(2) .lt. eps) aerpar(2) = 1.
+            if (aerpar(2) .lt. eps) aerpar(2) = 1._jprb
 
             do ib = ib1, ib2
-  	       rlambda(ib) = 10000./rnu0(ib)
+  	       rlambda(ib) = 10000._jprb/rnu0(ib)
                specfac(ib) = (aerpar(2) + aerpar(3) * rlambda(ib)) / &
-                            ((aerpar(2) + aerpar(3) - 1.) + &
+                            ((aerpar(2) + aerpar(3) - 1._jprb) + &
                               rlambda(ib)**aerpar(1))
             enddo
          endif
@@ -1530,7 +1482,7 @@
                 od = sum(tauaer(ivec(1:nlay),ib))/zenith
                 rnu = rnu0(ib) + &
                      (rnu1(ib)-rnu0(ib))*(od-od0(ib))/(od1(ib)-od0(ib))
-               rlambda_new = 10000./rnu
+               rlambda_new = 10000._jprb/rnu
                specfac_new = (aerpar(2)+aerpar(3)*rlambda_new) / &
                   ((aerpar(2)+aerpar(3)- 1.)+rlambda_new**aerpar(1))
                do il=1,nlay
@@ -1586,8 +1538,7 @@
  9012 format (2x, i3, 14f7.4)
  9013 format (14f5.3)
 
-      return
-      end
+      end subroutine readaer
 
 !**********************************************************************
       subroutine xsident(ird)
@@ -1595,8 +1546,10 @@
 
 ! Purpose:  This subroutine identifies which cross-sections are to be used.
 
+      implicit integer(i-n), real(a-h,o-z)
+
 ! ------- Parameters -------
-      parameter (maxinpx=38)
+      parameter (maxinpx=35)
       parameter (maxxsec=4)
 
       common /xsecctrl/ nxmol,ixindx(maxinpx)
@@ -1655,8 +1608,8 @@
          enddo
       enddo   
 
-      return
-      end
+      end subroutine xsident
 
+      end program rrtmg_sw
 
 

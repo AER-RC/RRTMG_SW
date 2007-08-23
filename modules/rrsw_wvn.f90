@@ -1,7 +1,7 @@
       module rrsw_wvn
 
       use parkind, only : jpim, jprb
-      use parrrsw, only : nbndsw, mg, ngpt, jpb1, jpb2
+      use parrrsw, only : nbndsw, mg, ngptsw, jpb1, jpb2
 
       implicit none
       save
@@ -45,8 +45,8 @@
 
       integer(kind=jpim) :: ngc(nbndsw)
       integer(kind=jpim) :: ngs(nbndsw)
-      integer(kind=jpim) :: ngn(ngpt)
-      integer(kind=jpim) :: ngb(ngpt)
+      integer(kind=jpim) :: ngn(ngptsw)
+      integer(kind=jpim) :: ngb(ngptsw)
       integer(kind=jpim) :: ngm(nbndsw*mg)
 
       real(kind=jprb) :: wt(mg)

@@ -3,6 +3,8 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+      module rrtmg_sw_taumol
+
 !  --------------------------------------------------------------------------
 ! |                                                                          |
 ! |  Copyright 2002-2007, Atmospheric & Environmental Research, Inc. (AER).  |
@@ -12,6 +14,18 @@
 ! |                       (http://www.rtweb.aer.com/)                        |
 ! |                                                                          |
 !  --------------------------------------------------------------------------
+
+! ------- Modules -------
+
+      use parkind, only : jpim, jprb 
+!      use parrrsw, only : mg, jpband, nbndsw, ngptsw
+      use rrsw_con, only: oneminus
+      use rrsw_wvn, only: nspa, nspb
+      use rrsw_vsn, only: hvrtau, hnamtau
+
+      implicit none
+
+      contains
 
 !----------------------------------------------------------------------------
       subroutine taumol_sw(nlayers, &
@@ -30,11 +44,12 @@
 ! *                                                                            *
 ! *                                                                            *
 ! *           ATMOSPHERIC AND ENVIRONMENTAL RESEARCH, INC.                     *
-! *                       840 MEMORIAL DRIVE                                   *
-! *                       CAMBRIDGE, MA 02139                                  *
+! *                       131 HARTWELL AVENUE                                  *
+! *                       LEXINGTON, MA 02421                                  *
 ! *                                                                            *
 ! *                                                                            *
 ! *                          ELI J. MLAWER                                     *
+! *                        JENNIFER DELAMERE                                   *
 ! *                        STEVEN J. TAUBMAN                                   *
 ! *                        SHEPARD A. CLOUGH                                   *
 ! *                                                                            *
@@ -42,6 +57,7 @@
 ! *                                                                            *
 ! *                                                                            *
 ! *                      email:  mlawer@aer.com                                *
+! *                      email:  jdelamer@aer.com                              *
 ! *                                                                            *
 ! *       The authors wish to acknowledge the contributions of the             *
 ! *       following people:  Patrick D. Brown, Michael J. Iacono,              *
@@ -146,49 +162,59 @@
 ! Revised: Modified for g-point reduction, MJIacono, AER, Dec 2003
 ! Revised: Reformatted for consistency with rrtmg_lw, MJIacono, AER, Jul 2006
 !
-! ------- Modules -------
-
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, mg, jpband, nbndsw, ngpt
-      use rrsw_con, only: oneminus
-      use rrsw_wvn, only: nspa, nspb
-      use rrsw_vsn, only: hvrtau, hnamtau
-
-      implicit none
-
 ! ------- Declarations -------
 
-! Input
+! ----- Input -----
       integer(kind=jpim), intent(in) :: nlayers            ! total number of layers
 
       integer(kind=jpim), intent(in) :: laytrop            ! tropopause layer index
-      integer(kind=jpim), intent(in) :: jp(mxlay)          ! 
-      integer(kind=jpim), intent(in) :: jt(mxlay)          !
-      integer(kind=jpim), intent(in) :: jt1(mxlay)         !
+      integer(kind=jpim), intent(in) :: jp(:)              ! 
+                                                           !   Dimensions: (nlayers)
+      integer(kind=jpim), intent(in) :: jt(:)              !
+                                                           !   Dimensions: (nlayers)
+      integer(kind=jpim), intent(in) :: jt1(:)             !
+                                                           !   Dimensions: (nlayers)
 
-      real(kind=jprb), intent(in) :: colh2o(mxlay)         ! column amount (h2o)
-      real(kind=jprb), intent(in) :: colco2(mxlay)         ! column amount (co2)
-      real(kind=jprb), intent(in) :: colo3(mxlay)          ! column amount (o3)
-      real(kind=jprb), intent(in) :: colch4(mxlay)         ! column amount (ch4)
-      real(kind=jprb), intent(in) :: colo2(mxlay)          ! column amount (o2)
-      real(kind=jprb), intent(in) :: colmol(mxlay)         ! 
+      real(kind=jprb), intent(in) :: colh2o(:)             ! column amount (h2o)
+                                                           !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: colco2(:)             ! column amount (co2)
+                                                           !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: colo3(:)              ! column amount (o3)
+                                                           !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: colch4(:)             ! column amount (ch4)
+                                                           !   Dimensions: (nlayers)
+                                                           !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: colo2(:)              ! column amount (o2)
+                                                           !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: colmol(:)             ! 
+                                                           !   Dimensions: (nlayers)
 
-      integer(kind=jpim), intent(in) :: indself(mxlay)
-      integer(kind=jpim), intent(in) :: indfor(mxlay)
-      real(kind=jprb), intent(in) :: selffac(mxlay)
-      real(kind=jprb), intent(in) :: selffrac(mxlay)
-      real(kind=jprb), intent(in) :: forfac(mxlay)
-      real(kind=jprb), intent(in) :: forfrac(mxlay)
+      integer(kind=jpim), intent(in) :: indself(:)    
+                                                           !   Dimensions: (nlayers)
+      integer(kind=jpim), intent(in) :: indfor(:)
+                                                           !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: selffac(:)
+                                                           !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: selffrac(:)
+                                                           !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: forfac(:)
+                                                           !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: forfrac(:)
+                                                           !   Dimensions: (nlayers)
 
       real(kind=jprb), intent(in) :: &                     !
-                         fac00(mxlay), fac01(mxlay), &
-                         fac10(mxlay), fac11(mxlay) 
+                         fac00(:), fac01(:), &             !   Dimensions: (nlayers)
+                         fac10(:), fac11(:) 
 
-! Output
-      real(kind=jprb), intent(out) :: sfluxzen(ngpt)        ! solar source function
-      real(kind=jprb), intent(out) :: taug(mxlay,ngpt)      ! gaseous optical depth 
-      real(kind=jprb), intent(out) :: taur(mxlay,ngpt)      ! Rayleigh 
-!      real(kind=jprb), intent(out) :: ssa(mxlay,ngpt)      ! single scattering albedo
+! ----- Output -----
+      real(kind=jprb), intent(out) :: sfluxzen(:)          ! solar source function
+                                                           !   Dimensions: (ngptsw)
+      real(kind=jprb), intent(out) :: taug(:,:)            ! gaseous optical depth 
+                                                           !   Dimensions: (nlayers,ngptsw)
+      real(kind=jprb), intent(out) :: taur(:,:)            ! Rayleigh 
+                                                           !   Dimensions: (nlayers,ngptsw)
+!      real(kind=jprb), intent(out) :: ssa(:,:)             ! single scattering albedo (inactive)
+                                                           !   Dimensions: (nlayers,ngptsw)
 
       hvrtau = '$Revision$'
 
@@ -223,13 +249,9 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng16
+      use parrrsw, only : ng16
       use rrsw_kg16, only : absa, absb, forref, selfref, &
                             sfluxref, rayl, layreffr, strrat1
-      use rrsw_wvn, only : nspa, nspb
-
-      implicit none
 
 ! ------- Declarations -------
 
@@ -310,7 +332,6 @@
          enddo
       enddo
 
-      return
       end subroutine taumol16
 
 !----------------------------------------------------------------------------
@@ -323,13 +344,9 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng17, ngs16
+      use parrrsw, only : ng17, ngs16
       use rrsw_kg17, only : absa, absb, forref, selfref, &
                             sfluxref, rayl, layreffr, strrat
-      use rrsw_wvn, only : nspa, nspb
-
-      implicit none
 
 ! ------- Declarations -------
 
@@ -434,7 +451,6 @@
          enddo
       enddo
 
-      return
       end subroutine taumol17
 
 !----------------------------------------------------------------------------
@@ -447,13 +463,9 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng18, ngs17
+      use parrrsw, only : ng18, ngs17
       use rrsw_kg18, only : absa, absb, forref, selfref, &
                             sfluxref, rayl, layreffr, strrat
-      use rrsw_wvn, only : nspa, nspb
-
-      implicit none
 
 ! ------- Declarations -------
 
@@ -535,7 +547,6 @@
          enddo
        enddo
 
-       return
        end subroutine taumol18
 
 !----------------------------------------------------------------------------
@@ -548,13 +559,9 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng19, ngs18
+      use parrrsw, only : ng19, ngs18
       use rrsw_kg19, only : absa, absb, forref, selfref, &
                             sfluxref, rayl, layreffr, strrat
-      use rrsw_wvn, only : nspa, nspb
-
-      implicit none
 
 ! ------- Declarations -------
 
@@ -636,7 +643,6 @@
          enddo
       enddo
 
-      return
       end subroutine taumol19
 
 !----------------------------------------------------------------------------
@@ -649,11 +655,9 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng20, ngs19
+      use parrrsw, only : ng20, ngs19
       use rrsw_kg20, only : absa, absb, forref, selfref, &
                             sfluxref, absch4, rayl, layreffr
-      use rrsw_wvn, only : nspa, nspb
 
       implicit none
 
@@ -723,7 +727,6 @@
          enddo
       enddo
 
-      return
       end subroutine taumol20
 
 !----------------------------------------------------------------------------
@@ -736,13 +739,9 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng21, ngs20
+      use parrrsw, only : ng21, ngs20
       use rrsw_kg21, only : absa, absb, forref, selfref, &
                             sfluxref, rayl, layreffr, strrat
-      use rrsw_wvn, only : nspa, nspb
-
-      implicit none
 
 ! ------- Declarations -------
 
@@ -847,7 +846,6 @@
          enddo
       enddo
 
-      return
       end subroutine taumol21
 
 !----------------------------------------------------------------------------
@@ -860,13 +858,9 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng22, ngs21
+      use parrrsw, only : ng22, ngs21
       use rrsw_kg22, only : absa, absb, forref, selfref, &
                             sfluxref, rayl, layreffr, strrat
-      use rrsw_wvn, only : nspa, nspb
-
-      implicit none
 
 ! ------- Declarations -------
 
@@ -958,7 +952,6 @@
          enddo
       enddo
 
-      return
       end subroutine taumol22
 
 !----------------------------------------------------------------------------
@@ -971,13 +964,9 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng23, ngs22
+      use parrrsw, only : ng23, ngs22
       use rrsw_kg23, only : absa, forref, selfref, &
                             sfluxref, rayl, layreffr, givfac
-      use rrsw_wvn, only : nspa, nspb
-
-      implicit none
 
 ! ------- Declarations -------
 
@@ -1032,7 +1021,6 @@
          enddo
       enddo
 
-      return
       end subroutine taumol23
 
 !----------------------------------------------------------------------------
@@ -1045,14 +1033,10 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng24, ngs23
+      use parrrsw, only : ng24, ngs23
       use rrsw_kg24, only : absa, absb, forref, selfref, &
                             sfluxref, abso3a, abso3b, rayla, raylb, &
                             layreffr, strrat
-      use rrsw_wvn, only : nspa, nspb
-
-      implicit none
 
 ! ------- Declarations -------
 
@@ -1137,7 +1121,6 @@
          enddo
       enddo
 
-      return
       end subroutine taumol24
 
 !----------------------------------------------------------------------------
@@ -1150,13 +1133,9 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng25, ngs24
+      use parrrsw, only : ng25, ngs24
       use rrsw_kg25, only : absa, &
                             sfluxref, abso3a, abso3b, rayl, layreffr
-      use rrsw_wvn, only : nspa, nspb
-
-      implicit none
 
 ! ------- Declarations -------
 
@@ -1204,7 +1183,6 @@
          enddo
       enddo
 
-      return
       end subroutine taumol25
 
 !----------------------------------------------------------------------------
@@ -1217,12 +1195,8 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng26, ngs25
+      use parrrsw, only : ng26, ngs25
       use rrsw_kg26, only : sfluxref, rayl
-      use rrsw_wvn, only : nspa, nspb
-
-      implicit none
 
 ! ------- Declarations -------
 
@@ -1260,7 +1234,6 @@
          enddo
       enddo
 
-      return
       end subroutine taumol26
 
 !----------------------------------------------------------------------------
@@ -1273,13 +1246,9 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng27, ngs26
+      use parrrsw, only : ng27, ngs26
       use rrsw_kg27, only : absa, absb, &
                             sfluxref, rayl, layreffr, scalekur
-      use rrsw_wvn, only : nspa, nspb
-
-      implicit none
 
 ! ------- Declarations -------
 
@@ -1333,7 +1302,6 @@
          enddo
       enddo
 
-      return
       end subroutine taumol27
 
 !----------------------------------------------------------------------------
@@ -1346,13 +1314,9 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng28, ngs27
+      use parrrsw, only : ng28, ngs27
       use rrsw_kg28, only : absa, absb, &
                             sfluxref, rayl, layreffr, strrat
-      use rrsw_wvn, only : nspa, nspb
-
-      implicit none
 
 ! ------- Declarations -------
 
@@ -1443,7 +1407,6 @@
          enddo
       enddo
 
-      return
       end subroutine taumol28
 
 !----------------------------------------------------------------------------
@@ -1456,13 +1419,9 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mxlay, ng29, ngs28
+      use parrrsw, only : ng29, ngs28
       use rrsw_kg29, only : absa, absb, forref, selfref, &
                             sfluxref, absh2o, absco2, rayl, layreffr
-      use rrsw_wvn, only : nspa, nspb
-
-      implicit none
 
 ! ------- Declarations -------
 
@@ -1526,8 +1485,9 @@
          enddo
       enddo
 
-      return
       end subroutine taumol29
 
       end subroutine taumol_sw
+
+      end module rrtmg_sw_taumol
 

@@ -1,3 +1,8 @@
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
+!
 
 ! Fortran-95 implementation of the Mersenne Twister 19937, following 
 !   the C implementation described below (code mt19937ar-cok.c, dated 2002/2/10), 

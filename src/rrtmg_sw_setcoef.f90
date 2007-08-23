@@ -3,6 +3,8 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+      module rrtmg_sw_setcoef
+
 !  --------------------------------------------------------------------------
 ! |                                                                          |
 ! |  Copyright 2002-2007, Atmospheric & Environmental Research, Inc. (AER).  |
@@ -13,12 +15,25 @@
 ! |                                                                          |
 !  --------------------------------------------------------------------------
 
+! ------- Modules -------
+
+      use parkind, only : jpim, jprb
+      use parrrsw, only : mxmol
+      use rrsw_ref, only : pref, preflog, tref
+      use rrsw_vsn, only : hvrset, hnamset
+
+      implicit none
+
+      contains
+
+!----------------------------------------------------------------------------
       subroutine setcoef_sw(nlayers, pavel, tavel, pz, tz, tbound, coldry, wkl, &
                             laytrop, layswtch, laylow, jp, jt, jt1, &
                             co2mult, colch4, colco2, colh2o, colmol, coln2o, &
                             colo2, colo3, fac00, fac01, fac10, fac11, &
                             selffac, selffrac, indself, forfac, forfrac, indfor)
-
+!----------------------------------------------------------------------------
+!
 ! Purpose:  For a given atmosphere, calculate the indices and
 ! fractions related to the pressure and temperature interpolations.
 
@@ -27,59 +42,72 @@
 ! Revised: Rewritten and adapted to ECMWF F90, JJMorcrette 030224
 ! Revised: For uniform rrtmg formatting, MJIacono, Jul 2006
 
-! ------- Modules -------
-
-      use parkind, only : jpim, jprb
-      use parrrsw, only : mxlay, mxmol
-      use rrsw_ref, only : pref, preflog, tref
-      use rrsw_vsn, only : hvrset, hnamset
-
-      implicit none
-
 ! ------ Declarations -------
 
-! Input 
+! ----- Input -----
+      integer(kind=jpim), intent(in) :: nlayers         ! total number of layers
 
-      integer(kind=jpim), intent(in) :: nlayers
+      real(kind=jprb), intent(in) :: pavel(:)           ! layer pressures (mb) 
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: tavel(:)           ! layer temperatures (K)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: pz(0:)             ! level (interface) pressures (hPa, mb)
+                                                        !    Dimensions: (0:nlayers)
+      real(kind=jprb), intent(in) :: tz(0:)             ! level (interface) temperatures (K)
+                                                        !    Dimensions: (0:nlayers)
+      real(kind=jprb), intent(in) :: tbound             ! surface temperature (K)
+      real(kind=jprb), intent(in) :: coldry(:)          ! dry air column density (mol/cm2)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: wkl(:,:)           ! molecular amounts (mol/cm-2)
+                                                        !    Dimensions: (mxmol,nlayers)
 
-      real(kind=jprb), intent(in) :: pavel(mxlay)
-      real(kind=jprb), intent(in) :: tavel(mxlay)
-      real(kind=jprb), intent(in) :: pz(0:mxlay)
-      real(kind=jprb), intent(in) :: tz(0:mxlay)
-      real(kind=jprb), intent(in) :: coldry(mxlay)
-      real(kind=jprb), intent(in) :: wkl(mxmol,mxlay)
+! ----- Output -----
+      integer(kind=jpim), intent(out) :: laytrop        ! tropopause layer index
+      integer(kind=jpim), intent(out) :: layswtch       ! 
+      integer(kind=jpim), intent(out) :: laylow         ! 
 
-! Output
+      integer(kind=jpim), intent(out) :: jp(:)          ! 
+                                                        !    Dimensions: (nlayers)
+      integer(kind=jpim), intent(out) :: jt(:)          !
+                                                        !    Dimensions: (nlayers)
+      integer(kind=jpim), intent(out) :: jt1(:)         !
+                                                        !    Dimensions: (nlayers)
 
-      integer(kind=jpim), intent(out) :: laytrop
-      integer(kind=jpim), intent(out) :: layswtch
-      integer(kind=jpim), intent(out) :: laylow
-      integer(kind=jpim), intent(out) :: jp(mxlay)
-      integer(kind=jpim), intent(out) :: jt(mxlay)
-      integer(kind=jpim), intent(out) :: jt1(mxlay)
-      integer(kind=jpim), intent(out) :: indself(mxlay)
-      integer(kind=jpim), intent(out) :: indfor(mxlay)
+      real(kind=jprb), intent(out) :: colh2o(:)         ! column amount (h2o)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(out) :: colco2(:)         ! column amount (co2)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(out) :: colo3(:)          ! column amount (o3)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(out) :: coln2o(:)         ! column amount (n2o)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(out) :: colch4(:)         ! column amount (ch4)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(out) :: colo2(:)          ! column amount (o2)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(out) :: colmol(:)         ! 
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(out) :: co2mult(:)        !
+                                                        !    Dimensions: (nlayers)
 
-      real(kind=jprb), intent(out) :: colh2o(mxlay)
-      real(kind=jprb), intent(out) :: colco2(mxlay)
-      real(kind=jprb), intent(out) :: coln2o(mxlay)
-      real(kind=jprb), intent(out) :: colo2(mxlay)
-      real(kind=jprb), intent(out) :: colo3(mxlay)
-      real(kind=jprb), intent(out) :: colch4(mxlay)
-      real(kind=jprb), intent(out) :: colmol(mxlay)
-      real(kind=jprb), intent(out) :: co2mult(mxlay)
+      integer(kind=jpim), intent(out) :: indself(:)
+                                                        !    Dimensions: (nlayers)
+      integer(kind=jpim), intent(out) :: indfor(:)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(out) :: selffac(:)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(out) :: selffrac(:)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(out) :: forfac(:)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(out) :: forfrac(:)
+                                                        !    Dimensions: (nlayers)
 
-      real(kind=jprb), intent(out) :: fac00(mxlay)
-      real(kind=jprb), intent(out) :: fac01(mxlay)
-      real(kind=jprb), intent(out) :: fac10(mxlay)
-      real(kind=jprb), intent(out) :: fac11(mxlay)
-      real(kind=jprb), intent(out) :: forfac(mxlay)
-      real(kind=jprb), intent(out) :: forfrac(mxlay)
-      real(kind=jprb), intent(out) :: selffac(mxlay)
-      real(kind=jprb), intent(out) :: selffrac(mxlay)
-      real(kind=jprb), intent(out) :: tbound
+      real(kind=jprb), intent(out) :: &                 !
+                         fac00(:), fac01(:), &          !    Dimensions: (nlayers)
+                         fac10(:), fac11(:) 
 
-! Local
+! ----- Local -----
 
       integer(kind=jpim) :: indbound
       integer(kind=jpim) :: indlev0
@@ -255,17 +283,12 @@
 ! End layer loop
       enddo
 
-      return
-      end
+      end subroutine setcoef_sw
 
 !***************************************************************************
       subroutine swatmref
 !***************************************************************************
 
-      use parkind, only : jpim, jprb
-      use rrsw_ref, only : pref, preflog, tref
-
-      implicit none
       save
  
 ! These pressures are chosen such that the ln of the first pressure
@@ -317,6 +340,8 @@
            2.0887e+02_jprb, 2.0340e+02_jprb, 1.9792e+02_jprb, 1.9290e+02_jprb, 1.8809e+02_jprb, &
            1.8329e+02_jprb, 1.7849e+02_jprb, 1.7394e+02_jprb, 1.7212e+02_jprb /)
 
-      return
-      end
+      end subroutine swatmref
+
+      end module rrtmg_sw_setcoef
+
 

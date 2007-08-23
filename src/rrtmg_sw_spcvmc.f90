@@ -3,6 +3,8 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+      module rrtmg_sw_spcvmc
+
 !  --------------------------------------------------------------------------
 ! |                                                                          |
 ! |  Copyright 2002-2007, Atmospheric & Environmental Research, Inc. (AER).  |
@@ -13,6 +15,22 @@
 ! |                                                                          |
 !  --------------------------------------------------------------------------
 
+! ------- Modules -------
+
+      use parkind, only : jpim, jprb
+      use parrrsw, only : nbndsw, ngptsw, mxmol, jpband
+      use rrsw_tbl, only : tblint, bpade, od_lo, exp_tbl
+      use rrsw_vsn, only : hvrspc, hnamspc
+      use rrsw_wvn, only : ngc, ngs
+      use rrtmg_sw_reftra, only: reftra_sw
+      use rrtmg_sw_taumol, only: taumol_sw
+      use rrtmg_sw_vrtqdr, only: vrtqdr_sw
+
+      implicit none
+
+      contains
+
+! ---------------------------------------------------------------------------
       subroutine spcvmc_sw &
             (nlayers, istart, iend, icpr, iout, &
              pavel, tavel, pz, tz, tbound, palbd, palbp, &
@@ -24,7 +42,8 @@
              selffac, selffrac, indself, forfac, forfrac, indfor, &
              pbbfd, pbbfu, pbbcd, pbbcu, puvfd, puvcd, pnifd, pnicd, &
              pbbfddir, pbbcddir, puvfddir, puvcddir, pnifddir, pnicddir)
-
+! ---------------------------------------------------------------------------
+!
 ! Purpose: Contains spectral loop to compute the shortwave radiative fluxes, 
 !          using the two-stream method of H. Barker and McICA, the Monte-Carlo
 !          Independent Column Approximation, for the representation of 
@@ -50,21 +69,14 @@
 !           AER, Jan 2005
 ! Revision: Modified to use McICA: MJIacono, AER, Nov 2005
 ! Revision: Uniform formatting for RRTMG: MJIacono, AER, Jul 2006 
+! Revision: Use exponential lookup table for transmittance: MJIacono, AER, 
+!           Aug 2007 
 !
 ! ------------------------------------------------------------------
 
-! ------- Modules -------
-
-      use parkind, only : jpim, jprb
-      use parrrsw, only : mxlay, nbndsw, ngpt, mxmol, jpband
-      use rrsw_vsn, only : hvrspc, hnamspc
-      use rrsw_wvn, only : ngc, ngs
-
-      implicit none
-
 ! ------- Declarations ------
 
-! Input
+! ------- Input -------
 
       integer(kind=jpim), intent(in) :: nlayers
       integer(kind=jpim), intent(in) :: istart
@@ -75,108 +87,148 @@
       integer(kind=jpim), intent(in) :: layswtch
       integer(kind=jpim), intent(in) :: laylow
 
-      integer(kind=jpim), intent(in) :: indfor(mxlay)
-      integer(kind=jpim), intent(in) :: indself(mxlay)
-      integer(kind=jpim), intent(in) :: jp(mxlay)
-      integer(kind=jpim), intent(in) :: jt(mxlay)
-      integer(kind=jpim), intent(in) :: jt1(mxlay)
+      integer(kind=jpim), intent(in) :: indfor(:)
+                                                                 !   Dimensions: (nlayers)
+      integer(kind=jpim), intent(in) :: indself(:)
+                                                                 !   Dimensions: (nlayers)
+      integer(kind=jpim), intent(in) :: jp(:)
+                                                                 !   Dimensions: (nlayers)
+      integer(kind=jpim), intent(in) :: jt(:)
+                                                                 !   Dimensions: (nlayers)
+      integer(kind=jpim), intent(in) :: jt1(:)
+                                                                 !   Dimensions: (nlayers)
 
-      real(kind=jprb), intent(in) :: pavel(mxlay)
-      real(kind=jprb), intent(in) :: tavel(mxlay)
-      real(kind=jprb), intent(in) :: pz(0:mxlay)
-      real(kind=jprb), intent(in) :: tz(0:mxlay)
-      real(kind=jprb), intent(in) :: tbound
-      real(kind=jprb), intent(in) :: wkl(mxmol,mxlay)
-      real(kind=jprb), intent(in) :: coldry(mxlay)
-      real(kind=jprb), intent(in) :: colmol(mxlay)
-      real(kind=jprb), intent(in) :: adjflux(jpband)
+      real(kind=jprb), intent(in) :: pavel(:)                    ! layer pressure (hPa, mb) 
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: tavel(:)                    ! layer temperature (K)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: pz(0:)                      ! level (interface) pressure (hPa, mb)
+                                                                 !   Dimensions: (0:nlayers)
+      real(kind=jprb), intent(in) :: tz(0:)                      ! level temperatures (hPa, mb)
+                                                                 !   Dimensions: (0:nlayers)
+      real(kind=jprb), intent(in) :: tbound                      ! surface temperature (K)
+      real(kind=jprb), intent(in) :: wkl(:,:)                    ! molecular amounts (mol/cm2) 
+                                                                 !   Dimensions: (mxmol,nlayers)
+      real(kind=jprb), intent(in) :: coldry(:)                   ! dry air column density (mol/cm2)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: colmol(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: adjflux(:)                  ! Earth/Sun distance adjustment
+                                                                 !   Dimensions: (jpband)
 
-      real(kind=jprb), intent(in) :: palbd(nbndsw)
-      real(kind=jprb), intent(in) :: palbp(nbndsw)
-      real(kind=jprb), intent(in) :: prmu0 
-      real(kind=jprb), intent(in) :: pcldfmc(mxlay,ngpt)
-      real(kind=jprb), intent(in) :: ptaucmc(mxlay,ngpt)
-      real(kind=jprb), intent(in) :: pasycmc(mxlay,ngpt)
-      real(kind=jprb), intent(in) :: pomgcmc(mxlay,ngpt)
-      real(kind=jprb), intent(in) :: ptaormc(mxlay,ngpt)
-      real(kind=jprb), intent(in) :: ptaua(mxlay,nbndsw)
-      real(kind=jprb), intent(in) :: pasya(mxlay,nbndsw)
-      real(kind=jprb), intent(in) :: pomga(mxlay,nbndsw)
+      real(kind=jprb), intent(in) :: palbd(:)                    ! surface albedo (diffuse)
+                                                                 !   Dimensions: (nbndsw)
+      real(kind=jprb), intent(in) :: palbp(:)                    ! surface albedo (direct)
+                                                                 !   Dimensions: (nbndsw)
+      real(kind=jprb), intent(in) :: prmu0                       ! cosine of solar zenith angle
+      real(kind=jprb), intent(in) :: pcldfmc(:,:)                ! cloud fraction [mcica]
+                                                                 !   Dimensions: (nlayers,ngptsw)
+      real(kind=jprb), intent(in) :: ptaucmc(:,:)                ! cloud optical depth [mcica]
+                                                                 !   Dimensions: (nlayers,ngptsw)
+      real(kind=jprb), intent(in) :: pasycmc(:,:)                ! cloud asymmetry parameter [mcica]
+                                                                 !   Dimensions: (nlayers,ngptsw)
+      real(kind=jprb), intent(in) :: pomgcmc(:,:)                ! cloud single scattering albedo [mcica]
+                                                                 !   Dimensions: (nlayers,ngptsw)
+      real(kind=jprb), intent(in) :: ptaormc(:,:)                ! cloud optical depth, non-delta scaled [mcica]
+                                                                 !   Dimensions: (nlayers,ngptsw)
+      real(kind=jprb), intent(in) :: ptaua(:,:)                  ! aerosol optical depth
+                                                                 !   Dimensions: (nlayers,nbndsw)
+      real(kind=jprb), intent(in) :: pasya(:,:)                  ! aerosol asymmetry parameter
+                                                                 !   Dimensions: (nlayers,nbndsw)
+      real(kind=jprb), intent(in) :: pomga(:,:)                  ! aerosol single scattering albedo
+                                                                 !   Dimensions: (nlayers,nbndsw)
 
-      real(kind=jprb), intent(in) :: colh2o(mxlay)
-      real(kind=jprb), intent(in) :: colco2(mxlay)
-      real(kind=jprb), intent(in) :: colch4(mxlay)
-      real(kind=jprb), intent(in) :: co2mult(mxlay)
-      real(kind=jprb), intent(in) :: colo3(mxlay)
-      real(kind=jprb), intent(in) :: colo2(mxlay)
-      real(kind=jprb), intent(in) :: coln2o(mxlay)
-      real(kind=jprb), intent(in) :: forfac(mxlay)
-      real(kind=jprb), intent(in) :: forfrac(mxlay)
-      real(kind=jprb), intent(in) :: selffac(mxlay)
-      real(kind=jprb), intent(in) :: selffrac(mxlay)
-      real(kind=jprb), intent(in) :: fac00(mxlay)
-      real(kind=jprb), intent(in) :: fac01(mxlay)
-      real(kind=jprb), intent(in) :: fac10(mxlay)
-      real(kind=jprb), intent(in) :: fac11(mxlay)
+      real(kind=jprb), intent(in) :: colh2o(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: colco2(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: colch4(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: co2mult(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: colo3(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: colo2(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: coln2o(:)
+                                                                 !   Dimensions: (nlayers)
 
-! Output
-      real(kind=jprb), intent(out) :: pbbcd(mxlay+1)
-      real(kind=jprb), intent(out) :: pbbcu(mxlay+1)
-      real(kind=jprb), intent(out) :: pbbfd(mxlay+1)
-      real(kind=jprb), intent(out) :: pbbfu(mxlay+1)
-      real(kind=jprb), intent(out) :: pbbfddir(mxlay+1)
-      real(kind=jprb), intent(out) :: pbbcddir(mxlay+1)
+      real(kind=jprb), intent(in) :: forfac(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: forfrac(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: selffac(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: selffrac(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: fac00(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: fac01(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: fac10(:)
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: fac11(:)
+                                                                 !   Dimensions: (nlayers)
 
-      real(kind=jprb), intent(out) :: puvcd(mxlay+1)
-      real(kind=jprb), intent(out) :: puvfd(mxlay+1)
-      real(kind=jprb), intent(out) :: puvcddir(mxlay+1)
-      real(kind=jprb), intent(out) :: puvfddir(mxlay+1)
+! ------- Output -------
+                                                                 !   All Dimensions: (nlayers+1)
+      real(kind=jprb), intent(out) :: pbbcd(:)
+      real(kind=jprb), intent(out) :: pbbcu(:)
+      real(kind=jprb), intent(out) :: pbbfd(:)
+      real(kind=jprb), intent(out) :: pbbfu(:)
+      real(kind=jprb), intent(out) :: pbbfddir(:)
+      real(kind=jprb), intent(out) :: pbbcddir(:)
 
-      real(kind=jprb), intent(out) :: pnicd(mxlay+1)
-      real(kind=jprb), intent(out) :: pnifd(mxlay+1)
-      real(kind=jprb), intent(out) :: pnicddir(mxlay+1)
-      real(kind=jprb), intent(out) :: pnifddir(mxlay+1)
+      real(kind=jprb), intent(out) :: puvcd(:)
+      real(kind=jprb), intent(out) :: puvfd(:)
+      real(kind=jprb), intent(out) :: puvcddir(:)
+      real(kind=jprb), intent(out) :: puvfddir(:)
 
-! Output - inactive
-!      real(kind=jprb), intent(out) :: puvcu(mxlay+1)
-!      real(kind=jprb), intent(out) :: puvfu(mxlay+1)
-!      real(kind=jprb), intent(out) :: pnicu(mxlay+1)
-!      real(kind=jprb), intent(out) :: pnifu(mxlay+1)
-!      real(kind=jprb), intent(out) :: pvscd(mxlay+1)
-!      real(kind=jprb), intent(out) :: pvscu(mxlay+1)
-!      real(kind=jprb), intent(out) :: pvsfd(mxlay+1)
-!      real(kind=jprb), intent(out) :: pvsfu(mxlay+1)
+      real(kind=jprb), intent(out) :: pnicd(:)
+      real(kind=jprb), intent(out) :: pnifd(:)
+      real(kind=jprb), intent(out) :: pnicddir(:)
+      real(kind=jprb), intent(out) :: pnifddir(:)
 
+! Output - inactive                                              !   All Dimensions: (nlayers+1)
+!      real(kind=jprb), intent(out) :: puvcu(:)
+!      real(kind=jprb), intent(out) :: puvfu(:)
+!      real(kind=jprb), intent(out) :: pnicu(:)
+!      real(kind=jprb), intent(out) :: pnifu(:)
+!      real(kind=jprb), intent(out) :: pvscd(:)
+!      real(kind=jprb), intent(out) :: pvscu(:)
+!      real(kind=jprb), intent(out) :: pvsfd(:)
+!      real(kind=jprb), intent(out) :: pvsfu(:)
 
-! Local
+! ------- Local -------
 
-      logical :: lrtchkclr(mxlay),lrtchkcld(mxlay)
+      logical :: lrtchkclr(nlayers),lrtchkcld(nlayers)
 
       integer(kind=jpim)  :: klev
       integer(kind=jpim) :: ib1, ib2, ibm, igt, ikl, ikp, ikx
       integer(kind=jpim) :: iw, jb, jg, jl, jk
 !      integer(kind=jpim), parameter :: nuv = ?? 
 !      integer(kind=jpim), parameter :: nvs = ?? 
+      integer(kind=jpim) :: itind
 
-
+      real(kind=jprb) :: tblind, ze1
       real(kind=jprb) :: zclear, zcloud
-      real(kind=jprb) :: zdbt(mxlay+1), zdbt_nodel(mxlay+1)
-      real(kind=jprb) :: zgc(mxlay), zgcc(mxlay), zgco(mxlay)
-      real(kind=jprb) :: zomc(mxlay), zomcc(mxlay), zomco(mxlay)
-      real(kind=jprb) :: zrdnd(mxlay+1), zrdndc(mxlay+1)
-      real(kind=jprb) :: zref(mxlay+1), zrefc(mxlay+1), zrefo(mxlay+1)
-      real(kind=jprb) :: zrefd(mxlay+1), zrefdc(mxlay+1), zrefdo(mxlay+1)
-      real(kind=jprb) :: zrup(mxlay+1), zrupd(mxlay+1)
-      real(kind=jprb) :: zrupc(mxlay+1), zrupdc(mxlay+1)
-      real(kind=jprb) :: zs1(mxlay+1)
-      real(kind=jprb) :: ztauc(mxlay), ztauo(mxlay)
-      real(kind=jprb) :: ztdn(mxlay+1), ztdnd(mxlay+1), ztdbt(mxlay+1)
-      real(kind=jprb) :: ztoc(mxlay), ztor(mxlay)
-      real(kind=jprb) :: ztra(mxlay+1), ztrac(mxlay+1), ztrao(mxlay+1)
-      real(kind=jprb) :: ztrad(mxlay+1), ztradc(mxlay+1), ztrado(mxlay+1)
-      real(kind=jprb) :: zdbtc(mxlay+1), ztdbtc(mxlay+1)
-      real(kind=jprb) :: zincflx(ngpt), zdbtc_nodel(mxlay+1) 
-      real(kind=jprb) :: ztdbt_nodel(mxlay+1), ztdbtc_nodel(mxlay+1)
+      real(kind=jprb) :: zdbt(nlayers+1), zdbt_nodel(nlayers+1)
+      real(kind=jprb) :: zgc(nlayers), zgcc(nlayers), zgco(nlayers)
+      real(kind=jprb) :: zomc(nlayers), zomcc(nlayers), zomco(nlayers)
+      real(kind=jprb) :: zrdnd(nlayers+1), zrdndc(nlayers+1)
+      real(kind=jprb) :: zref(nlayers+1), zrefc(nlayers+1), zrefo(nlayers+1)
+      real(kind=jprb) :: zrefd(nlayers+1), zrefdc(nlayers+1), zrefdo(nlayers+1)
+      real(kind=jprb) :: zrup(nlayers+1), zrupd(nlayers+1)
+      real(kind=jprb) :: zrupc(nlayers+1), zrupdc(nlayers+1)
+      real(kind=jprb) :: zs1(nlayers+1)
+      real(kind=jprb) :: ztauc(nlayers), ztauo(nlayers)
+      real(kind=jprb) :: ztdn(nlayers+1), ztdnd(nlayers+1), ztdbt(nlayers+1)
+      real(kind=jprb) :: ztoc(nlayers), ztor(nlayers)
+      real(kind=jprb) :: ztra(nlayers+1), ztrac(nlayers+1), ztrao(nlayers+1)
+      real(kind=jprb) :: ztrad(nlayers+1), ztradc(nlayers+1), ztrado(nlayers+1)
+      real(kind=jprb) :: zdbtc(nlayers+1), ztdbtc(nlayers+1)
+      real(kind=jprb) :: zincflx(ngptsw), zdbtc_nodel(nlayers+1) 
+      real(kind=jprb) :: ztdbt_nodel(nlayers+1), ztdbtc_nodel(nlayers+1)
 
       real(kind=jprb) :: zdbtmc, zdbtmo, zf, zgw, zreflect
       real(kind=jprb) :: zwf, tauorig, repclc
@@ -184,20 +236,20 @@
 
 ! Arrays from rrtmg_sw_taumoln routines
 
-!      real(kind=jprb) :: ztaug(mxlay,16), ztaur(mxlay,16)
+!      real(kind=jprb) :: ztaug(nlayers,16), ztaur(nlayers,16)
 !      real(kind=jprb) :: zsflxzen(16)
-      real(kind=jprb) :: ztaug(mxlay,ngpt), ztaur(mxlay,ngpt)
-      real(kind=jprb) :: zsflxzen(ngpt)
+      real(kind=jprb) :: ztaug(nlayers,ngptsw), ztaur(nlayers,ngptsw)
+      real(kind=jprb) :: zsflxzen(ngptsw)
 
 ! Arrays from rrtmg_sw_vrtqdr routine
 
-      real(kind=jprb) :: zcd(mxlay+1,ngpt), zcu(mxlay+1,ngpt)
-      real(kind=jprb) :: zfd(mxlay+1,ngpt), zfu(mxlay+1,ngpt)
+      real(kind=jprb) :: zcd(nlayers+1,ngptsw), zcu(nlayers+1,ngptsw)
+      real(kind=jprb) :: zfd(nlayers+1,ngptsw), zfu(nlayers+1,ngptsw)
 
 ! Inactive arrays
-!     real(kind=jprb) :: zbbcd(mxlay+1), zbbcu(mxlay+1)
-!     real(kind=jprb) :: zbbfd(mxlay+1), zbbfu(mxlay+1)
-!     real(kind=jprb) :: zbbfddir(mxlay+1), zbbcddir(mxlay+1)
+!     real(kind=jprb) :: zbbcd(nlayers+1), zbbcu(nlayers+1)
+!     real(kind=jprb) :: zbbfd(nlayers+1), zbbfu(nlayers+1)
+!     real(kind=jprb) :: zbbfddir(nlayers+1), zbbcddir(nlayers+1)
 
 ! ------------------------------------------------------------------
 
@@ -258,7 +310,7 @@
          do jg = 1,igt
             iw = iw+1
 
-! Add adjustment for correct Earth/Sun distance
+! Apply adjustment for correct Earth/Sun distance and zenith angle to incoming solar flux
             zincflx(iw) = adjflux(jb) * zsflxzen(iw) * prmu0
 !             zincflux = zincflux + adjflux(jb) * zsflxzen(iw) * prmu0           ! inactive
 
@@ -344,20 +396,46 @@
                zgcc(jk) = pasya(ikl,ibm) * pomga(ikl,ibm) * ptaua(ikl,ibm) / zomcc(jk)
                zomcc(jk) = zomcc(jk) / ztauc(jk)
 
-
 ! Pre-delta-scaling clear and cloudy direct beam transmittance (must use 'orig', unscaled cloud OD)       
 !   \/\/\/ This block of code is only needed for direct beam calculation
 !     
                zclear = 1.0_jprb - pcldfmc(ikl,iw)
                zcloud = pcldfmc(ikl,iw)
-               zdbtmc = exp(-ztauc(jk) / prmu0)
-               tauorig = ztauc(jk) + ptaormc(ikl,iw)
-               zdbtmo = exp(-tauorig / prmu0)
-               zdbt_nodel(jk) = zclear*zdbtmc + zcloud*zdbtmo
-               ztdbt_nodel(jk+1) = zdbt_nodel(jk) * ztdbt_nodel(jk)
-!   Clear-sky 
+
+! Clear
+!                zdbtmc = exp(-ztauc(jk) / prmu0)
+
+! Use exponential lookup table for transmittance, or expansion of 
+! exponential for low tau
+               ze1 = ztauc(jk) / prmu0
+               if (ze1 .le. od_lo) then
+                  zdbtmc = 1._jprb - ze1 + 0.5_jprb * ze1 * ze1
+               else 
+                  tblind = ze1 / (bpade + ze1)
+                  itind = tblint * tblind + 0.5_jprb
+                  zdbtmc = exp_tbl(itind)
+               endif
+
                zdbtc_nodel(jk) = zdbtmc
                ztdbtc_nodel(jk+1) = zdbtc_nodel(jk) * ztdbtc_nodel(jk)
+
+! Clear + Cloud
+               tauorig = ztauc(jk) + ptaormc(ikl,iw)
+!                zdbtmo = exp(-tauorig / prmu0)
+
+! Use exponential lookup table for transmittance, or expansion of 
+! exponential for low tau
+               ze1 = tauorig / prmu0
+               if (ze1 .le. od_lo) then
+                  zdbtmo = 1._jprb - ze1 + 0.5_jprb * ze1 * ze1
+               else
+                  tblind = ze1 / (bpade + ze1)
+                  itind = tblint * tblind + 0.5_jprb
+                  zdbtmo = exp_tbl(itind)
+               endif
+
+               zdbt_nodel(jk) = zclear*zdbtmc + zcloud*zdbtmo
+               ztdbt_nodel(jk+1) = zdbt_nodel(jk) * ztdbt_nodel(jk)
 !   /\/\/\ Above code only needed for direct beam calculation
 
 
@@ -422,15 +500,41 @@
                ztrad(jk)= zclear*ztradc(jk) + zcloud*ztrado(jk)
 
 ! Direct beam transmittance        
-               zdbtmc = exp(-ztauc(jk)/prmu0)
-               zdbtmo = exp(-ztauo(jk)/prmu0)
-               zdbt(jk) = zclear*zdbtmc + zcloud*zdbtmo
-               ztdbt(jk+1) = zdbt(jk)*ztdbt(jk)
-        
-! Clear-sky        
+
+! Clear
+!                zdbtmc = exp(-ztauc(jk) / prmu0)
+
+! Use exponential lookup table for transmittance, or expansion of 
+! exponential for low tau
+               ze1 = ztauc(jk) / prmu0
+               if (ze1 .le. od_lo) then
+                  zdbtmc = 1._jprb - ze1 + 0.5_jprb * ze1 * ze1
+               else
+                  tblind = ze1 / (bpade + ze1)
+                  itind = tblint * tblind + 0.5_jprb
+                  zdbtmc = exp_tbl(itind)
+               endif
+
                zdbtc(jk) = zdbtmc
                ztdbtc(jk+1) = zdbtc(jk)*ztdbtc(jk)
 
+! Clear + Cloud
+!                zdbtmo = exp(-ztauo(jk) / prmu0)
+
+! Use exponential lookup table for transmittance, or expansion of 
+! exponential for low tau
+               ze1 = ztauo(jk) / prmu0
+               if (ze1 .le. od_lo) then
+                  zdbtmo = 1._jprb - ze1 + 0.5_jprb * ze1 * ze1
+               else
+                  tblind = ze1 / (bpade + ze1)
+                  itind = tblint * tblind + 0.5_jprb
+                  zdbtmo = exp_tbl(itind)
+               endif
+
+               zdbt(jk) = zclear*zdbtmc + zcloud*zdbtmo
+               ztdbt(jk+1) = zdbt(jk)*ztdbt(jk)
+        
             enddo           
                  
 ! Vertical quadrature for clear-sky fluxes
@@ -492,6 +596,8 @@
 ! End loop on jb, spectral band
       enddo                    
 
-      return
-      end
+      end subroutine spcvmc_sw
+
+      end module rrtmg_sw_spcvmc
+
 

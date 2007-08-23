@@ -3,6 +3,8 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+      module rrtmg_sw_reftra
+
 !  --------------------------------------------------------------------------
 ! |                                                                          |
 ! |  Copyright 2002-2007, Atmospheric & Environmental Research, Inc. (AER).  |
@@ -13,8 +15,20 @@
 ! |                                                                          |
 !  --------------------------------------------------------------------------
 
+! ------- Modules -------
+
+      use parkind, only : jpim, jprb
+      use rrsw_tbl, only : tblint, bpade, od_lo, exp_tbl
+      use rrsw_vsn, only : hvrrft, hnamrft
+
+      implicit none
+
+      contains
+
+! --------------------------------------------------------------------
       subroutine reftra_sw(nlayers, lrtchk, pgg, prmuz, ptau, pw, &
                            pref, prefd, ptra, ptrad)
+! --------------------------------------------------------------------
   
 ! Purpose: computes the reflectivity and transmissivity of a clear or 
 !   cloudy layer using a choice of various approximations.
@@ -26,8 +40,9 @@
 ! --------------------
 ! inputs
 ! ------ 
-!      lrtchk  = .t. if cloudy
-!              = .f. if clear-sky
+!      lrtchk  = .t. for all layers in clear profile
+!      lrtchk  = .t. for cloudy layers in cloud profile 
+!              = .f. for clear layers in cloud profile
 !      pgg     = assymetry factor
 !      prmuz   = cosine solar zenith angle
 !      ptau    = optical thickness
@@ -53,41 +68,45 @@
 ! --------------
 ! Original: J-JMorcrette, ECMWF, Feb 2003
 ! Revised for F90 reformatting: MJIacono, AER, Jul 2006
+! Revised to add exponential lookup table: MJIacono, AER, Aug 2007
 !
 ! ------------------------------------------------------------------
 
-! ------- Modules -------
-
-      use parkind, only : jpim, jprb
-      use parrrsw, only : mxlay
-      use rrsw_vsn, only : hvrrft, hnamrft
-
-      implicit none
-
 ! ------- Declarations ------
 
-! Input
+! ------- Input -------
 
       integer(kind=jpim), intent(in) :: nlayers
 
-      logical, intent(in) :: lrtchk(mxlay)
+      logical, intent(in) :: lrtchk(:)                           ! Logical flag for reflectivity and
+                                                                 ! and transmissivity calculation; 
+                                                                 !   Dimensions: (nlayers)
 
-      real(kind=jprb), intent(in) :: pgg(mxlay)
-      real(kind=jprb), intent(in) :: prmuz
-      real(kind=jprb), intent(in) :: ptau(mxlay)
-      real(kind=jprb), intent(in) :: pw(mxlay)
+      real(kind=jprb), intent(in) :: pgg(:)                      ! asymmetry parameter
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: ptau(:)                     ! optical depth
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: pw(:)                       ! single scattering albedo 
+                                                                 !   Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: prmuz                       ! cosine of solar zenith angle
 
-! Output
+! ------- Output -------
 
-      real(kind=jprb), intent(out) :: pref(mxlay)
-      real(kind=jprb), intent(out) :: prefd(mxlay)
-      real(kind=jprb), intent(out) :: ptra(mxlay)
-      real(kind=jprb), intent(out) :: ptrad(mxlay)
+      real(kind=jprb), intent(out) :: pref(:)                    ! direct beam reflectivity
+                                                                 !   Dimensions: (nlayers+1)
+      real(kind=jprb), intent(out) :: prefd(:)                   ! diffuse beam reflectivity
+                                                                 !   Dimensions: (nlayers+1)
+      real(kind=jprb), intent(out) :: ptra(:)                    ! direct beam transmissivity
+                                                                 !   Dimensions: (nlayers+1)
+      real(kind=jprb), intent(out) :: ptrad(:)                   ! diffuse beam transmissivity
+                                                                 !   Dimensions: (nlayers+1)
 
-! Local
+! ------- Local -------
 
       integer(kind=jpim) :: jk, jl, kmodts
+      integer(kind=jpim) :: itind
 
+      real(kind=jprb) :: tblind
       real(kind=jprb) :: za, za1, za2
       real(kind=jprb) :: zbeta, zdend, zdenr, zdent
       real(kind=jprb) :: ze1, ze2, zem1, zem2, zemm, zep1, zep2
@@ -151,7 +170,18 @@
 ! collimated beam
 
                ze1 = min ( zto1 / prmuz , 500._jprb)
-               ze2 = exp ( - ze1 )
+!               ze2 = exp( -ze1 )
+
+! Use exponential lookup table for transmittance, or expansion of 
+! exponential for low tau
+               if (ze1 .le. od_lo) then 
+                  ze2 = 1._jprb - ze1 + 0.5_jprb * ze1 * ze1
+               else
+                  tblind = ze1 / (bpade + ze1)
+                  itind = tblint * tblind + 0.5_jprb
+                  ze2 = exp_tbl(itind)
+               endif
+!
 
                pref(jk) = (zgt - za1 * (1._jprb - ze2)) / (1._jprb + zgt)
                ptra(jk) = 1._jprb - pref(jk)
@@ -160,6 +190,16 @@
 
                prefd(jk) = zgt / (1._jprb + zgt)
                ptrad(jk) = 1._jprb - prefd(jk)        
+
+! This is applied for consistency between total (delta-scaled) and direct (unscaled) 
+! calculations at very low optical depths (tau < 1.e-4) when the exponential lookup
+! table returns a transmittance of 1.0.
+               if (ze2 .eq. 1.0_jprb) then 
+                  pref(jk) = 0.0_jprb
+                  ptra(jk) = 1.0_jprb
+                  prefd(jk) = 0.0_jprb
+                  ptrad(jk) = 1.0_jprb
+               endif
 
             else
 ! Non-conservative scattering
@@ -189,20 +229,41 @@
 
                ze1 = min ( zrk * zto1, 500._jprb)
                ze2 = min ( zto1 / prmuz , 500._jprb)
-
-! jjm - original
+!
+! Original
 !              zep1 = exp( ze1 )
 !              zem1 = exp(-ze1 )
 !              zep2 = exp( ze2 )
 !              zem2 = exp(-ze2 )
 !
-! mji - optimization
-               zep1 = exp( ze1 )
-               zem1 = 1._jprb / zep1
-               zep2 = exp( ze2 )
-               zem2 = 1._jprb / zep2
+! Revised original, to reduce exponentials
+!              zep1 = exp( ze1 )
+!              zem1 = 1._jprb / zep1
+!              zep2 = exp( ze2 )
+!              zem2 = 1._jprb / zep2
 !
-        
+! Use exponential lookup table for transmittance, or expansion of 
+! exponential for low tau
+               if (ze1 .le. od_lo) then 
+                  zem1 = 1._jprb - ze1 + 0.5_jprb * ze1 * ze1
+                  zep1 = 1._jprb / zem1
+               else
+                  tblind = ze1 / (bpade + ze1)
+                  itind = tblint * tblind + 0.5_jprb
+                  zem1 = exp_tbl(itind)
+                  zep1 = 1._jprb / zem1
+               endif
+
+               if (ze2 .le. od_lo) then 
+                  zem2 = 1._jprb - ze2 + 0.5_jprb * ze2 * ze2
+                  zep2 = 1._jprb / zem2
+               else
+                  tblind = ze2 / (bpade + ze2)
+                  itind = tblint * tblind + 0.5_jprb
+                  zem2 = exp_tbl(itind)
+                  zep2 = 1._jprb / zem2
+               endif
+
 ! collimated beam
 
                zdenr = zr4*zep1 + zr5*zem1
@@ -223,7 +284,7 @@
 
       enddo    
 
-      return
-      end
+      end subroutine reftra_sw
 
+      end module rrtmg_sw_reftra
 

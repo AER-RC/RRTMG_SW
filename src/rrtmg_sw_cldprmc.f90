@@ -3,6 +3,8 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+      module rrtmg_sw_cldprmc
+
 !  --------------------------------------------------------------------------
 ! |                                                                          |
 ! |  Copyright 2002-2007, Atmospheric & Environmental Research, Inc. (AER).  |
@@ -13,19 +15,10 @@
 ! |                                                                          |
 !  --------------------------------------------------------------------------
 
-      subroutine cldprmc_sw(nlayers, inflag, iceflag, liqflag, cldfmc, &
-                            ciwpmc, clwpmc, reicmc, relqmc, &
-                            taormc, taucmc, ssacmc, asmcmc)
-
-! Purpose: Compute the cloud optical properties for each cloudy layer
-! and g-point interval for use by the McICA method.  
-! Note: Only inflag = 0 and inflag=2/liqflag=1/iceflag=2,3 are available;
-! (Hu & Stamnes, Key, and Fu) are implemented. 
-
 ! ------- Modules -------
 
       use parkind, only : jpim, jprb
-      use parrrsw, only : mxlay, ngpt, nstr, jpband, jpb1, jpb2
+      use parrrsw, only : ngptsw, jpband, jpb1, jpb2
       use rrsw_cld, only : extliq1, ssaliq1, asyliq1, &
                            extice2, ssaice2, asyice2, &
                            extice3, ssaice3, asyice3, fdlice3, &
@@ -35,43 +28,69 @@
 
       implicit none
 
+      contains
 
-! ------- Declarations -------
+! ----------------------------------------------------------------------------
+      subroutine cldprmc_sw(nlayers, inflag, iceflag, liqflag, cldfmc, &
+                            ciwpmc, clwpmc, reicmc, relqmc, &
+                            taormc, taucmc, ssacmc, asmcmc)
+! ----------------------------------------------------------------------------
 
-! Input
+! Purpose: Compute the cloud optical properties for each cloudy layer
+! and g-point interval for use by the McICA method.  
+! Note: Only inflag = 0 and inflag=2/liqflag=1/iceflag=2,3 are available;
+! (Hu & Stamnes, Key, and Fu) are implemented. 
 
-      integer(kind=jpim), intent(in) :: nlayers
-      integer(kind=jpim), intent(in) :: inflag
-      integer(kind=jpim), intent(in) :: iceflag
-      integer(kind=jpim), intent(in) :: liqflag
+! ------- Input -------
 
-      real(kind=jprb), intent(in) :: cldfmc(ngpt,mxlay)
-      real(kind=jprb), intent(in) :: ciwpmc(ngpt,mxlay)
-      real(kind=jprb), intent(in) :: clwpmc(ngpt,mxlay)
-      real(kind=jprb), intent(in) :: relqmc(mxlay)
-      real(kind=jprb), intent(in) :: reicmc(mxlay)
+      integer(kind=jpim), intent(in) :: nlayers         ! total number of layers
+      integer(kind=jpim), intent(in) :: inflag          ! see definitions
+      integer(kind=jpim), intent(in) :: iceflag         ! see definitions
+      integer(kind=jpim), intent(in) :: liqflag         ! see definitions
 
-! Output
+      real(kind=jprb), intent(in) :: cldfmc(:,:)        ! cloud fraction [mcica]
+                                                        !    Dimensions: (ngptsw,nlayers)
+      real(kind=jprb), intent(in) :: ciwpmc(:,:)        ! cloud ice water path [mcica]
+                                                        !    Dimensions: (ngptsw,nlayers)
+      real(kind=jprb), intent(in) :: clwpmc(:,:)        ! cloud liquid water path [mcica]
+                                                        !    Dimensions: (ngptsw,nlayers)
+      real(kind=jprb), intent(in) :: reicmc(:)          ! cloud ice particle size (microns)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: relqmc(:)          ! cloud liquid particle size (microns)
+                                                        !    Dimensions: (nlayers)
 
-      real(kind=jprb), intent(inout) :: taucmc(ngpt,mxlay)
-      real(kind=jprb), intent(inout) :: ssacmc(ngpt,mxlay)
-      real(kind=jprb), intent(inout) :: asmcmc(ngpt,mxlay)
-      real(kind=jprb), intent(out) :: taormc(ngpt,mxlay)
+! ------- Output -------
 
+      real(kind=jprb), intent(inout) :: taucmc(:,:)     ! cloud optical depth (delta scaled)
+                                                        !    Dimensions: (ngptsw,nlayers)
+      real(kind=jprb), intent(inout) :: ssacmc(:,:)     ! single scattering albedo (delta scaled)
+                                                        !    Dimensions: (ngptsw,nlayers)
+      real(kind=jprb), intent(inout) :: asmcmc(:,:)     ! asymmetry parameter (delta scaled)
+                                                        !    Dimensions: (ngptsw,nlayers)
+      real(kind=jprb), intent(out) :: taormc(:,:)       ! cloud optical depth (non-delta scaled)
+                                                        !    Dimensions: (ngptsw,nlayers)
 
-! Local
+! ------- Local -------
 
-      integer(kind=jpim) :: ncbands
+!      integer(kind=jpim) :: ncbands
       integer(kind=jpim) :: ib, lay, istr, index, icx, ig
 
-      real(kind=jprb) :: eps
+      real(kind=jprb) :: eps                            ! epsilon
+      real(kind=jprb) :: cwp                            ! total cloud water path
+      real(kind=jprb) :: radliq                         ! cloud liquid droplet radius (microns)
+      real(kind=jprb) :: radice                         ! cloud ice effective radius (microns)
+      real(kind=jprb) :: dgeice                         ! cloud ice generalized effective size
+      real(kind=jprb) :: factor
+      real(kind=jprb) :: fint
+
       real(kind=jprb) :: taucldorig_a, taucloud_a, ssacloud_a, ffp, ffp1, ffpssa
-      real(kind=jprb) :: cwp, radice, factor, fint, radliq, dgeice
       real(kind=jprb) :: tauiceorig, scatice, ssaice, tauice, tauliqorig, scatliq, ssaliq, tauliq
 
-      real(kind=jprb) :: fdelta(ngpt)
-      real(kind=jprb) :: extcoice(ngpt), gice(ngpt), ssacoice(ngpt), forwice(ngpt)
-      real(kind=jprb) :: extcoliq(ngpt), gliq(ngpt), ssacoliq(ngpt), forwliq(ngpt)
+      real(kind=jprb) :: fdelta(ngptsw)
+      real(kind=jprb) :: extcoice(ngptsw), gice(ngptsw)
+      real(kind=jprb) :: ssacoice(ngptsw), forwice(ngptsw)
+      real(kind=jprb) :: extcoliq(ngptsw), gliq(ngptsw)
+      real(kind=jprb) :: ssacoliq(ngptsw), forwliq(ngptsw)
 
 ! Initialize
 
@@ -83,7 +102,7 @@
 
 ! Some of these initializations are done in rrtmg_sw_subcol.F90.
       do lay = 1, nlayers
-         do ig = 1, ngpt
+         do ig = 1, ngptsw
             taormc(ig,lay) = taucmc(ig,lay)
 !            taucmc(ig,lay) = 0.0_jprb
 !            ssacmc(ig,lay) = 0.0_jprb
@@ -95,7 +114,7 @@
       do lay = 1, nlayers
 
 ! Main g-point interval loop
-         do ig = 1, ngpt 
+         do ig = 1, ngptsw 
             cwp = ciwpmc(ig,lay) + clwpmc(ig,lay)
             if (cldfmc(ig,lay) .ge. eps .and. &
                (cwp .ge. eps .or. taucmc(ig,lay) .ge. eps)) then
@@ -360,19 +379,7 @@
 ! End layer loop
       enddo
 
-      return
-      end
+      end subroutine cldprmc_sw
 
-
-
-
-
-
-
-
-
-
-
-
-
+      end module rrtmg_sw_cldprmc
 

@@ -3,6 +3,8 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+      module rrtmg_sw_init
+
 !  --------------------------------------------------------------------------
 ! |                                                                          |
 ! |  Copyright 2002-2007, Atmospheric & Environmental Research, Inc. (AER).  |
@@ -13,30 +15,49 @@
 ! |                                                                          |
 !  --------------------------------------------------------------------------
 
+! ------- Modules -------
+      use parkind, only : jpim, jprb 
+      use rrsw_wvn
+      use rrtmg_sw_cldprop, only: swcldpr
+      use rrtmg_sw_setcoef, only: swatmref
+
+      implicit none
+
+      contains
+
 ! **************************************************************************
-      subroutine rrtmg_sw_init
+      subroutine rrtmg_sw_ini
 ! **************************************************************************
-!  RRTMG Shortwave Radiative Transfer Model for GCMs
-!  Atmospheric and Environmental Research, Inc., Cambridge, MA
+!
+!  Original version:   Michael J. Iacono; February, 2004
+!  Revision for F90 formatting:  M. J. Iacono, July, 2006
 !
 !  This subroutine performs calculations necessary for the initialization
-!  of the shortwave model. Input absorption coefficient data for each
+!  of the shortwave model.  Lookup tables are computed for use in the SW
+!  radiative transfer, and input absorption coefficient data for each
 !  spectral band are reduced from 224 g-point intervals to 112.
 ! **************************************************************************
 
-      use parkind, only : jpim, jprb 
-      use parrrsw, only : mg, nbndsw, ngpt
-      use rrsw_wvn
+      use parrrsw, only : mg, nbndsw, ngptsw
+      use rrsw_tbl, only: ntbl, tblint, pade, bpade, tau_tbl, exp_tbl
       use rrsw_vsn, only: hvrini, hnamini
-
-      implicit none
 
 ! ------- Local -------
 
       integer(kind=jpim) :: ibnd, igc, ig, ind, ipr
       integer(kind=jpim) :: igcsm, iprsm
+      integer(kind=jpim) :: itr
 
       real(kind=jprb) :: wtsum, wtsm(mg)
+      real(kind=jprb) :: tfn
+
+! ------- Definitions -------
+!     Arrays for 10000-point look-up tables:
+!     TAU_TBL  Clear-sky optical depth 
+!     EXP_TBL  Exponential lookup table for transmittance
+!     PADE     Pade approximation constant (= 0.278)
+!     BPADE    Inverse of the Pade approximation constant
+!
 
       hvrini = '$Revision$'
 
@@ -60,6 +81,21 @@
       call sw_kgb27
       call sw_kgb28
       call sw_kgb29
+
+! Define exponential lookup tables for transmittance. Tau is
+! computed as a function of the tau transition function, and transmittance 
+! is calculated as a function of tau.  All tables are computed at intervals 
+! of 0.0001.  The inverse of the constant used in the Pade approximation to 
+! the tau transition function is set to bpade.
+
+      exp_tbl(0) = 1.0_jprb
+      exp_tbl(ntbl) = 0.0_jprb
+      bpade = 1.0_jprb / pade
+      do itr = 1, ntbl-1
+         tfn = float(itr) / float(ntbl)
+         tau_tbl = bpade * tfn / (1._jprb - tfn)
+         exp_tbl(itr) = exp(-tau_tbl)
+      enddo
 
 ! Perform g-point reduction from 16 per band (224 total points) to
 ! a band dependent number (112 total points) for all absorption
@@ -109,17 +145,72 @@
       call cmbgb28
       call cmbgb29
 
-      return
-      end
+      end subroutine rrtmg_sw_ini
+
+!***************************************************************************
+      subroutine swdatinit
+!***************************************************************************
+
+! --------- Modules ----------
+
+      use rrsw_con, only: heatfac, grav, planck, boltz, &
+                          clight, avogad, alosmt, gascon, radcn1, radcn2 
+      use rrsw_wvn, only: ng, nspa, nspb, wavenum1, wavenum2, delwave
+      use rrsw_vsn
+
+      save 
+ 
+! Shortwave spectral band limits (wavenumbers)
+      wavenum1(:) = (/2600._jprb, 3250._jprb, 4000._jprb, 4650._jprb, 5150._jprb, 6150._jprb, 7700._jprb, &
+                      8050._jprb,12850._jprb,16000._jprb,22650._jprb,29000._jprb,38000._jprb,  820._jprb/)
+      wavenum2(:) = (/3250._jprb, 4000._jprb, 4650._jprb, 5150._jprb, 6150._jprb, 7700._jprb, 8050._jprb, &
+                     12850._jprb,16000._jprb,22650._jprb,29000._jprb,38000._jprb,50000._jprb, 2600._jprb/)
+      delwave(:) =  (/ 650._jprb,  750._jprb,  650._jprb,  500._jprb, 1000._jprb, 1550._jprb,  350._jprb, &
+                      4800._jprb, 3150._jprb, 6650._jprb, 6350._jprb, 9000._jprb,12000._jprb, 1780._jprb/)
+
+! Spectral band information
+      ng(:) = (/16,16,16,16,16,16,16,16,16,16,16,16,16,16/)
+      nspa(:) = (/9,9,9,9,1,9,9,1,9,1,0,1,9,1/)
+      nspb(:) = (/1,5,1,1,1,5,1,0,1,0,0,1,5,1/)
+
+!     Heatfac is the factor by which one must multiply delta-flux/ 
+!     delta-pressure, with flux in w/m-2 and pressure in mbar, to get 
+!     the heating rate in units of degrees/day.  It is equal to 
+!           (g)x(#sec/day)x(1e-5)/(specific heat of air at const. p)
+!        =  (9.8066)(86400)(1e-5)/(1.004)
+      heatfac = 8.4391_jprb
+
+!     Modified values for consistency with CAM3:
+!        =  (9.80616)(86400)(1e-5)/(1.00464)
+!      heatfac = 8.43339130434_jprb
+
+!    Constants from NIST 01/11/2002
+
+      grav = 9.8066_jprb
+      planck = 6.62606876e-27_jprb
+      boltz = 1.3806503e-16_jprb
+      clight = 2.99792458e+10_jprb
+      avogad = 6.02214199e+23_jprb
+      alosmt = 2.6867775e+19_jprb
+      gascon = 8.31447200e+07_jprb
+      radcn1 = 1.191042722e-12_jprb
+      radcn2 = 1.4387752_jprb
+!
+!     units are generally cgs
+!
+!     The first and second radiation constants are taken from NIST.
+!     They were previously obtained from the relations:
+!          radcn1 = 2.*planck*clight*clight*1.e-07
+!          radcn2 = planck*clight/boltz
+
+      end subroutine swdatinit
 
 !***************************************************************************
       subroutine swcmbdat
 !***************************************************************************
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only: ngc, ngs, ngn, ngb, ngm, wt
 
-      implicit none
       save
  
 ! ------- Definitions -------
@@ -240,8 +331,7 @@
                   0.0022199750_jprb, 0.0014140010_jprb, 0.0005330000_jprb, &
                   0.0000750000_jprb /)
 
-      return
-      end
+      end subroutine swcmbdat
 
 !***************************************************************************
       subroutine swaerpr
@@ -253,10 +343,8 @@
 ! Original: Defined for rrtmg_sw 14 spectral bands, JJMorcrette, ECMWF Feb 2003
 ! Revision: Reformatted for consistency with rrtmg_lw, MJIacono, AER, Jul 2006
 
-      use parkind, only : jpim, jprb 
       use rrsw_aer, only : rsrtaua, rsrpiza, rsrasya
 
-      implicit none
       save
 
       rsrtaua( 1, :) = (/ &
@@ -346,8 +434,7 @@
       rsrasya(14, :) = (/ &
         0.700610_jprb, 0.818871_jprb, 0.702399_jprb, 0.689886_jprb, .4629866_jprb, .1907639_jprb/)
 
-      return
-      end
+      end subroutine swaerpr
  
 !***************************************************************************
       subroutine cmbgb16s
@@ -369,12 +456,9 @@
 !
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg16, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             ka, kb, selfref, forref, sfluxref
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: jn, jt, jp, igc, ipr, iprsm
@@ -445,8 +529,7 @@
          sfluxref(igc) = sumf
       enddo
 
-      return
-      end
+      end subroutine cmbgb16s
 
 !***************************************************************************
       subroutine cmbgb17
@@ -455,12 +538,9 @@
 !     band 17:  3250-4000 cm-1 (low - h2o,co2; high - h2o,co2)
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg17, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             ka, kb, selfref, forref, sfluxref
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: jn, jt, jp, igc, ipr, iprsm
@@ -535,8 +615,7 @@
          enddo
       enddo
 
-      return
-      end
+      end subroutine cmbgb17
 
 !***************************************************************************
       subroutine cmbgb18
@@ -545,12 +624,9 @@
 !     band 18:  4000-4650 cm-1 (low - h2o,ch4; high - ch4)
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg18, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             ka, kb, selfref, forref, sfluxref
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: jn, jt, jp, igc, ipr, iprsm
@@ -623,8 +699,7 @@
          enddo
       enddo
 
-      return
-      end
+      end subroutine cmbgb18
 
 !***************************************************************************
       subroutine cmbgb19
@@ -633,12 +708,9 @@
 !     band 19:  4650-5150 cm-1 (low - h2o,co2; high - co2)
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg19, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             ka, kb, selfref, forref, sfluxref
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: jn, jt, jp, igc, ipr, iprsm
@@ -711,8 +783,7 @@
          enddo
       enddo
 
-      return
-      end
+      end subroutine cmbgb19
 
 !***************************************************************************
       subroutine cmbgb20
@@ -721,12 +792,9 @@
 !     band 20:  5150-6150 cm-1 (low - h2o; high - h2o)
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg20, only : kao, kbo, selfrefo, forrefo, sfluxrefo, absch4o, &
                             ka, kb, selfref, forref, sfluxref, absch4
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: jt, jp, igc, ipr, iprsm
@@ -795,8 +863,7 @@
          absch4(igc) = sumf2
       enddo
 
-      return
-      end
+      end subroutine cmbgb20
 
 !***************************************************************************
       subroutine cmbgb21
@@ -805,12 +872,9 @@
 !     band 21:  6150-7700 cm-1 (low - h2o,co2; high - h2o,co2)
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg21, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             ka, kb, selfref, forref, sfluxref
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: jn, jt, jp, igc, ipr, iprsm
@@ -885,8 +949,7 @@
          enddo
       enddo
 
-      return
-      end
+      end subroutine cmbgb21
 
 !***************************************************************************
       subroutine cmbgb22
@@ -895,12 +958,9 @@
 !     band 22:  7700-8050 cm-1 (low - h2o,o2; high - o2)
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg22, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             ka, kb, selfref, forref, sfluxref
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: jn, jt, jp, igc, ipr, iprsm
@@ -973,8 +1033,7 @@
          enddo
       enddo
 
-      return
-      end
+      end subroutine cmbgb22
 
 !***************************************************************************
       subroutine cmbgb23
@@ -983,12 +1042,9 @@
 !     band 23:  8050-12850 cm-1 (low - h2o; high - nothing)
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg23, only : kao, selfrefo, forrefo, sfluxrefo, raylo, &
                             ka, selfref, forref, sfluxref, rayl
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: jt, jp, igc, ipr, iprsm
@@ -1046,8 +1102,7 @@
          rayl(igc) = sumf2
       enddo
 
-      return
-      end
+      end subroutine cmbgb23
 
 !***************************************************************************
       subroutine cmbgb24
@@ -1056,14 +1111,11 @@
 !     band 24:  12850-16000 cm-1 (low - h2o,o2; high - o2)
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg24, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             abso3ao, abso3bo, raylao, raylbo, &
                             ka, kb, selfref, forref, sfluxref, &
                             abso3a, abso3b, rayla, raylb
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: jn, jt, jp, igc, ipr, iprsm
@@ -1155,8 +1207,7 @@
          enddo
       enddo
 
-      return
-      end
+      end subroutine cmbgb24
 
 !***************************************************************************
       subroutine cmbgb25
@@ -1165,14 +1216,11 @@
 !     band 25:  16000-22650 cm-1 (low - h2o; high - nothing)
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg25, only : kao, sfluxrefo, &
                             abso3ao, abso3bo, raylo, &
                             ka, sfluxref, &
                             abso3a, abso3b, rayl
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: jt, jp, igc, ipr, iprsm
@@ -1212,8 +1260,7 @@
          rayl(igc) = sumf4
       enddo
 
-      return
-      end
+      end subroutine cmbgb25
 
 !***************************************************************************
       subroutine cmbgb26
@@ -1222,12 +1269,9 @@
 !     band 26:  22650-29000 cm-1 (low - nothing; high - nothing)
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg26, only : sfluxrefo, raylo, &
                             sfluxref, rayl
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: igc, ipr, iprsm
@@ -1247,8 +1291,7 @@
          sfluxref(igc) = sumf2
       enddo
 
-      return
-      end
+      end subroutine cmbgb26
 
 !***************************************************************************
       subroutine cmbgb27
@@ -1257,12 +1300,9 @@
 !     band 27:  29000-38000 cm-1 (low - o3; high - o3)
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg27, only : kao, kbo, sfluxrefo, raylo, &
                             ka, kb, sfluxref, rayl
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: jt, jp, igc, ipr, iprsm
@@ -1307,8 +1347,7 @@
          rayl(igc) = sumf2
       enddo
 
-      return
-      end
+      end subroutine cmbgb27
 
 !***************************************************************************
       subroutine cmbgb28
@@ -1317,12 +1356,9 @@
 !     band 28:  38000-50000 cm-1 (low - o3,o2; high - o3,o2)
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg28, only : kao, kbo, sfluxrefo, &
                             ka, kb, sfluxref
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: jn, jt, jp, igc, ipr, iprsm
@@ -1373,8 +1409,7 @@
          enddo
       enddo
 
-      return
-      end
+      end subroutine cmbgb28
 
 !***************************************************************************
       subroutine cmbgb29
@@ -1383,14 +1418,11 @@
 !     band 29:  820-2600 cm-1 (low - h2o; high - co2)
 !-----------------------------------------------------------------------
 
-      use parkind, only : jpim, jprb 
       use rrsw_wvn, only : ngc, ngs, ngn, wt, rwgt
       use rrsw_kg29, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             absh2oo, absco2o, &
                             ka, kb, selfref, forref, sfluxref, &
                             absh2o, absco2
-
-      implicit none
 
 ! ------- Local -------
       integer(kind=jpim) :: jt, jp, igc, ipr, iprsm
@@ -1462,6 +1494,8 @@
          absh2o(igc) = sumf3
       enddo
 
-      return
-      end
+      end subroutine cmbgb29
+
+      end module rrtmg_sw_init
+
 
