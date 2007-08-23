@@ -8,7 +8,7 @@ SHELL  = /bin/sh
 ################################
 
 PLATFORM = sun
-VERSION = v3.0
+VERSION = v3.1
 
 ##################################
 # Options for the FORTRAN compiler
@@ -29,8 +29,8 @@ OUTPUT = rrtmg_sw_$(VERSION)_$(PLATFORM)
 # Source, module and object names and paths
 ###########################################
 
-MPATH = modules
-CPATH = src
+MPATH = ../modules
+CPATH = ../src
 CDOTO = $(PLATFORM)_$(FC)_dbl.obj
 
 MPRK = parkind
@@ -53,6 +53,7 @@ MK27 = rrsw_kg27
 MK28 = rrsw_kg28
 MK29 = rrsw_kg29
 MREF = rrsw_ref
+MTBL = rrsw_tbl
 MVSN = rrsw_vsn
 MWVN = rrsw_wvn
 
@@ -73,36 +74,36 @@ CATM = rrtatm
 CEXT = extra
 CUTL = util_$(PLATFORM)
 
-OBJFIL = $(CRTM).o \
-         $(CCLD).o \
+OBJFIL = $(CCLD).o \
          $(CCMC).o \
-         $(CINI).o \
          $(CKGS).o \
          $(CRFT).o \
          $(CSET).o \
-         $(CSVT).o \
-         $(CSMC).o \
          $(CTAU).o \
          $(CVRT).o \
+         $(CSVT).o \
+         $(CSMC).o \
          $(CMRN).o \
          $(CMSC).o \
+         $(CINI).o \
+         $(CRTM).o \
          $(CATM).o \
          $(CEXT).o \
          $(CUTL).o
 
 OBJPTH = $(CDOTO)/$(CMRN).o \
          $(CDOTO)/$(CMSC).o \
-         $(CDOTO)/$(CRTM).o \
          $(CDOTO)/$(CCLD).o \
          $(CDOTO)/$(CCMC).o \
-         $(CDOTO)/$(CINI).o \
          $(CDOTO)/$(CKGS).o \
          $(CDOTO)/$(CRFT).o \
          $(CDOTO)/$(CSET).o \
-         $(CDOTO)/$(CSVT).o \
-         $(CDOTO)/$(CSMC).o \
          $(CDOTO)/$(CTAU).o \
          $(CDOTO)/$(CVRT).o \
+         $(CDOTO)/$(CSVT).o \
+         $(CDOTO)/$(CSMC).o \
+         $(CDOTO)/$(CINI).o \
+         $(CDOTO)/$(CRTM).o \
          $(CDOTO)/$(CATM).o \
          $(CDOTO)/$(CEXT).o \
          $(CDOTO)/$(CUTL).o
@@ -127,6 +128,7 @@ OBMPTH = $(CDOTO)/$(MPRK).o \
          $(CDOTO)/$(MK28).o \
          $(CDOTO)/$(MK29).o \
          $(CDOTO)/$(MREF).o \
+         $(CDOTO)/$(MTBL).o \
          $(CDOTO)/$(MVSN).o \
          $(CDOTO)/$(MWVN).o
 
@@ -136,155 +138,159 @@ OBMPTH = $(CDOTO)/$(MPRK).o \
 
 $(OUTPUT) : \
 	intro makedir $(OBMPTH) $(OBJPTH) conclude
-	$(FC) $(FCOPTS) -o $(OUTPUT) $(OBMPTH) $(OBJPTH)
+	$(FC) $(FCOPTS) -I$(CDOTO) -o $(OUTPUT) $(OBMPTH) $(OBJPTH)
 
 #################
 # Compile modules
 #################
 
 $(CDOTO)/$(MPRK).o : $(MPATH)/$(MPRK).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MPRK).f90
-	\mv $(MPRK).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MPRK).f90
+	\mv $(MPRK).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MPAR).o : $(MPATH)/$(MPAR).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MPAR).f90
-	\mv $(MPAR).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MPAR).f90
+	\mv $(MPAR).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MAER).o : $(MPATH)/$(MAER).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MAER).f90
-	\mv $(MAER).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MAER).f90
+	\mv $(MAER).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MCLD).o : $(MPATH)/$(MCLD).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MCLD).f90
-	\mv $(MCLD).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MCLD).f90
+	\mv $(MCLD).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MCON).o : $(MPATH)/$(MCON).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MCON).f90
-	\mv $(MCON).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MCON).f90
+	\mv $(MCON).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK16).o : $(MPATH)/$(MK16).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK16).f90
-	\mv $(MK16).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK16).f90
+	\mv $(MK16).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK17).o : $(MPATH)/$(MK17).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK17).f90
-	\mv $(MK17).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK17).f90
+	\mv $(MK17).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK18).o : $(MPATH)/$(MK18).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK18).f90
-	\mv $(MK18).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK18).f90
+	\mv $(MK18).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK19).o : $(MPATH)/$(MK19).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK19).f90
-	\mv $(MK19).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK19).f90
+	\mv $(MK19).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK20).o : $(MPATH)/$(MK20).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK20).f90
-	\mv $(MK20).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK20).f90
+	\mv $(MK20).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK21).o : $(MPATH)/$(MK21).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK21).f90
-	\mv $(MK21).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK21).f90
+	\mv $(MK21).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK22).o : $(MPATH)/$(MK22).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK22).f90
-	\mv $(MK22).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK22).f90
+	\mv $(MK22).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK23).o : $(MPATH)/$(MK23).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK23).f90
-	\mv $(MK23).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK23).f90
+	\mv $(MK23).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK24).o : $(MPATH)/$(MK24).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK24).f90
-	\mv $(MK24).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK24).f90
+	\mv $(MK24).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK25).o : $(MPATH)/$(MK25).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK25).f90
-	\mv $(MK25).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK25).f90
+	\mv $(MK25).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK26).o : $(MPATH)/$(MK26).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK26).f90
-	\mv $(MK26).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK26).f90
+	\mv $(MK26).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK27).o : $(MPATH)/$(MK27).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK27).f90
-	\mv $(MK27).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK27).f90
+	\mv $(MK27).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK28).o : $(MPATH)/$(MK28).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK28).f90
-	\mv $(MK28).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK28).f90
+	\mv $(MK28).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK29).o : $(MPATH)/$(MK29).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MK29).f90
-	\mv $(MK29).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK29).f90
+	\mv $(MK29).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MREF).o : $(MPATH)/$(MREF).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MREF).f90
-	\mv $(MREF).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MREF).f90
+	\mv $(MREF).o *.mod $(CDOTO)
+
+$(CDOTO)/$(MTBL).o : $(MPATH)/$(MTBL).f90
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MTBL).f90
+	\mv $(MTBL).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MVSN).o : $(MPATH)/$(MVSN).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MVSN).f90
-	\mv $(MVSN).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MVSN).f90
+	\mv $(MVSN).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MWVN).o : $(MPATH)/$(MWVN).f90
-	$(FC) $(FCOPTS) -c $(MPATH)/$(MWVN).f90
-	\mv $(MWVN).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MWVN).f90
+	\mv $(MWVN).o *.mod $(CDOTO)
 
 #################
 # Compile source
 #################
 
 $(CDOTO)/$(CMRN).o : $(CPATH)/$(CMRN).f90
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CMRN).f90
-	\mv $(CMRN).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CMRN).f90
+	\mv $(CMRN).o *.mod $(CDOTO)
 
 $(CDOTO)/$(CMSC).o : $(CPATH)/$(CMSC).f90
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CMSC).f90
-	\mv $(CMSC).o $(CDOTO)
-
-$(CDOTO)/$(CRTM).o : $(CPATH)/$(CRTM).f90
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CRTM).f90
-	\mv $(CRTM).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CMSC).f90
+	\mv $(CMSC).o *.mod $(CDOTO)
 
 $(CDOTO)/$(CCLD).o : $(CPATH)/$(CCLD).f90
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CCLD).f90
-	\mv $(CCLD).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CCLD).f90
+	\mv $(CCLD).o *.mod $(CDOTO)
 
 $(CDOTO)/$(CCMC).o : $(CPATH)/$(CCMC).f90
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CCMC).f90
-	\mv $(CCMC).o $(CDOTO)
-
-$(CDOTO)/$(CINI).o : $(CPATH)/$(CINI).f90
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CINI).f90
-	\mv $(CINI).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CCMC).f90
+	\mv $(CCMC).o *.mod $(CDOTO)
 
 $(CDOTO)/$(CKGS).o : $(CPATH)/$(CKGS).f90
-	$(FC) $(FCOPTK) -c $(CPATH)/$(CKGS).f90
+	$(FC) $(FCOPTK) -I$(CDOTO) -c $(CPATH)/$(CKGS).f90
 	\mv $(CKGS).o $(CDOTO)
 
 $(CDOTO)/$(CRFT).o : $(CPATH)/$(CRFT).f90
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CRFT).f90
-	\mv $(CRFT).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CRFT).f90
+	\mv $(CRFT).o *.mod $(CDOTO)
 
 $(CDOTO)/$(CSET).o : $(CPATH)/$(CSET).f90
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CSET).f90
-	\mv $(CSET).o $(CDOTO)
-
-$(CDOTO)/$(CSVT).o : $(CPATH)/$(CSVT).f90
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CSVT).f90
-	\mv $(CSVT).o $(CDOTO)
-
-$(CDOTO)/$(CSMC).o : $(CPATH)/$(CSMC).f90
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CSMC).f90
-	\mv $(CSMC).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CSET).f90
+	\mv $(CSET).o *.mod $(CDOTO)
 
 $(CDOTO)/$(CTAU).o : $(CPATH)/$(CTAU).f90
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CTAU).f90
-	\mv $(CTAU).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CTAU).f90
+	\mv $(CTAU).o *.mod $(CDOTO)
 
 $(CDOTO)/$(CVRT).o : $(CPATH)/$(CVRT).f90
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CVRT).f90
-	\mv $(CVRT).o $(CDOTO)
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CVRT).f90
+	\mv $(CVRT).o *.mod $(CDOTO)
+
+$(CDOTO)/$(CSVT).o : $(CPATH)/$(CSVT).f90
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CSVT).f90
+	\mv $(CSVT).o *.mod $(CDOTO)
+
+$(CDOTO)/$(CSMC).o : $(CPATH)/$(CSMC).f90
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CSMC).f90
+	\mv $(CSMC).o *.mod $(CDOTO)
+
+$(CDOTO)/$(CINI).o : $(CPATH)/$(CINI).f90
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CINI).f90
+	\mv $(CINI).o *.mod $(CDOTO)
+
+$(CDOTO)/$(CRTM).o : $(CPATH)/$(CRTM).f90
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CRTM).f90
+	\mv $(CRTM).o $(CDOTO)
 
 $(CDOTO)/$(CATM).o : $(CPATH)/$(CATM).f
 	$(FC) $(FCOPTS) -c $(CPATH)/$(CATM).f
@@ -339,9 +345,6 @@ intro :
 ###############################
 
 conclude :
-
-# Move compiled modules to object directory
-	\mv *.mod $(CDOTO)
 
 	echo
 	echo '================='
