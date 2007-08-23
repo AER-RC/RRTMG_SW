@@ -1,7 +1,39 @@
+!     path:      $Source$
+!     author:    $Author$
+!     revision:  $Revision$
+!     created:   $Date$
+!------------------------------------------------------------------------
 
 RRTMG_SW Release Notes
 
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
+
+
+August 23, 2007:
+
+	Release_3_1
+
+        Made structural changes to modify code to use assumed-shape arrays
+        rather than explicit-shape arrays throughout the model.  There was
+        no impact on results from this changes.  Also implemented a 10000 
+        point exponential lookup table for transmittance, similar to that
+        used in the LW.  There were only negligible changes in results due
+        to use of the lookup table. 
+
+        Publicly released on AER RT web site in August 2007.
+
+        - Converted explicit-shape arrays to assumed-shape arrays. 
+        - Added exponential lookup table to improve computational performance.
+        - Modified top level subroutine to a module and converted most of the
+          other subroutines to modules.
+        - Modified makefiles to clean up handling of compiled modules.
+        - Added new makefile for AIX platforms.
+        - Fixed calculation of pi and added calculation of pdp in modules 
+          rrtmg_sw.f90 and rrtmg_sw.nomcica.f90, which did not affect the
+          top level program for the column version of the model.
+        - Added build directory for makefiles and doc directory for 
+          documentation to main model directory for consistency with other
+          AER RT model archives.  
 
 
 April 17, 2007:
@@ -10,7 +42,8 @@ April 17, 2007:
 
         Major source code format revisions and addition of McICA capability.
 
-        Publicly released in April 2007.
+        Not publicly released. Released to Robert Pincus/NOAA on 18 April 2007
+        and to Yu-Tai Hou/NCEP on 30 April 2007.
 
         - Reformatted entire model for consistency with RRTMG_LW to use modules
           and subroutine call array passing.  Excluded from the reformatting
