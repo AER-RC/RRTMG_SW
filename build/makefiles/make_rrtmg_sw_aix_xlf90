@@ -8,18 +8,18 @@ SHELL  = /bin/sh
 ################################
 
 PLATFORM = aix
-VERSION = v3.1
+VERSION = v3.2
 
 ##################################
 # Options for the FORTRAN compiler
 ##################################
 
 FC = xlf90
-FCOPTS = -O2 -qsuffix=f=f90 -qmaxmem=-1 -q64
+FCOPTS = -O2 -qmaxmem=-1 -q64
 # Compile absorption coefficient data without optimization
-FCOPTK = -O0 -qsuffix=f=f90 -qmaxmem=-1 -q64
+FCOPTK = -O0 -qmaxmem=-1 -q64
 # Compile fixed form files
-FCOPTX = -O2 -qfixed=72 -qsuffix=f=f90 -qmaxmem=-1 -q64
+FCOPTX = -O2 -qfixed=72 -qmaxmem=-1 -q64
 
 #################
 # Executable name
@@ -295,15 +295,15 @@ $(CDOTO)/$(CRTM).o : $(CPATH)/$(CRTM).f90
 	\mv $(CRTM).o $(CDOTO)
 
 $(CDOTO)/$(CATM).o : $(CPATH)/$(CATM).f
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CATM).f
+	$(FC) $(FCOPTX) -c $(CPATH)/$(CATM).f
 	\mv $(CATM).o $(CDOTO)
 
 $(CDOTO)/$(CEXT).o : $(CPATH)/$(CEXT).f
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CEXT).f
+	$(FC) $(FCOPTX) -c $(CPATH)/$(CEXT).f
 	\mv $(CEXT).o $(CDOTO)
 
 $(CDOTO)/$(CUTL).o : $(CPATH)/$(CUTL).f
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CUTL).f
+	$(FC) $(FCOPTX) -c $(CPATH)/$(CUTL).f
 	\mv $(CUTL).o $(CDOTO)
 
 ###########################################

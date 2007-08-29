@@ -8,7 +8,7 @@ SHELL  = /bin/sh
 ################################
 
 PLATFORM = OS_X_g95
-VERSION = v3.1
+VERSION = v3.2
 
 ##################################
 # Options for the FORTRAN compiler

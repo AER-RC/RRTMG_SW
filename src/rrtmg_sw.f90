@@ -78,7 +78,7 @@
 !------------------------------------------------------------------
 
       subroutine rrtmg_sw &
-            (ncol    ,nlay    ,iovlp   , &
+            (ncol    ,nlay    ,icld    , &
              play    ,plev    ,tlay    ,tlev    ,tsfc    ,h2ovmr , &
              o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  , &
              asdir   ,asdif   ,aldir   ,aldif   , &
@@ -190,7 +190,7 @@
 ! ----- Input -----
       integer(kind=jpim), intent(in) :: ncol            ! Number of horizontal columns     
       integer(kind=jpim), intent(in) :: nlay            ! Number of model layers
-      integer(kind=jpim), intent(in) :: iovlp           ! Cloud overlap method
+      integer(kind=jpim), intent(in) :: icld            ! Cloud overlap method
                                                         !    0: Clear only
                                                         !    1: Random
                                                         !    2: Maximum/random
@@ -284,7 +284,6 @@
       integer(kind=jpim) :: nlayers             ! total number of layers
       integer(kind=jpim) :: istart              ! beginning band of calculation
       integer(kind=jpim) :: iend                ! ending band of calculation
-      integer(kind=jpim) :: icld                ! clear/cloud flag
       integer(kind=jpim) :: icpr                ! cldprop/cldprmc use flag
       integer(kind=jpim) :: iout                ! output option flag (inactive)
       integer(kind=jpim) :: iaer                ! aerosol option flag
@@ -467,7 +466,7 @@
 ! icld = 1, with clouds using random cloud overlap (McICA only)
 ! icld = 2, with clouds using maximum/random cloud overlap (McICA only)
 ! icld = 3, with clouds using maximum cloud overlap (McICA only)
-      icld = 2
+      if (icld.lt.0.or.icld.gt.3) icld = 2
 
 ! Set iaer to select aerosol option
 ! iaer = 0, no aerosols

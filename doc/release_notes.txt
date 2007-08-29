@@ -9,6 +9,18 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+August 29, 2007:
+
+	Release_3_2
+
+        Minor changes to makefile for AIX. Corrected use of variables icld 
+        and nlay in top level source files for the subroutine version of code and
+        for the McICA sub-column generator.  There was no impact on results from
+        these changes in the column version of the model.
+
+        Publicly released on AER RT web site in August 2007.
+
+
 August 23, 2007:
 
 	Release_3_1

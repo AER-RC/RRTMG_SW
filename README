@@ -29,8 +29,8 @@
              doi:10.1029/2002JD003322, 2003.
 ******************************************************************************
 
-This directory contains the source code and sample makefile necessary to run
-RRTMG_SW version 3.1, a correlated k-distribution shortwave radiative transfer 
+This package contains the source code and sample makefiles necessary to run the
+latest version of RRTMG_SW, a correlated k-distribution shortwave radiative transfer 
 model developed at AER, Inc. for application to GCMs.  This version of RRTMG_SW 
 utilizes a two-stream radiative transfer method as implemented at ECMWF. This
 code has also been modified to utilize FORTRAN90 coding features. Two modes of

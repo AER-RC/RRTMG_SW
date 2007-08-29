@@ -82,6 +82,7 @@
       real(kind=jprb), intent(in) :: rel(:,:)           ! cloud liquid particle size
                                                         !    Dimensions: (ncol,nlay)
 
+! ----- Output -----
 ! Atmosphere/clouds - cldprmc [mcica]
       real(kind=jprb), intent(out) :: cldfmcl(:,:,:)    ! cloud fraction [mcica]
                                                         !    Dimensions: (ngptsw,ncol,nlay)
@@ -100,8 +101,7 @@
       real(kind=jprb), intent(out) :: asmcmcl(:,:,:)    ! cloud asymmetry parameter [mcica]
                                                         !    Dimensions: (ngptsw,ncol,nlay)
 
-! Local
-      integer(kind=jpim) :: nlayers                     ! number of model layers
+! ----- Local -----
 
 ! Stochastic cloud generator variables [mcica]
       integer(kind=jpim), parameter :: nsubcsw = ngptsw ! number of sub-columns (g-point intervals)
@@ -112,7 +112,6 @@
 !      real(kind=jprb) :: qi(ncol,nlay)                 ! ice water (specific humidity)
 !      real(kind=jprb) :: ql(ncol,nlay)                 ! liq water (specific humidity)
 
-      nlayers = nlay
 
 ! Return if clear sky; or stop if icld out of range
       if (icld.eq.0) return
@@ -140,20 +139,20 @@
 !         = (g m-2 * m s-2) / (kg m-1 s-2 * 1000.)
 !         =  kg/kg
 
-!      do km = 1, nlayers
+!      do km = 1, nlay
 !         qi(km) = (ciwp(km) * grav) / (pdel(km) * 1000._jprb)
 !         ql(km) = (clwp(km) * grav) / (pdel(km) * 1000._jprb)
 !      enddo
 
 !  Generate the stochastic subcolumns of cloud optical properties for the shortwave;
-      call generate_stochastic_clouds_sw (ncol, nlayers, nsubcsw, icld, pmid, cldfrac, clwp, ciwp, tauc, &
+      call generate_stochastic_clouds_sw (ncol, nlay, nsubcsw, icld, pmid, cldfrac, clwp, ciwp, tauc, &
                                ssac, asmc, cldfmcl, clwpmcl, ciwpmcl, taucmcl, ssacmcl, asmcmcl, permuteseed)
 
       end subroutine mcica_subcol_sw
 
 
 !-------------------------------------------------------------------------------------------------
-      subroutine generate_stochastic_clouds_sw(ncol, nlayers, nsubcol, icld, pmid, cld, clwp, ciwp, tauc, & 
+      subroutine generate_stochastic_clouds_sw(ncol, nlay, nsubcol, icld, pmid, cld, clwp, ciwp, tauc, & 
                                    ssac, asmc, cld_stoch, clwp_stoch, ciwp_stoch, tauc_stoch, &
                                    ssac_stoch, asmc_stoch, changeSeed) 
 !-------------------------------------------------------------------------------------------------
@@ -222,7 +221,7 @@
 ! -- Arguments
 
       integer(kind=jpim), intent(in) :: ncol            ! number of layers
-      integer(kind=jpim), intent(in) :: nlayers         ! number of layers
+      integer(kind=jpim), intent(in) :: nlay            ! number of layers
       integer(kind=jpim), intent(in) :: icld            ! clear/cloud, cloud overlap flag
       integer(kind=jpim), intent(in) :: nsubcol         ! number of sub-columns (g-point intervals)
       integer(kind=jpim), optional, intent(in) :: changeSeed     ! allows permuting seed
@@ -457,14 +456,14 @@
 
  
 ! -- generate subcolumns for homogeneous clouds -----
-      do ilev = 1, nlayers
+      do ilev = 1, nlay
          isCloudy(:,:,ilev) = (CDF(:,:,ilev) >= 1._jprb - spread(cldf(:,ilev), dim=1, nCopies=nsubcol) )
       enddo
 
 ! where the subcolumn is cloudy, the subcolumn cloud fraction is 1;
 ! where the subcolumn is not cloudy, the subcolumn cloud fraction is 0
 
-      do ilev = 1, nlayers
+      do ilev = 1, nlay
          where (iscloudy(:,:,ilev) )
             cld_stoch(:,:,ilev) = 1._jprb
          elsewhere (.not. iscloudy(:,:,ilev) )
@@ -475,7 +474,7 @@
 ! where there is a cloud, set the subcolumn cloud properties;
 ! In GCM mode, divide by cldf here to convert grid-averaged to cloud-averaged quantities
 
-      do ilev = 1, nlayers
+      do ilev = 1, nlay
          where ( iscloudy(:,:,ilev) .and. (spread(cldf(:,ilev), dim=1, nCopies=nsubcol) > 0._jprb) )
             clwp_stoch(:,:,ilev) = spread(clwp(:,ilev), dim=1, nCopies=nsubcol)/spread(cldf(:,ilev), dim=1, nCopies=nsubcol)
             ciwp_stoch(:,:,ilev) = spread(ciwp(:,ilev), dim=1, nCopies=nsubcol)/spread(cldf(:,ilev), dim=1, nCopies=nsubcol)
@@ -484,7 +483,7 @@
             ciwp_stoch(:,:,ilev) = 0._jprb
          end where
       enddo
-      do ilev = 1,nlayers
+      do ilev = 1,nlay
          do i = 1, ncol
             rcldf = 1._jprb / cldf(i,ilev)
             do isubcol = 1, ngptsw
