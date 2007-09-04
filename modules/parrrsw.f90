@@ -24,9 +24,6 @@
 ! ngsNN  :  integer: cumulative number of g-intervals per band
 !------------------------------------------------------------------
 
-! Settings for single column mode.
-! For GCM use, set nlon to number of longitudes, and
-! mxlay to number of model layers
       integer(kind=jpim), parameter :: mxlay  = 203    !jplay, klev
       integer(kind=jpim), parameter :: mg     = 16     !jpg
       integer(kind=jpim), parameter :: nbndsw = 14     !jpsw, ksw
@@ -113,6 +110,9 @@
 !      integer(kind=jpim), parameter :: ngs28 = 208
 !      integer(kind=jpim), parameter :: ngs29 = 224
 
+! Source function solar constant
+      real(kind=jprb), parameter :: rrsw_scon = 1.36822e+03     ! W/m2
+ 
       end module parrrsw
 
 

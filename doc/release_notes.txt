@@ -9,6 +9,19 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+September 4, 2007:
+
+	Release_3_3
+
+        Cleaned up use of column dimension in some arrays in top level module of 
+        subroutine version of the model.  Also added solar constant (scon) as input 
+        array in subroutine version of the model to allow scaling from default value
+        in rrtmg_sw.  There was no impact on results from these changes in the column 
+        version of the model.
+
+        Publicly released on AER RT web site in September 2007.
+
+
 August 29, 2007:
 
 	Release_3_2

@@ -58,10 +58,11 @@
       use mcica_subcol_gen_sw, only: mcica_subcol_sw
       use rrtmg_sw_cldprop, only: cldprop_sw
       use rrtmg_sw_cldprmc, only: cldprmc_sw
-      use rrtmg_sw_init, only: rrtmg_sw_ini
+! Move call to rrtmg_sw_ini and following use association to 
+! GCM initialization area
+!      use rrtmg_sw_init, only: rrtmg_sw_ini
       use rrtmg_sw_setcoef, only: setcoef_sw
       use rrtmg_sw_spcvrt, only: spcvrt_sw
-      use rrtmg_sw_spcvmc, only: spcvmc_sw
 
       implicit none
 
@@ -81,7 +82,7 @@
              play    ,plev    ,tlay    ,tlev    ,tsfc    ,h2ovmr , &
              o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  , &
              asdir   ,asdif   ,aldir   ,aldif   , &
-             coszen  ,adjes   ,dyofyr  , &
+             coszen  ,adjes   ,dyofyr  ,scon    , &
              inflgsw ,iceflgsw,liqflgsw,cldfr   , &
              taucld  ,ssacld  ,asmcld  , &
              cicewp  ,cliqwp  ,reice   ,reliq   , &
@@ -180,7 +181,7 @@
 ! ----- Input -----
       integer(kind=jpim), intent(in) :: ncol            ! Number of horizontal columns     
       integer(kind=jpim), intent(in) :: nlay            ! Number of model layers
-      integer(kind=jpim), intent(in) :: icld            ! Cloud overlap method
+      integer(kind=jpim), intent(inout) :: icld         ! Cloud overlap method
                                                         !    0: Clear only
                                                         !    1: Random
                                                         !    2: Maximum/random
@@ -218,7 +219,9 @@
       integer(kind=jpim), intent(in) :: dyofyr          ! Day of the year (used to get Earth/Sun
                                                         !  distance if adjflx not provided)
       real(kind=jprb), intent(in) :: adjes              ! Flux adjustment for Earth/Sun distance
-      real(kind=jprb), intent(in) :: coszen             ! Cosine of solar zenith angle
+      real(kind=jprb), intent(in) :: coszen(:)          ! Cosine of solar zenith angle
+                                                        !    Dimensions: (ncol)
+      real(kind=jprb), intent(in) :: scon               ! Solar constant (W/m2)
 
       integer(kind=jpim), intent(in) :: inflgsw         ! Flag for cloud optical properties
       integer(kind=jpim), intent(in) :: iceflgsw        ! Flag for ice particle specification
@@ -386,16 +389,16 @@
       real(kind=jprb) :: znicddir(nlay+1)       ! temporary clear sky near-IR downward direct shortwave flux (w/m2)
 
 ! Optional output fields 
-      real(kind=jprb) :: swnflx(nlon,nlay+1)    ! Total sky shortwave net flux (W/m2)
-      real(kind=jprb) :: swnflxc(nlon,nlay+1)   ! Clear sky shortwave net flux (W/m2)
-      real(kind=jprb) :: dirdflux(nlon,nlay+1)  ! Direct downward shortwave surface flux
-      real(kind=jprb) :: difdflux(nlon,nlay+1)  ! Diffuse downward shortwave surface flux
-      real(kind=jprb) :: uvdflx(nlon,nlay+1)    ! Total sky downward shortwave flux, UV/vis     ! pfdnuv
-      real(kind=jprb) :: nidflx(nlon,nlay+1)    ! Total sky downward shortwave flux, near-IR    ! pfdnir 
-      real(kind=jprb) :: dirdnuv(nlon,nlay+1)   ! Direct downward shortwave flux, UV/vis
-      real(kind=jprb) :: difdnuv(nlon,nlay+1)   ! Diffuse downward shortwave flux, UV/vis
-      real(kind=jprb) :: dirdnir(nlon,nlay+1)   ! Direct downward shortwave flux, near-IR
-      real(kind=jprb) :: difdnir(nlon,nlay+1)   ! Diffuse downward shortwave flux, near-IR
+      real(kind=jprb) :: swnflx(nlay+1)         ! Total sky shortwave net flux (W/m2)
+      real(kind=jprb) :: swnflxc(nlay+1)        ! Clear sky shortwave net flux (W/m2)
+      real(kind=jprb) :: dirdflux(nlay+1)       ! Direct downward shortwave surface flux
+      real(kind=jprb) :: difdflux(nlay+1)       ! Diffuse downward shortwave surface flux
+      real(kind=jprb) :: uvdflx(nlay+1)         ! Total sky downward shortwave flux, UV/vis  
+      real(kind=jprb) :: nidflx(nlay+1)         ! Total sky downward shortwave flux, near-IR 
+      real(kind=jprb) :: dirdnuv(nlay+1)        ! Direct downward shortwave flux, UV/vis
+      real(kind=jprb) :: difdnuv(nlay+1)        ! Diffuse downward shortwave flux, UV/vis
+      real(kind=jprb) :: dirdnir(nlay+1)        ! Direct downward shortwave flux, near-IR
+      real(kind=jprb) :: difdnir(nlay+1)        ! Diffuse downward shortwave flux, near-IR
 
 ! Output - inactive
 !      real(kind=jprb) :: zuvfu(nlay+1)         ! temporary upward UV shortwave flux (w/m2)
@@ -455,8 +458,7 @@
 !
 ! In a GCM this call should be placed in the model initialization
 ! area, since this has to be called only once.  
-
-      call rrtmg_sw_ini
+!      call rrtmg_sw_ini
 
 ! This is the main longitude/column loop in RRTMG.
 ! Modify to loop over all columns (nlon) or over daylight columns
@@ -468,7 +470,7 @@
 
          call inatm_sw (iplon, nlay, icld, iaer, &
               play, plev, tlay, tlev, tsfc, &
-              h2ovmr, o3vmr, co2vmr, ch4vmr, n2ovmr, adjes, dyofyr, &
+              h2ovmr, o3vmr, co2vmr, ch4vmr, n2ovmr, adjes, dyofyr, scon, &
               inflgsw, iceflgsw, liqflgsw, &
               cldfr, taucld, ssacld, asmcld, cicewp, cliqwp, &
               reice, reliq, tauaer, ssaaer, asmaer, &
@@ -510,7 +512,7 @@
 !  Prevent using value of zero; ideally, SW model is not called from host model when sun 
 !  is below horizon
 
-         cossza = coszen
+         cossza = coszen(iplon)
          if (cossza .eq. 0._jprb) cossza = zepzen
 
 
@@ -646,30 +648,30 @@
             swdflxc(iplon,i) = zbbcd(i)
             swuflx(iplon,i) = zbbfu(i)
             swdflx(iplon,i) = zbbfd(i)
-            uvdflx(iplon,i) = zuvfd(i)
-            nidflx(iplon,i) = znifd(i)
+            uvdflx(i) = zuvfd(i)
+            nidflx(i) = znifd(i)
 !  Direct/diffuse fluxes
-            dirdflux(iplon,i) = zbbfddir(i)
-            difdflux(iplon,i) = swdflx(iplon,i) - dirdflux(iplon,i)
+            dirdflux(i) = zbbfddir(i)
+            difdflux(i) = swdflx(iplon,i) - dirdflux(i)
 !  UV/visible direct/diffuse fluxes
-            dirdnuv(iplon,i) = zuvfddir(i)
-            difdnuv(iplon,i) = zuvfd(i) - dirdnuv(iplon,i)
+            dirdnuv(i) = zuvfddir(i)
+            difdnuv(i) = zuvfd(i) - dirdnuv(i)
 !  Near-IR direct/diffuse fluxes
-            dirdnir(iplon,i) = znifddir(i)
-            difdnir(iplon,i) = znifd(i) - dirdnir(iplon,i)
+            dirdnir(i) = znifddir(i)
+            difdnir(i) = znifd(i) - dirdnir(i)
          enddo
 
 !  Total and clear sky net fluxes
          do i = 1, nlayers+1
-            swnflxc(iplon,i) = swdflxc(iplon,i) - swuflxc(iplon,i)
-            swnflx(iplon,i) = swdflx(iplon,i) - swuflx(iplon,i)
+            swnflxc(i) = swdflxc(iplon,i) - swuflxc(iplon,i)
+            swnflx(i) = swdflx(iplon,i) - swuflx(iplon,i)
          enddo
 
 !  Total and clear sky heating rates
          do i = 1, nlayers
             zdpgcp = heatfac / pdp(i)
-            swhrc(iplon,i) = (swnflxc(iplon,i+1) - swnflxc(iplon,i)) * zdpgcp
-            swhr(iplon,i) = (swnflx(iplon,i+1) - swnflx(iplon,i)) * zdpgcp
+            swhrc(iplon,i) = (swnflxc(i+1) - swnflxc(i)) * zdpgcp
+            swhr(iplon,i) = (swnflx(i+1) - swnflx(i)) * zdpgcp
          enddo
          swhrc(iplon,nlayers) = 0._jprb
          swhr(iplon,nlayers) = 0._jprb
@@ -709,7 +711,7 @@
 !***************************************************************************
       subroutine inatm_sw (iplon, nlay, icld, iaer, &
             play, plev, tlay, tlev, tsfc, &
-            h2ovmr, o3vmr, co2vmr, ch4vmr, n2ovmr, adjes, dyofyr, &
+            h2ovmr, o3vmr, co2vmr, ch4vmr, n2ovmr, adjes, dyofyr, scon, &
             inflgsw, iceflgsw, liqflgsw, &
             cldfr, taucld, ssacld, asmcld, cicewp, cliqwp, &
             reice, reliq, tauaer, ssaaer, asmaer, &
@@ -725,8 +727,8 @@
 
 ! --------- Modules ----------
 
-      use parrrsw, only : nlon, mxlay, nbndsw, nstr, nmol, ngpt, mxmol, &
-                          jpband, jpb1, jpb2
+      use parrrsw, only : nbndsw, ngptsw, nstr, nmol, mxmol, &
+                          jpband, jpb1, jpb2, rrsw_scon
       use rrsw_con, only : fluxfac, heatfac, oneminus, pi, grav, avogad
       use rrsw_wvn, only : ng, nspa, nspb, wavenum1, wavenum2, delwave
 
@@ -762,6 +764,7 @@
       integer(kind=jpim), intent(in) :: dyofyr          ! Day of the year (used to get Earth/Sun
                                                         !  distance if adjflx not provided)
       real(kind=jprb), intent(in) :: adjes              ! Flux adjustment for Earth/Sun distance
+      real(kind=jprb), intent(in) :: scon               ! Solar constant (W/m2)
 
       integer(kind=jpim), intent(in) :: inflgsw         ! Flag for cloud optical properties
       integer(kind=jpim), intent(in) :: iceflgsw        ! Flag for ice particle specification
@@ -900,12 +903,13 @@
 
 ! Set incoming solar flux adjustment to include adjustment for
 ! current Earth/Sun distance (ADJFLX) and scaling of default internal
-! solar constant (1368.22 Wm-2) by band (SOLVAR).  SOLVAR can be set 
+! solar constant (rrsw_scon = 1368.22 Wm-2) by band (SOLVAR).  SOLVAR can be set 
 ! to a single scaling factor as needed, or to a different value in each 
 ! band, which may be necessary for paleoclimate simulations. 
 ! 
       do ib = jpb1,jpb2
-         solvar(ib) = 1._jprb
+!         solvar(ib) = 1._jprb
+         solvar(ib) = scon / rrsw_scon
          adjflux(ib) = adjflx * solvar(ib)
       enddo
 
