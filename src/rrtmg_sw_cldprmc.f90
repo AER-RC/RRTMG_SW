@@ -32,7 +32,7 @@
 
 ! ----------------------------------------------------------------------------
       subroutine cldprmc_sw(nlayers, inflag, iceflag, liqflag, cldfmc, &
-                            ciwpmc, clwpmc, reicmc, relqmc, &
+                            ciwpmc, clwpmc, reicmc, dgesmc, relqmc, &
                             taormc, taucmc, ssacmc, asmcmc)
 ! ----------------------------------------------------------------------------
 
@@ -54,9 +54,11 @@
                                                         !    Dimensions: (ngptsw,nlayers)
       real(kind=jprb), intent(in) :: clwpmc(:,:)        ! cloud liquid water path [mcica]
                                                         !    Dimensions: (ngptsw,nlayers)
-      real(kind=jprb), intent(in) :: reicmc(:)          ! cloud ice particle size (microns)
+      real(kind=jprb), intent(in) :: relqmc(:)          ! cloud liquid particle effective radius (microns)
                                                         !    Dimensions: (nlayers)
-      real(kind=jprb), intent(in) :: relqmc(:)          ! cloud liquid particle size (microns)
+      real(kind=jprb), intent(in) :: reicmc(:)          ! cloud ice particle effective radius (microns)
+                                                        !    Dimensions: (nlayers)
+      real(kind=jprb), intent(in) :: dgesmc(:)          ! cloud ice particle generalized effective size (microns)
                                                         !    Dimensions: (nlayers)
 
 ! ------- Output -------
@@ -79,7 +81,7 @@
       real(kind=jprb) :: cwp                            ! total cloud water path
       real(kind=jprb) :: radliq                         ! cloud liquid droplet radius (microns)
       real(kind=jprb) :: radice                         ! cloud ice effective radius (microns)
-      real(kind=jprb) :: dgeice                         ! cloud ice generalized effective size
+      real(kind=jprb) :: dgeice                         ! cloud ice generalized effective size (microns)
       real(kind=jprb) :: factor
       real(kind=jprb) :: fint
 
@@ -232,15 +234,15 @@
                      endif
 
 ! For iceflag=3 option, combine with iceflag=0 option to handle large particle sizes
-! Use iceflag=3 option for ice particle effective radii from 5.0 to 91.0 microns
-! (generalized effective size, dge, from 8 to 140 microns), and use iceflag=0 option
+! Use iceflag=3 option for ice particle effective radii from 3.2 to 91.0 microns
+! (generalized effective size, dge, from 5 to 140 microns), and use iceflag=0 option
 ! for ice particle effective radii greater than 91.0 microns (dge = 140 microns).
 ! *** NOTE: Fu parameterization requires particle size in generalized effective size.
 ! *** NOTE: Transition between two methods has not been smoothed. 
 
                   elseif (iceflag .eq. 3) then
-                     dgeice = radice
-                     if (dgeice .lt. 5.0_jprb) stop 'ICE EFFECTIVE SIZE OUT OF BOUNDS'
+                     dgeice = dgesmc(lay)
+                     if (dgeice .lt. 5.0_jprb) stop 'ICE GENERALIZED EFFECTIVE SIZE OUT OF BOUNDS'
                      if (dgeice .ge. 5.0_jprb .and. dgeice .le. 140._jprb) then
                         factor = (dgeice - 2._jprb)/3._jprb
                         index = int(factor)

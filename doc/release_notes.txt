@@ -9,6 +9,23 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+September 9, 2007:
+
+	Release_3_4
+
+        Modified use of ice particle size variables rei/reicmc to utilize separate 
+        variable names (dge/dgesmc) when units of generalized effective size are 
+        required for iceflag=3 option. This allowed use of ice particle size in
+        units of effective radius to parameterize cloud absorptivity using a basic
+        approach when ice particle sizes are larger than the permitted range for
+        the iceflag=3 option. Results may be minimally affected when ice particle
+        sizes exceed 90 microns and iceflag=3 option is used. Also modified several
+        local arrays in top-level subroutine module to accomodate an extra model 
+        layer if this feature is utilized. 
+
+        Publicly released on AER RT web site in September 2007.
+
+
 September 4, 2007:
 
 	Release_3_3

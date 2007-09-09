@@ -257,8 +257,9 @@
       real(kind=jprb) :: asmc(nbndsw,mxlay)     ! cloud asymmetry parameter (non-delta scaled)
       real(kind=jprb) :: ciwp(mxlay)            ! cloud ice water path
       real(kind=jprb) :: clwp(mxlay)            ! cloud liquid water path
-      real(kind=jprb) :: rei(mxlay)             ! cloud ice particle size
-      real(kind=jprb) :: rel(mxlay)             ! cloud liquid particle size
+      real(kind=jprb) :: rei(mxlay)             ! cloud ice particle effective radius (microns)
+      real(kind=jprb) :: dge(mxlay)             ! cloud ice particle generalized effective size (microns)
+      real(kind=jprb) :: rel(mxlay)             ! cloud liquid particle effective radius (microns)
 
       real(kind=jprb) :: taucloud(mxlay,jpband) ! cloud optical depth
       real(kind=jprb) :: taucldorig(mxlay,jpband)! cloud optical depth (non-delta scaled)
@@ -269,8 +270,9 @@
       real(kind=jprb) :: cldfmc(ngptsw,mxlay)   ! cloud fraction [mcica]
       real(kind=jprb) :: ciwpmc(ngptsw,mxlay)   ! cloud ice water path [mcica]
       real(kind=jprb) :: clwpmc(ngptsw,mxlay)   ! cloud liquid water path [mcica]
-      real(kind=jprb) :: relqmc(mxlay)          ! liquid particle size (microns)
-      real(kind=jprb) :: reicmc(mxlay)          ! ice partcle size (microns)
+      real(kind=jprb) :: relqmc(mxlay)          ! liquid particle effective radius (microns)
+      real(kind=jprb) :: reicmc(mxlay)          ! ice particle effective radius (microns)
+      real(kind=jprb) :: dgesmc(mxlay)          ! ice particle generalized effective size (microns)
       real(kind=jprb) :: taucmc(ngptsw,mxlay)   ! cloud optical depth [mcica]
       real(kind=jprb) :: taormc(ngptsw,mxlay)   ! unscaled cloud optical depth [mcica]
       real(kind=jprb) :: ssacmc(ngptsw,mxlay)   ! cloud single scattering albedo [mcica]
@@ -476,6 +478,12 @@
                           ssacmc, asmcmc)
             endif
 
+! For iceflag=3 option, set dge arrays
+            if (iceflag.eq.3) then
+               dge(:) = rei(:)
+               dgesmc(:) = reicmc(:)
+            endif
+
 !  For cloudy atmosphere, use cldprop to set cloud optical properties based on
 !  input cloud physical properties.  Select method based on choices described
 !  in cldprop.  Cloud fraction, water path, liquid droplet and ice particle
@@ -493,12 +501,12 @@
                   endif
                enddo
                call cldprop_sw(nlayers, inflag, iceflag, liqflag, cldfrac, &
-                               tauc, ssac, asmc, ciwp, clwp, rei, rel, &
+                               tauc, ssac, asmc, ciwp, clwp, rei, dge, rel, &
                                taucldorig, taucloud, ssacloud, asmcloud)
                icpr = 1
             else
                call cldprmc_sw(nlayers, inflag, iceflag, liqflag, cldfmc, &
-                               ciwpmc, clwpmc, reicmc, relqmc, &
+                               ciwpmc, clwpmc, reicmc, dgesmc, relqmc, &
                                taormc, taucmc, ssacmc, asmcmc)
                icpr = 1
             endif
