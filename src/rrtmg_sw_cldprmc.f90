@@ -107,7 +107,7 @@
          do ig = 1, ngptsw
             taormc(ig,lay) = taucmc(ig,lay)
 !            taucmc(ig,lay) = 0.0_jprb
-!            ssacmc(ig,lay) = 0.0_jprb
+!            ssacmc(ig,lay) = 1.0_jprb
 !            asmcmc(ig,lay) = 0.0_jprb
          enddo
       enddo

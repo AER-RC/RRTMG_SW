@@ -9,6 +9,18 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+January 3, 2008:
+
+	Release_3_5
+
+        Corrected calculation of cloud optical property stochastic arrays when
+        cloud optical properties are input directly (inflgsw=0). Initialized
+        asymmetry parameter to zero and single scattering albedo to one 
+        uniformly throughout the code.  
+
+        Publicly released on AER RT web site in January 2008.
+
+
 September 9, 2007:
 
 	Release_3_4

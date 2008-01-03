@@ -293,7 +293,7 @@
       logical,  dimension(nsubcol, ncol, nlay) :: isCloudy   ! flag that says whether a gridbox is cloudy
 
 ! Indices
-      integer(kind=jpim) :: ilev, isubcol, i, n          ! indices
+      integer(kind=jpim) :: ilev, isubcol, i, n, ngbm    ! indices
       real(kind=jprb) :: rcldf                           ! inverse of cloud fraction 
 
 !------------------------------------------------------------------------------------------ 
@@ -483,19 +483,20 @@
             ciwp_stoch(:,:,ilev) = 0._jprb
          end where
       enddo
+      ngbm = ngb(1) - 1
       do ilev = 1,nlay
          do i = 1, ncol
             rcldf = 1._jprb / cldf(i,ilev)
             do isubcol = 1, ngptsw
                if ( iscloudy(isubcol,i,ilev) .and. (cldf(i,ilev) > 0._jprb) ) then
-                  n = ngb(isubcol)
+                  n = ngb(isubcol) - ngbm
                   tauc_stoch(isubcol,i,ilev) = tauc(n,i,ilev) * rcldf
-                  ssac_stoch(isubcol,i,ilev) = ssac(n,i,ilev) * rcldf
-                  asmc_stoch(isubcol,i,ilev) = asmc(n,i,ilev) * rcldf
+                  ssac_stoch(isubcol,i,ilev) = ssac(n,i,ilev)
+                  asmc_stoch(isubcol,i,ilev) = asmc(n,i,ilev)
                else
                   tauc_stoch(isubcol,i,ilev) = 0._jprb
                   ssac_stoch(isubcol,i,ilev) = 1._jprb
-                  asmc_stoch(isubcol,i,ilev) = 1._jprb
+                  asmc_stoch(isubcol,i,ilev) = 0._jprb
                endif
             enddo
          enddo

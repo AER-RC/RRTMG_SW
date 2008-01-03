@@ -561,7 +561,7 @@
             ztaucmc(:,:) = 0._jprb
             ztaormc(:,:) = 0._jprb
             zasycmc(:,:) = 0._jprb
-            zomgcmc(:,:) = 0._jprb
+            zomgcmc(:,:) = 1._jprb
 
          elseif (icld.ge.1) then
             do i=1,nlayers
@@ -582,7 +582,7 @@
 
             ztaua(:,:) = 0._jprb
             zasya(:,:) = 0._jprb
-            zomga(:,:) = 0._jprb
+            zomga(:,:) = 1._jprb
 
 ! IAER = 6: Use ECMWF six aerosol types. See rrsw_aer.f90 for details.
 ! Input aerosol optical thickness at 0.55 micron for each aerosol type (ecaer), 
@@ -599,7 +599,7 @@
                do ib = 1, nbndsw
                   ztaua(i,ib) = 0._jprb
                   zasya(i,ib) = 0._jprb
-                  zomga(i,ib) = 0._jprb
+                  zomga(i,ib) = 1._jprb
                   do ia = 1, naerec
                      ztaua(i,ib) = ztaua(i,ib) + rsrtaua(ib,ia) * ecaer(iplon,i,ia)
                      zomga(i,ib) = zomga(i,ib) + rsrtaua(ib,ia) * ecaer(iplon,i,ia) * &
@@ -909,7 +909,7 @@
        wkl(:,:) = 0.0_jprb
        cldfmc(:,:) = 0.0_jprb
        taucmc(:,:) = 0.0_jprb
-       ssacmc(:,:) = 0.0_jprb
+       ssacmc(:,:) = 1.0_jprb
        asmcmc(:,:) = 0.0_jprb
        ciwpmc(:,:) = 0.0_jprb
        clwpmc(:,:) = 0.0_jprb
@@ -917,7 +917,7 @@
        dgesmc(:) = 0.0_jprb
        relqmc(:) = 0.0_jprb
        taua(:,:) = 0.0_jprb
-       ssaa(:,:) = 0.0_jprb
+       ssaa(:,:) = 1.0_jprb
        asma(:,:) = 0.0_jprb
  
 ! Set flux adjustment for current Earth/Sun distance (two options).
@@ -1061,7 +1061,7 @@
 
 !         cldfmc(:,nlayers) = 0.0_jprb
 !         taucmc(:,nlayers) = 0.0_jprb
-!         ssacmc(:,nlayers) = 0.0_jprb
+!         ssacmc(:,nlayers) = 1.0_jprb
 !         asmcmc(:,nlayers) = 0.0_jprb
 !         ciwpmc(:,nlayers) = 0.0_jprb
 !         clwpmc(:,nlayers) = 0.0_jprb

@@ -114,7 +114,7 @@
       do lay = 1, nlayers
          do ib = ib1 , ib2
             taucloud(lay,ib) = 0.0_jprb
-            ssacloud(lay,ib) = 0.0_jprb
+            ssacloud(lay,ib) = 1.0_jprb
             asmcloud(lay,ib) = 0.0_jprb
             tauctot(lay) = tauctot(lay) + tauc(ib-15,lay)
          enddo

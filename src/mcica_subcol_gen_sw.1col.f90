@@ -292,7 +292,7 @@
       logical,  dimension(nsubcol, nlayers) :: iscloudy ! flag that says whether a gridbox is cloudy
 
 ! Indices
-      integer(kind=jpim) :: ilev, isubcol, i, n         ! indices
+      integer(kind=jpim) :: ilev, isubcol, i, n, ngbm   ! indices
 
 !------------------------------------------------------------------------------------------ 
 ! Set randum number generator to use (0 = kissvec; 1 = mersennetwister)
@@ -474,17 +474,18 @@
             ciwp_stoch(:,ilev) = 0._jprb
          end where
       enddo
+      ngbm = ngb(1) - 1
       do ilev = 1, nlayers
          do isubcol = 1, ngptsw
             if ( iscloudy(isubcol,ilev) .and. (cldf(ilev) > 0._jprb) ) then
-               n = ngb(isubcol)  
+               n = ngb(isubcol) - ngbm 
                tauc_stoch(isubcol,ilev) = tauc(n,ilev)
                ssac_stoch(isubcol,ilev) = ssac(n,ilev)
                asmc_stoch(isubcol,ilev) = asmc(n,ilev)
             else
                tauc_stoch(isubcol,ilev) = 0._jprb
                ssac_stoch(isubcol,ilev) = 1._jprb
-               asmc_stoch(isubcol,ilev) = 1._jprb
+               asmc_stoch(isubcol,ilev) = 0._jprb
             endif
          enddo
       enddo
