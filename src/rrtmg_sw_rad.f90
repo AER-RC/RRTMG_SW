@@ -239,15 +239,15 @@
 
       real(kind=jprb), intent(in) :: cldfmcl(:,:,:)     ! Cloud fraction
                                                         !    Dimensions: (ngptsw,ncol,nlay)
-      real(kind=jprb), intent(in) :: taucmcl(:,:,:)     ! Cloud optical depth
+      real(kind=jprb), intent(in) :: taucmcl(:,:,:)     ! In-cloud optical depth
                                                         !    Dimensions: (ngptsw,ncol,nlay)
-      real(kind=jprb), intent(in) :: ssacmcl(:,:,:)     ! Cloud single scattering albedo
+      real(kind=jprb), intent(in) :: ssacmcl(:,:,:)     ! In-cloud single scattering albedo
                                                         !    Dimensions: (ngptsw,ncol,nlay)
-      real(kind=jprb), intent(in) :: asmcmcl(:,:,:)     ! Cloud asymmetry parameter
+      real(kind=jprb), intent(in) :: asmcmcl(:,:,:)     ! In-cloud asymmetry parameter
                                                         !    Dimensions: (ngptsw,ncol,nlay)
-      real(kind=jprb), intent(in) :: ciwpmcl(:,:,:)     ! Cloud ice water path (g/m2)
+      real(kind=jprb), intent(in) :: ciwpmcl(:,:,:)     ! In-cloud ice water path (g/m2)
                                                         !    Dimensions: (ngptsw,ncol,nlay)
-      real(kind=jprb), intent(in) :: clwpmcl(:,:,:)     ! Cloud liquid water path (g/m2)
+      real(kind=jprb), intent(in) :: clwpmcl(:,:,:)     ! In-cloud liquid water path (g/m2)
                                                         !    Dimensions: (ngptsw,ncol,nlay)
       real(kind=jprb), intent(in) :: reicmcl(:,:)       ! Cloud ice effective radius (microns)
                                                         !    Dimensions: (ncol,nlay)
@@ -360,30 +360,30 @@
       integer(kind=jpim) :: liqflag             ! flag for liquid cloud properties
 
       real(kind=jprb) :: cldfrac(nlay+1)        ! layer cloud fraction
-      real(kind=jprb) :: tauc(nlay+1)           ! cloud optical depth (non-delta scaled)
-      real(kind=jprb) :: ssac(nlay+1)           ! cloud single scattering albedo (non-delta scaled)
-      real(kind=jprb) :: asmc(nlay+1)           ! cloud asymmetry parameter (non-delta scaled)
-      real(kind=jprb) :: ciwp(nlay+1)           ! cloud ice water path
-      real(kind=jprb) :: clwp(nlay+1)           ! cloud liquid water path
+      real(kind=jprb) :: tauc(nlay+1)           ! in-cloud optical depth (non-delta scaled)
+      real(kind=jprb) :: ssac(nlay+1)           ! in-cloud single scattering albedo (non-delta scaled)
+      real(kind=jprb) :: asmc(nlay+1)           ! in-cloud asymmetry parameter (non-delta scaled)
+      real(kind=jprb) :: ciwp(nlay+1)           ! in-cloud ice water path
+      real(kind=jprb) :: clwp(nlay+1)           ! in-cloud liquid water path
       real(kind=jprb) :: rei(nlay+1)            ! cloud ice particle size
       real(kind=jprb) :: rel(nlay+1)            ! cloud liquid particle size
 
-      real(kind=jprb) :: taucloud(nlay+1,jpband)  ! cloud optical depth
-      real(kind=jprb) :: taucldorig(nlay+1,jpband)! cloud optical depth (non-delta scaled)
-      real(kind=jprb) :: ssacloud(nlay+1,jpband)  ! cloud single scattering albedo
-      real(kind=jprb) :: asmcloud(nlay+1,jpband)  ! cloud asymmetry parameter
+      real(kind=jprb) :: taucloud(nlay+1,jpband)  ! in-cloud optical depth
+      real(kind=jprb) :: taucldorig(nlay+1,jpband)! in-cloud optical depth (non-delta scaled)
+      real(kind=jprb) :: ssacloud(nlay+1,jpband)  ! in-cloud single scattering albedo
+      real(kind=jprb) :: asmcloud(nlay+1,jpband)  ! in-cloud asymmetry parameter
 
 ! Atmosphere/clouds - cldprmc [mcica]
       real(kind=jprb) :: cldfmc(ngptsw,nlay+1)    ! cloud fraction [mcica]
-      real(kind=jprb) :: ciwpmc(ngptsw,nlay+1)    ! cloud ice water path [mcica]
-      real(kind=jprb) :: clwpmc(ngptsw,nlay+1)    ! cloud liquid water path [mcica]
+      real(kind=jprb) :: ciwpmc(ngptsw,nlay+1)    ! in-cloud ice water path [mcica]
+      real(kind=jprb) :: clwpmc(ngptsw,nlay+1)    ! in-cloud liquid water path [mcica]
       real(kind=jprb) :: relqmc(nlay+1)           ! liquid particle effective radius (microns)
       real(kind=jprb) :: reicmc(nlay+1)           ! ice particle effective radius (microns)
       real(kind=jprb) :: dgesmc(nlay+1)           ! ice particle generalized effective size (microns)
-      real(kind=jprb) :: taucmc(ngptsw,nlay+1)    ! cloud optical depth [mcica]
-      real(kind=jprb) :: taormc(ngptsw,nlay+1)    ! unscaled cloud optical depth [mcica]
-      real(kind=jprb) :: ssacmc(ngptsw,nlay+1)    ! cloud single scattering albedo [mcica]
-      real(kind=jprb) :: asmcmc(ngptsw,nlay+1)    ! cloud asymmetry parameter [mcica]
+      real(kind=jprb) :: taucmc(ngptsw,nlay+1)    ! in-cloud optical depth [mcica]
+      real(kind=jprb) :: taormc(ngptsw,nlay+1)    ! unscaled in-cloud optical depth [mcica]
+      real(kind=jprb) :: ssacmc(ngptsw,nlay+1)    ! in-cloud single scattering albedo [mcica]
+      real(kind=jprb) :: asmcmc(ngptsw,nlay+1)    ! in-cloud asymmetry parameter [mcica]
 
 ! Atmosphere/clouds/aerosol - spcvrt,spcvmc
       real(kind=jprb) :: ztauc(nlay+1,nbndsw)     ! cloud optical depth
@@ -795,15 +795,15 @@
 
       real(kind=jprb), intent(in) :: cldfmcl(:,:,:)     ! Cloud fraction
                                                         ! Dimensions: (ngptsw,ncol,nlay)
-      real(kind=jprb), intent(in) :: taucmcl(:,:,:)     ! Cloud optical depth (optional)
+      real(kind=jprb), intent(in) :: taucmcl(:,:,:)     ! In-cloud optical depth (optional)
                                                         ! Dimensions: (ngptsw,ncol,nlay)
-      real(kind=jprb), intent(in) :: ssacmcl(:,:,:)     ! Cloud single scattering albedo
+      real(kind=jprb), intent(in) :: ssacmcl(:,:,:)     ! In-cloud single scattering albedo
                                                         ! Dimensions: (ngptsw,ncol,nlay)
-      real(kind=jprb), intent(in) :: asmcmcl(:,:,:)     ! Cloud asymmetry parameter
+      real(kind=jprb), intent(in) :: asmcmcl(:,:,:)     ! In-cloud asymmetry parameter
                                                         ! Dimensions: (ngptsw,ncol,nlay)
-      real(kind=jprb), intent(in) :: ciwpmcl(:,:,:)     ! Cloud ice water path (g/m2)
+      real(kind=jprb), intent(in) :: ciwpmcl(:,:,:)     ! In-cloud ice water path (g/m2)
                                                         ! Dimensions: (ngptsw,ncol,nlay)
-      real(kind=jprb), intent(in) :: clwpmcl(:,:,:)     ! Cloud liquid water path (g/m2)
+      real(kind=jprb), intent(in) :: clwpmcl(:,:,:)     ! In-cloud liquid water path (g/m2)
                                                         ! Dimensions: (ngptsw,ncol,nlay)
       real(kind=jprb), intent(in) :: reicmcl(:,:)       ! Cloud ice effective radius (microns)
                                                         ! Dimensions: (ncol,nlay)
@@ -855,15 +855,15 @@
 
       real(kind=jprb), intent(out) :: cldfmc(:,:)       ! layer cloud fraction
                                                         ! Dimensions: (ngptsw,nlay)
-      real(kind=jprb), intent(out) :: taucmc(:,:)       ! cloud optical depth (non-delta scaled)
+      real(kind=jprb), intent(out) :: taucmc(:,:)       ! in-cloud optical depth (non-delta scaled)
                                                         ! Dimensions: (ngptsw,nlay)
-      real(kind=jprb), intent(out) :: ssacmc(:,:)       ! cloud single scattering albedo (non-delta-scaled)
+      real(kind=jprb), intent(out) :: ssacmc(:,:)       ! in-cloud single scattering albedo (non-delta-scaled)
                                                         ! Dimensions: (ngptsw,nlay)
-      real(kind=jprb), intent(out) :: asmcmc(:,:)       ! cloud asymmetry parameter (non-delta scaled)
+      real(kind=jprb), intent(out) :: asmcmc(:,:)       ! in-cloud asymmetry parameter (non-delta scaled)
                                                         ! Dimensions: (ngptsw,nlay)
-      real(kind=jprb), intent(out) :: ciwpmc(:,:)       ! cloud ice water path
+      real(kind=jprb), intent(out) :: ciwpmc(:,:)       ! in-cloud ice water path
                                                         ! Dimensions: (ngptsw,nlay)
-      real(kind=jprb), intent(out) :: clwpmc(:,:)       ! cloud liquid water path
+      real(kind=jprb), intent(out) :: clwpmc(:,:)       ! in-cloud liquid water path
                                                         ! Dimensions: (ngptsw,nlay)
       real(kind=jprb), intent(out) :: reicmc(:)         ! cloud ice particle size
                                                         ! Dimensions: (nlay)
