@@ -1,6 +1,6 @@
       module rrsw_cld
 
-      use parkind, only : jpim, jprb
+      use parkind, only : im => kind_im, rb => kind_rb
 
       implicit none
       save
@@ -12,6 +12,7 @@
 ! Revised: J. Delamere/MJIacono, AER, aug2005
 ! Revised: MJIacono, AER, nov2005
 ! Revised: MJIacono, AER, jul2006
+! Revised: MJIacono, AER, aug2008
 !------------------------------------------------------------------
 !
 !  name     type     purpose
@@ -32,11 +33,11 @@
 !                    Ebert and Curry, jgr, 97, 3831-3836, 1992.
 !------------------------------------------------------------------
 
-      real(kind=jprb) :: extliq1(58,16:29), ssaliq1(58,16:29), asyliq1(58,16:29)
-      real(kind=jprb) :: extice2(43,16:29), ssaice2(43,16:29), asyice2(43,16:29)
-      real(kind=jprb) :: extice3(46,16:29), ssaice3(46,16:29), asyice3(46,16:29)
-      real(kind=jprb) :: fdlice3(46,16:29)
-      real(kind=jprb) :: abari(5),bbari(5),cbari(5),dbari(5),ebari(5),fbari(5)
+      real(kind=rb) :: extliq1(58,16:29), ssaliq1(58,16:29), asyliq1(58,16:29)
+      real(kind=rb) :: extice2(43,16:29), ssaice2(43,16:29), asyice2(43,16:29)
+      real(kind=rb) :: extice3(46,16:29), ssaice3(46,16:29), asyice3(46,16:29)
+      real(kind=rb) :: fdlice3(46,16:29)
+      real(kind=rb) :: abari(5),bbari(5),cbari(5),dbari(5),ebari(5),fbari(5)
 
       end module rrsw_cld
 

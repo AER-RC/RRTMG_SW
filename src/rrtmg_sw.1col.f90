@@ -8,7 +8,7 @@
 
 !  --------------------------------------------------------------------------
 ! |                                                                          |
-! |  Copyright 2002-2007, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  Copyright 2002-2008, Atmospheric & Environmental Research, Inc. (AER).  |
 ! |  This software may be used, copied, or redistributed as long as it is    |
 ! |  not sold and this copyright notice is reproduced on each copy made.     |
 ! |  This model is provided as is without any express or implied warranties. |
@@ -88,6 +88,12 @@
 !       (nmca = 200 is recommended). This is method is valid for clear sky
 !       or partial cloud conditions
 !
+! Two random number generators are available for use when imca = 1
+!     This is chosen by setting flag irng below.
+!
+!    1) KISSVEC (irng = 0)
+!    2) Mersenne Twister (irng = 1); the default setting
+!
 ! Two methods of cloud property input are possible:
 !     Cloud properties can be input in one of two ways (controlled by input 
 !     flags inflag, iceflag and liqflag; see text file rrtmg_sw_instructions
@@ -135,7 +141,7 @@
 
 ! --------- Modules ---------
 
-      use parkind, only : jpim, jprb
+      use parkind, only : im => kind_im, rb => kind_rb
       use parrrsw, only : mxlay, nbndsw, ngptsw, naerec, nstr, nmol, mxmol, &
                           jpband, jpb1, jpb2
       use rrsw_aer, only : rsrtaua, rsrpiza, rsrasya
@@ -157,197 +163,205 @@
 ! ----- Local -----
 
 ! Control
-      integer(kind=jpim) :: nlayers             ! total number of layers
-      integer(kind=jpim) :: istart              ! beginning band of calculation
-      integer(kind=jpim) :: iend                ! ending band of calculation
-      integer(kind=jpim) :: icld                ! clear/cloud and cloud overlap flag
-      integer(kind=jpim) :: icpr                ! cldprop/cldprmc use flag
-      integer(kind=jpim) :: iflag               ! control flag
-      integer(kind=jpim) :: iout                ! output option flag
-      integer(kind=jpim) :: iaer                ! aerosol option flag
-      integer(kind=jpim) :: idelm               ! delta-m scaling flag
-      integer(kind=jpim) :: isccos              ! instrumental cosine response flag
-      integer(kind=jpim) :: ird                 ! input unit
-      integer(kind=jpim) :: iwr                 ! output unit
-      integer(kind=jpim) :: i                   ! layer loop index                      ! jk
-      integer(kind=jpim) :: ib                  ! band loop index                       ! jsw
-      integer(kind=jpim) :: ia, ig              ! indices
-      integer(kind=jpim) :: iplon               ! column loop index                     ! jl
-      integer(kind=jpim) :: ims                 ! mcica statistical loop index
-      integer(kind=jpim) :: imca                ! flag for mcica [0=off, 1=on]
-      integer(kind=jpim) :: nmca                ! number of mcica samples (mcica mode)
-      integer(kind=jpim), parameter :: ncol = 1 ! total number of columns
+      integer(kind=im) :: nlayers             ! total number of layers
+      integer(kind=im) :: istart              ! beginning band of calculation
+      integer(kind=im) :: iend                ! ending band of calculation
+      integer(kind=im) :: icld                ! clear/cloud and cloud overlap flag
+      integer(kind=im) :: icpr                ! cldprop/cldprmc use flag
+      integer(kind=im) :: iflag               ! control flag
+      integer(kind=im) :: iout                ! output option flag
+      integer(kind=im) :: iaer                ! aerosol option flag
+      integer(kind=im) :: idelm               ! delta-m scaling flag
+      integer(kind=im) :: isccos              ! instrumental cosine response flag
+      integer(kind=im) :: ird                 ! input unit
+      integer(kind=im) :: iwr                 ! output unit
+      integer(kind=im) :: i                   ! layer loop index                      ! jk
+      integer(kind=im) :: ib                  ! band loop index                       ! jsw
+      integer(kind=im) :: ia, ig              ! indices
+      integer(kind=im) :: iplon               ! column loop index                     ! jl
+      integer(kind=im) :: ims                 ! mcica statistical loop index
+      integer(kind=im) :: imca                ! flag for mcica [0=off, 1=on]
+      integer(kind=im) :: nmca                ! number of mcica samples (mcica mode)
+      integer(kind=im) :: irng                ! flag for random number generator
+                                              ! [0=kissvec, 1=mersenne twister (default)]
+      integer(kind=im), parameter :: ncol = 1 ! total number of columns
 
-      integer(kind=jpim) :: iout1, iout2        ! output control flags
-      integer(kind=jpim) :: indform             ! output control flag
+      integer(kind=im) :: iout1, iout2        ! output control flags
+      integer(kind=im) :: indform             ! output control flag
       character page 
       character*50 outform(7)
 
-      real(kind=jprb) :: zepsec, zepzen         ! epsilon
-      real(kind=jprb) :: zdpgcp                 ! flux to heating conversion ratio
+      real(kind=rb) :: zepsec, zepzen         ! epsilon
+      real(kind=rb) :: zdpgcp                 ! flux to heating conversion ratio
 
 
 ! Atmosphere
-      real(kind=jprb) :: pavel(mxlay)           ! layer pressures (mb) 
-      real(kind=jprb) :: tavel(mxlay)           ! layer temperatures (K)
-      real(kind=jprb) :: pz(0:mxlay)            ! level (interface) pressures (hPa, mb)
-      real(kind=jprb) :: tz(0:mxlay)            ! level (interface) temperatures (K)
-      real(kind=jprb) :: tbound                 ! surface temperature (K)
-      real(kind=jprb) :: pdp(mxlay)             ! layer pressure thickness (hPa, mb)
-      real(kind=jprb) :: coldry(mxlay)          ! 
-      real(kind=jprb) :: wbrodl(mxlay)          !
-      real(kind=jprb) :: wkl(mxmol,mxlay)       ! molecular amounts (mol/cm-2)
+      real(kind=rb) :: pavel(mxlay)           ! layer pressures (mb) 
+      real(kind=rb) :: tavel(mxlay)           ! layer temperatures (K)
+      real(kind=rb) :: pz(0:mxlay)            ! level (interface) pressures (hPa, mb)
+      real(kind=rb) :: tz(0:mxlay)            ! level (interface) temperatures (K)
+      real(kind=rb) :: tbound                 ! surface temperature (K)
+      real(kind=rb) :: pdp(mxlay)             ! layer pressure thickness (hPa, mb)
+      real(kind=rb) :: coldry(mxlay)          ! 
+      real(kind=rb) :: wbrodl(mxlay)          !
+      real(kind=rb) :: wkl(mxmol,mxlay)       ! molecular amounts (mol/cm-2)
 
-      real(kind=jprb) :: cossza, zenith         ! cosine of solar zenith angle 
-!      real(kind=jprb) :: earth_sun              ! function for Earth/Sun distance factor
-      real(kind=jprb) :: adjflux(jpband)        ! adjustment for current Earth/Sun distance
-      real(kind=jprb) :: solvar(jpband)         ! solar constant scaling factor from rrtmg_sw
-                                                !  default value of 1368.22 Wm-2 at 1 AU
-      real(kind=jprb) :: semiss(jpband)         ! surface emissivity
-      real(kind=jprb) :: albdir(nbndsw)         ! surface albedo, direct          ! zalbp
-      real(kind=jprb) :: albdif(nbndsw)         ! surface albedo, diffuse         ! zalbd
+      real(kind=rb) :: cossza, zenith         ! cosine of solar zenith angle 
+!      real(kind=rb) :: earth_sun              ! function for Earth/Sun distance factor
+      real(kind=rb) :: adjflux(jpband)        ! adjustment for current Earth/Sun distance
+      real(kind=rb) :: solvar(jpband)         ! solar constant scaling factor from rrtmg_sw
+                                              !  default value of 1368.22 Wm-2 at 1 AU
+      real(kind=rb) :: semiss(jpband)         ! surface emissivity
+      real(kind=rb) :: albdir(nbndsw)         ! surface albedo, direct          ! zalbp
+      real(kind=rb) :: albdif(nbndsw)         ! surface albedo, diffuse         ! zalbd
 
-      real(kind=jprb) :: tauaer(mxlay,jpband)   ! aerosol optical depth (iaer=10 only)
-                                                ! (non-delta scaled)      
-      real(kind=jprb) :: ssaaer(mxlay,jpband)   ! aerosol single scattering albedo (iaer=10 only)
-                                                ! (non-delta scaled)      
-      real(kind=jprb) :: asmaer(mxlay,jpband)   ! aerosol asymmetry parameter (iaer=10 only)
-                                                ! (non-delta scaled)      
-                                                !   first moment of input phase function
-      real(kind=jprb) :: ecaer(mxlay,naerec)    ! aerosol optical thickness at 0.55 micron (iaer=6 only)
-                                                ! (non-delta scaled)      
+      real(kind=rb) :: tauaer(mxlay,jpband)   ! aerosol optical depth (iaer=10 only)
+                                              ! (non-delta scaled)      
+      real(kind=rb) :: ssaaer(mxlay,jpband)   ! aerosol single scattering albedo (iaer=10 only)
+                                              ! (non-delta scaled)      
+      real(kind=rb) :: asmaer(mxlay,jpband)   ! aerosol asymmetry parameter (iaer=10 only)
+                                              ! (non-delta scaled)      
+                                              !   first moment of input phase function
+      real(kind=rb) :: ecaer(mxlay,naerec)    ! aerosol optical thickness at 0.55 micron (iaer=6 only)
+                                              ! (non-delta scaled)      
 
 ! Atmosphere - setcoef
-      integer(kind=jpim) :: laytrop             ! tropopause layer index
-      integer(kind=jpim) :: layswtch            ! tropopause layer index
-      integer(kind=jpim) :: laylow              ! tropopause layer index
-      integer(kind=jpim) :: jp(mxlay)           ! 
-      integer(kind=jpim) :: jt(mxlay)           !
-      integer(kind=jpim) :: jt1(mxlay)          !
+      integer(kind=im) :: laytrop             ! tropopause layer index
+      integer(kind=im) :: layswtch            ! tropopause layer index
+      integer(kind=im) :: laylow              ! tropopause layer index
+      integer(kind=im) :: jp(mxlay)           ! 
+      integer(kind=im) :: jt(mxlay)           !
+      integer(kind=im) :: jt1(mxlay)          !
 
-      real(kind=jprb) :: colh2o(mxlay)          ! column amount (h2o)
-      real(kind=jprb) :: colco2(mxlay)          ! column amount (co2)
-      real(kind=jprb) :: colo3(mxlay)           ! column amount (o3)
-      real(kind=jprb) :: coln2o(mxlay)          ! column amount (n2o)
-      real(kind=jprb) :: colch4(mxlay)          ! column amount (ch4)
-      real(kind=jprb) :: colo2(mxlay)           ! column amount (o2)
-      real(kind=jprb) :: colmol(mxlay)          ! column amount
-      real(kind=jprb) :: co2mult(mxlay)         ! column amount 
+      real(kind=rb) :: colh2o(mxlay)          ! column amount (h2o)
+      real(kind=rb) :: colco2(mxlay)          ! column amount (co2)
+      real(kind=rb) :: colo3(mxlay)           ! column amount (o3)
+      real(kind=rb) :: coln2o(mxlay)          ! column amount (n2o)
+      real(kind=rb) :: colch4(mxlay)          ! column amount (ch4)
+      real(kind=rb) :: colo2(mxlay)           ! column amount (o2)
+      real(kind=rb) :: colmol(mxlay)          ! column amount
+      real(kind=rb) :: co2mult(mxlay)         ! column amount 
 
-      integer(kind=jpim) :: indself(mxlay)
-      integer(kind=jpim) :: indfor(mxlay)
-      real(kind=jprb) :: selffac(mxlay)
-      real(kind=jprb) :: selffrac(mxlay)
-      real(kind=jprb) :: forfac(mxlay)
-      real(kind=jprb) :: forfrac(mxlay)
+      integer(kind=im) :: indself(mxlay)
+      integer(kind=im) :: indfor(mxlay)
+      real(kind=rb) :: selffac(mxlay)
+      real(kind=rb) :: selffrac(mxlay)
+      real(kind=rb) :: forfac(mxlay)
+      real(kind=rb) :: forfrac(mxlay)
 
-      real(kind=jprb) :: &                      !
+      real(kind=rb) :: &                      !
                          fac00(mxlay), fac01(mxlay), &
                          fac10(mxlay), fac11(mxlay) 
 
 ! Atmosphere/clouds - cldprop
-      integer(kind=jpim) :: ncbands             ! number of cloud spectral bands
-      integer(kind=jpim) :: inflag              ! flag for cloud property method
-      integer(kind=jpim) :: iceflag             ! flag for ice cloud properties
-      integer(kind=jpim) :: liqflag             ! flag for liquid cloud properties
+      integer(kind=im) :: ncbands             ! number of cloud spectral bands
+      integer(kind=im) :: inflag              ! flag for cloud property method
+      integer(kind=im) :: iceflag             ! flag for ice cloud properties
+      integer(kind=im) :: liqflag             ! flag for liquid cloud properties
 
-      real(kind=jprb) :: cldfrac(mxlay)         ! layer cloud fraction
-      real(kind=jprb) :: tauc(nbndsw,mxlay)     ! cloud optical depth (non-delta scaled)
-      real(kind=jprb) :: ssac(nbndsw,mxlay)     ! cloud single scattering albedo (non-delta scaled)
-      real(kind=jprb) :: asmc(nbndsw,mxlay)     ! cloud asymmetry parameter (non-delta scaled)
-      real(kind=jprb) :: ciwp(mxlay)            ! cloud ice water path
-      real(kind=jprb) :: clwp(mxlay)            ! cloud liquid water path
-      real(kind=jprb) :: rei(mxlay)             ! cloud ice particle effective radius (microns)
-      real(kind=jprb) :: dge(mxlay)             ! cloud ice particle generalized effective size (microns)
-      real(kind=jprb) :: rel(mxlay)             ! cloud liquid particle effective radius (microns)
+      real(kind=rb) :: cldfrac(mxlay)         ! layer cloud fraction
+      real(kind=rb) :: tauc(nbndsw,mxlay)     ! in-cloud optical depth (non-delta scaled)
+      real(kind=rb) :: ssac(nbndsw,mxlay)     ! in-cloud single scattering albedo (non-delta scaled)
+      real(kind=rb) :: asmc(nbndsw,mxlay)     ! in-cloud asymmetry parameter (non-delta scaled)
+      real(kind=rb) :: fsfc(nbndsw,mxlay)     ! in-cloud forward scattering fraction (non-delta scaled)
+      real(kind=rb) :: ciwp(mxlay)            ! in-cloud ice water path
+      real(kind=rb) :: clwp(mxlay)            ! in-cloud liquid water path
+      real(kind=rb) :: rei(mxlay)             ! cloud ice particle effective radius (microns)
+      real(kind=rb) :: dge(mxlay)             ! cloud ice particle generalized effective size (microns)
+      real(kind=rb) :: rel(mxlay)             ! cloud liquid particle effective radius (microns)
 
-      real(kind=jprb) :: taucloud(mxlay,jpband) ! cloud optical depth
-      real(kind=jprb) :: taucldorig(mxlay,jpband)! cloud optical depth (non-delta scaled)
-      real(kind=jprb) :: ssacloud(mxlay,jpband) ! cloud single scattering albedo
-      real(kind=jprb) :: asmcloud(mxlay,jpband) ! cloud asymmetry parameter
+      real(kind=rb) :: taucloud(mxlay,jpband) ! in-cloud optical depth
+      real(kind=rb) :: taucldorig(mxlay,jpband)! in-cloud optical depth (non-delta scaled)
+      real(kind=rb) :: ssacloud(mxlay,jpband) ! in-cloud single scattering albedo
+      real(kind=rb) :: asmcloud(mxlay,jpband) ! in-cloud asymmetry parameter
 
 ! Atmosphere/clouds - cldprmc [mcica]
-      real(kind=jprb) :: cldfmc(ngptsw,mxlay)   ! cloud fraction [mcica]
-      real(kind=jprb) :: ciwpmc(ngptsw,mxlay)   ! cloud ice water path [mcica]
-      real(kind=jprb) :: clwpmc(ngptsw,mxlay)   ! cloud liquid water path [mcica]
-      real(kind=jprb) :: relqmc(mxlay)          ! liquid particle effective radius (microns)
-      real(kind=jprb) :: reicmc(mxlay)          ! ice particle effective radius (microns)
-      real(kind=jprb) :: dgesmc(mxlay)          ! ice particle generalized effective size (microns)
-      real(kind=jprb) :: taucmc(ngptsw,mxlay)   ! cloud optical depth [mcica]
-      real(kind=jprb) :: taormc(ngptsw,mxlay)   ! unscaled cloud optical depth [mcica]
-      real(kind=jprb) :: ssacmc(ngptsw,mxlay)   ! cloud single scattering albedo [mcica]
-      real(kind=jprb) :: asmcmc(ngptsw,mxlay)   ! cloud asymmetry parameter [mcica]
+      real(kind=rb) :: cldfmc(ngptsw,mxlay)   ! cloud fraction [mcica]
+      real(kind=rb) :: ciwpmc(ngptsw,mxlay)   ! in-cloud ice water path [mcica]
+      real(kind=rb) :: clwpmc(ngptsw,mxlay)   ! in-cloud liquid water path [mcica]
+      real(kind=rb) :: relqmc(mxlay)          ! liquid particle effective radius (microns)
+      real(kind=rb) :: reicmc(mxlay)          ! ice particle effective radius (microns)
+      real(kind=rb) :: dgesmc(mxlay)          ! ice particle generalized effective size (microns)
+      real(kind=rb) :: taucmc(ngptsw,mxlay)   ! in-cloud optical depth [mcica]
+      real(kind=rb) :: taormc(ngptsw,mxlay)   ! unscaled in-cloud optical depth [mcica]
+      real(kind=rb) :: ssacmc(ngptsw,mxlay)   ! in-cloud single scattering albedo [mcica]
+      real(kind=rb) :: asmcmc(ngptsw,mxlay)   ! in-cloud asymmetry parameter [mcica]
+      real(kind=rb) :: fsfcmc(ngptsw,mxlay)   ! in-cloud forward scattering fraction [mcica]
 
 ! Atmosphere/clouds/aerosol - spcvrt,spcvmc
-      real(kind=jprb) :: ztauc(mxlay,nbndsw)    ! cloud optical depth
-      real(kind=jprb) :: ztaucorig(mxlay,nbndsw)! unscaled cloud optical depth
-      real(kind=jprb) :: zasyc(mxlay,nbndsw)    ! cloud asymmetry parameter 
-                                                !  (first moment of phase function)
-      real(kind=jprb) :: zomgc(mxlay,nbndsw)    ! cloud single scattering albedo
-      real(kind=jprb) :: ztaua(mxlay,nbndsw)    ! total aerosol optical depth
-      real(kind=jprb) :: zasya(mxlay,nbndsw)    ! total aerosol asymmetry parameter 
-      real(kind=jprb) :: zomga(mxlay,nbndsw)    ! total aerosol single scattering albedo
+      real(kind=rb) :: ztauc(mxlay,nbndsw)    ! cloud optical depth
+      real(kind=rb) :: ztaucorig(mxlay,nbndsw)! unscaled cloud optical depth
+      real(kind=rb) :: zasyc(mxlay,nbndsw)    ! cloud asymmetry parameter 
+                                              !  (first moment of phase function)
+      real(kind=rb) :: zomgc(mxlay,nbndsw)    ! cloud single scattering albedo
+      real(kind=rb) :: ztaua(mxlay,nbndsw)    ! total aerosol optical depth
+      real(kind=rb) :: zasya(mxlay,nbndsw)    ! total aerosol asymmetry parameter 
+      real(kind=rb) :: zomga(mxlay,nbndsw)    ! total aerosol single scattering albedo
 
-      real(kind=jprb) :: zcldfmc(mxlay,ngptsw)  ! cloud fraction [mcica]
-      real(kind=jprb) :: ztaucmc(mxlay,ngptsw)  ! cloud optical depth [mcica]
-      real(kind=jprb) :: ztaormc(mxlay,ngptsw)  ! unscaled cloud optical depth [mcica]
-      real(kind=jprb) :: zasycmc(mxlay,ngptsw)  ! cloud asymmetry parameter [mcica] 
-      real(kind=jprb) :: zomgcmc(mxlay,ngptsw)  ! cloud single scattering albedo [mcica]
+      real(kind=rb) :: zcldfmc(mxlay,ngptsw)  ! cloud fraction [mcica]
+      real(kind=rb) :: ztaucmc(mxlay,ngptsw)  ! cloud optical depth [mcica]
+      real(kind=rb) :: ztaormc(mxlay,ngptsw)  ! unscaled cloud optical depth [mcica]
+      real(kind=rb) :: zasycmc(mxlay,ngptsw)  ! cloud asymmetry parameter [mcica] 
+      real(kind=rb) :: zomgcmc(mxlay,ngptsw)  ! cloud single scattering albedo [mcica]
 
-      real(kind=jprb) :: zbbfu(mxlay+1)         ! temporary upward shortwave flux (w/m2)
-      real(kind=jprb) :: zbbfd(mxlay+1)         ! temporary downward shortwave flux (w/m2)
-      real(kind=jprb) :: zbbcu(mxlay+1)         ! temporary clear sky upward shortwave flux (w/m2)
-      real(kind=jprb) :: zbbcd(mxlay+1)         ! temporary clear sky downward shortwave flux (w/m2)
-      real(kind=jprb) :: zbbfddir(mxlay+1)      ! temporary downward direct shortwave flux (w/m2)
-      real(kind=jprb) :: zbbcddir(mxlay+1)      ! temporary clear sky downward direct shortwave flux (w/m2)
-      real(kind=jprb) :: zuvfd(mxlay+1)         ! temporary UV downward shortwave flux (w/m2)
-      real(kind=jprb) :: zuvcd(mxlay+1)         ! temporary clear sky UV downward shortwave flux (w/m2)
-      real(kind=jprb) :: zuvfddir(mxlay+1)      ! temporary UV downward direct shortwave flux (w/m2)
-      real(kind=jprb) :: zuvcddir(mxlay+1)      ! temporary clear sky UV downward direct shortwave flux (w/m2)
-      real(kind=jprb) :: znifd(mxlay+1)         ! temporary near-IR downward shortwave flux (w/m2)
-      real(kind=jprb) :: znicd(mxlay+1)         ! temporary clear sky near-IR downward shortwave flux (w/m2)
-      real(kind=jprb) :: znifddir(mxlay+1)      ! temporary near-IR downward direct shortwave flux (w/m2)
-      real(kind=jprb) :: znicddir(mxlay+1)      ! temporary clear sky near-IR downward direct shortwave flux (w/m2)
+      real(kind=rb) :: zbbfu(mxlay+1)         ! temporary upward shortwave flux (w/m2)
+      real(kind=rb) :: zbbfd(mxlay+1)         ! temporary downward shortwave flux (w/m2)
+      real(kind=rb) :: zbbcu(mxlay+1)         ! temporary clear sky upward shortwave flux (w/m2)
+      real(kind=rb) :: zbbcd(mxlay+1)         ! temporary clear sky downward shortwave flux (w/m2)
+      real(kind=rb) :: zbbfddir(mxlay+1)      ! temporary downward direct shortwave flux (w/m2)
+      real(kind=rb) :: zbbcddir(mxlay+1)      ! temporary clear sky downward direct shortwave flux (w/m2)
+      real(kind=rb) :: zuvfd(mxlay+1)         ! temporary UV downward shortwave flux (w/m2)
+      real(kind=rb) :: zuvcd(mxlay+1)         ! temporary clear sky UV downward shortwave flux (w/m2)
+      real(kind=rb) :: zuvfddir(mxlay+1)      ! temporary UV downward direct shortwave flux (w/m2)
+      real(kind=rb) :: zuvcddir(mxlay+1)      ! temporary clear sky UV downward direct shortwave flux (w/m2)
+      real(kind=rb) :: znifd(mxlay+1)         ! temporary near-IR downward shortwave flux (w/m2)
+      real(kind=rb) :: znicd(mxlay+1)         ! temporary clear sky near-IR downward shortwave flux (w/m2)
+      real(kind=rb) :: znifddir(mxlay+1)      ! temporary near-IR downward direct shortwave flux (w/m2)
+      real(kind=rb) :: znicddir(mxlay+1)      ! temporary clear sky near-IR downward direct shortwave flux (w/m2)
 
-      real(kind=jprb) :: totuflux(0:mxlay)      ! upward shortwave flux (w/m2)                  ! pfup
-      real(kind=jprb) :: totdflux(0:mxlay)      ! downward shortwave flux (w/m2)                ! pfdown
-      real(kind=jprb) :: fnet(0:mxlay)          ! net shortwave flux (w/m2)                     ! pfls
-      real(kind=jprb) :: htr(0:mxlay)           ! shortwave heating rate (k/day)                ! pheat
-      real(kind=jprb) :: totuclfl(0:mxlay)      ! clear sky upward shortwave flux (w/m2)        ! pcup 
-      real(kind=jprb) :: totdclfl(0:mxlay)      ! clear sky downward shortwave flux (w/m2)      ! pcdown 
-      real(kind=jprb) :: fnetc(0:mxlay)         ! clear sky net shortwave flux (w/m2)           ! pfcs
-      real(kind=jprb) :: htrc(0:mxlay)          ! clear sky shortwave heating rate (k/day)      ! pheac
+! Parameters
+      real(kind=rb), parameter :: cpdair = 1.004e3_rb  ! Specific heat capacity of dry air
+                                                       ! at constant pressure at 273 K (J kg-1 K-1)
+! Output
+      real(kind=rb) :: totuflux(0:mxlay)      ! upward shortwave flux (w/m2)                  ! pfup
+      real(kind=rb) :: totdflux(0:mxlay)      ! downward shortwave flux (w/m2)                ! pfdown
+      real(kind=rb) :: fnet(0:mxlay)          ! net shortwave flux (w/m2)                     ! pfls
+      real(kind=rb) :: htr(0:mxlay)           ! shortwave heating rate (k/day)                ! pheat
+      real(kind=rb) :: totuclfl(0:mxlay)      ! clear sky upward shortwave flux (w/m2)        ! pcup 
+      real(kind=rb) :: totdclfl(0:mxlay)      ! clear sky downward shortwave flux (w/m2)      ! pcdown 
+      real(kind=rb) :: fnetc(0:mxlay)         ! clear sky net shortwave flux (w/m2)           ! pfcs
+      real(kind=rb) :: htrc(0:mxlay)          ! clear sky shortwave heating rate (k/day)      ! pheac
 
-      real(kind=jprb) :: dirdflux(0:mxlay)      ! direct downward shortwave flux (w/m2)         ! dirdownflux
-      real(kind=jprb) :: difdflux(0:mxlay)      ! diffuse downward shortwave flux (w/m2)        ! difdownflux
-      real(kind=jprb) :: dflxuv(0:mxlay)        ! Total sky downward shortwave flux, UV/vis     ! pfdnuv
-      real(kind=jprb) :: dflxir(0:mxlay)        ! Total sky downward shortwave flux, near-IR    ! pfdnir 
-      real(kind=jprb) :: dirdnuv(0:mxlay)       ! Direct downward shortwave surface flux, UV/vis
-      real(kind=jprb) :: difdnuv(0:mxlay)       ! Diffuse downward shortwave surface flux, UV/vis
-      real(kind=jprb) :: dirdnir(0:mxlay)       ! Direct downward shortwave surface flux, near-IR
-      real(kind=jprb) :: difdnir(0:mxlay)       ! Diffuse downward shortwave surface flux, near-IR
+      real(kind=rb) :: dirdflux(0:mxlay)      ! direct downward shortwave flux (w/m2)         ! dirdownflux
+      real(kind=rb) :: difdflux(0:mxlay)      ! diffuse downward shortwave flux (w/m2)        ! difdownflux
+      real(kind=rb) :: dflxuv(0:mxlay)        ! Total sky downward shortwave flux, UV/vis     ! pfdnuv
+      real(kind=rb) :: dflxir(0:mxlay)        ! Total sky downward shortwave flux, near-IR    ! pfdnir 
+      real(kind=rb) :: dirdnuv(0:mxlay)       ! Direct downward shortwave surface flux, UV/vis
+      real(kind=rb) :: difdnuv(0:mxlay)       ! Diffuse downward shortwave surface flux, UV/vis
+      real(kind=rb) :: dirdnir(0:mxlay)       ! Direct downward shortwave surface flux, near-IR
+      real(kind=rb) :: difdnir(0:mxlay)       ! Diffuse downward shortwave surface flux, near-IR
 
 ! Output - inactive
-!      real(kind=jprb) :: zuvfu(mxlay+1)         ! temporary upward UV shortwave flux (w/m2)
-!      real(kind=jprb) :: zuvfd(mxlay+1)         ! temporary downward UV shortwave flux (w/m2)
-!      real(kind=jprb) :: zuvcu(mxlay+1)         ! temporary clear sky upward UV shortwave flux (w/m2)
-!      real(kind=jprb) :: zuvcd(mxlay+1)         ! temporary clear sky downward UV shortwave flux (w/m2)
-!      real(kind=jprb) :: zvsfu(mxlay+1)         ! temporary upward visible shortwave flux (w/m2)
-!      real(kind=jprb) :: zvsfd(mxlay+1)         ! temporary downward visible shortwave flux (w/m2)
-!      real(kind=jprb) :: zvscu(mxlay+1)         ! temporary clear sky upward visible shortwave flux (w/m2)
-!      real(kind=jprb) :: zvscd(mxlay+1)         ! temporary clear sky downward visible shortwave flux (w/m2)
-!      real(kind=jprb) :: znifu(mxlay+1)         ! temporary upward near-IR shortwave flux (w/m2)
-!      real(kind=jprb) :: znifd(mxlay+1)         ! temporary downward near-IR shortwave flux (w/m2)
-!      real(kind=jprb) :: znicu(mxlay+1)         ! temporary clear sky upward near-IR shortwave flux (w/m2)
-!      real(kind=jprb) :: znicd(mxlay+1)         ! temporary clear sky downward near-IR shortwave flux (w/m2)
+!      real(kind=rb) :: zuvfu(mxlay+1)         ! temporary upward UV shortwave flux (w/m2)
+!      real(kind=rb) :: zuvfd(mxlay+1)         ! temporary downward UV shortwave flux (w/m2)
+!      real(kind=rb) :: zuvcu(mxlay+1)         ! temporary clear sky upward UV shortwave flux (w/m2)
+!      real(kind=rb) :: zuvcd(mxlay+1)         ! temporary clear sky downward UV shortwave flux (w/m2)
+!      real(kind=rb) :: zvsfu(mxlay+1)         ! temporary upward visible shortwave flux (w/m2)
+!      real(kind=rb) :: zvsfd(mxlay+1)         ! temporary downward visible shortwave flux (w/m2)
+!      real(kind=rb) :: zvscu(mxlay+1)         ! temporary clear sky upward visible shortwave flux (w/m2)
+!      real(kind=rb) :: zvscd(mxlay+1)         ! temporary clear sky downward visible shortwave flux (w/m2)
+!      real(kind=rb) :: znifu(mxlay+1)         ! temporary upward near-IR shortwave flux (w/m2)
+!      real(kind=rb) :: znifd(mxlay+1)         ! temporary downward near-IR shortwave flux (w/m2)
+!      real(kind=rb) :: znicu(mxlay+1)         ! temporary clear sky upward near-IR shortwave flux (w/m2)
+!      real(kind=rb) :: znicd(mxlay+1)         ! temporary clear sky downward near-IR shortwave flux (w/m2)
 
 ! Output (mean output for McICA calculation)
-      real(kind=jprb) :: uflxsum(0:mxlay)       ! upward shortwave flux (w/m2)
-      real(kind=jprb) :: dflxsum(0:mxlay)       ! downward shortwave flux (w/m2)
-      real(kind=jprb) :: dirdsum(0:mxlay)       ! direct downward shortwave flux (w/m2)
-      real(kind=jprb) :: difdsum(0:mxlay)       ! diffuse downward shortwave flux (w/m2)
-      real(kind=jprb) :: fnetsum(0:mxlay)       ! net shortwave flux (w/m2)
-      real(kind=jprb) :: htrsum(0:mxlay)        ! shortwave heating rate (k/day)
+      real(kind=rb) :: uflxsum(0:mxlay)       ! upward shortwave flux (w/m2)
+      real(kind=rb) :: dflxsum(0:mxlay)       ! downward shortwave flux (w/m2)
+      real(kind=rb) :: dirdsum(0:mxlay)       ! direct downward shortwave flux (w/m2)
+      real(kind=rb) :: difdsum(0:mxlay)       ! diffuse downward shortwave flux (w/m2)
+      real(kind=rb) :: fnetsum(0:mxlay)       ! net shortwave flux (w/m2)
+      real(kind=rb) :: htrsum(0:mxlay)        ! shortwave heating rate (k/day)
 
 
 ! Initializations
@@ -382,10 +396,10 @@
       hnamutl = '         util_xxx.f:'
       hnamext = '            extra.f:'
 
-      zepsec = 1.e-06_jprb
-      zepzen = 1.e-10_jprb
-      oneminus = 1.0_jprb - zepsec
-      pi = 2._jprb * asin(1._jprb)
+      zepsec = 1.e-06_rb
+      zepzen = 1.e-10_rb
+      oneminus = 1.0_rb - zepsec
+      pi = 2._rb * asin(1._rb)
 
       ird = 9
       iwr = 10
@@ -401,18 +415,24 @@
           '(1x,i3,4x,f6.1,4x,4(f10.4,4x),f11.6,4x,f10.5)',&
           '(1x,i3,4x,f6.1,4x,4(f10.4,4x),f11.6,4x,f10.5)'/
 
-      uflxsum(0:) = 0._jprb
-      dflxsum(0:) = 0._jprb
-      dirdsum(0:) = 0._jprb
-      difdsum(0:) = 0._jprb
-      fnetsum(0:) = 0._jprb
-      htrsum(0:) = 0._jprb
+      uflxsum(0:) = 0._rb
+      dflxsum(0:) = 0._rb
+      dirdsum(0:) = 0._rb
+      difdsum(0:) = 0._rb
+      fnetsum(0:) = 0._rb
+      htrsum(0:) = 0._rb
 
 ! Set imca to select calculation type:
 !  (read by subroutine readprof from input file INPUT_RRTM):  
 ! imca = 0, use standard forward model calculation (clear and overcast only)
 ! imca = 1, use McICA for Monte Carlo treatment of sub-grid cloud variability
 !           (clear, overcast or partial cloud conditions)
+
+! Set irng to select random number generator for McICA (use when imca = 1)
+! irng = 0, KISSVEC
+! irng = 1, Mersenne Twister
+!      irng = 0
+      irng = 1
 
 ! Set icld to select of clear or cloud calculation and cloud overlap method
 !  (read by subroutine readprof from input file INPUT_RRTM):  
@@ -428,7 +448,7 @@
 ! In a GCM this call should be placed in the model initialization
 ! area, since this has to be called only once.  
 
-      call rrtmg_sw_ini
+      call rrtmg_sw_ini(cpdair)
 
 ! Open the input set of atmospheres
       open (ird,file='INPUT_RRTM',form='formatted')
@@ -444,7 +464,7 @@
         call readprof(ird, nlayers, iout, imca, icld, iaer, isccos, idelm, pdp, &
                        pavel, tavel, pz, tz, tbound, semiss, zenith, adjflux, &
                        coldry, wkl, inflag, iceflag, liqflag, &
-                       cldfrac, tauc, ssac, asmc, ciwp, clwp, rei, rel, &
+                       cldfrac, tauc, ssac, asmc, fsfc, ciwp, clwp, rei, rel, &
                        tauaer, ssaaer, asmaer)
 
          istart = jpb1                 ! jpb1 = 16
@@ -472,10 +492,10 @@
 ! is also requested for each spectral band).  
 
             if (imca.eq.1) then
-               call mcica_subcol_sw(iplon, nlayers, icld, ims, pavel, &
-                          cldfrac, ciwp, clwp, rei, rel, tauc, ssac, asmc, &
+               call mcica_subcol_sw(iplon, nlayers, icld, ims, irng, pavel, &
+                          cldfrac, ciwp, clwp, rei, rel, tauc, ssac, asmc, fsfc, &
                           cldfmc, ciwpmc, clwpmc, reicmc, relqmc, taucmc, &
-                          ssacmc, asmcmc)
+                          ssacmc, asmcmc, fsfcmc)
             endif
 
 ! For iceflag=3 option, set dge arrays
@@ -496,18 +516,18 @@
 
             if (imca.eq.0) then
                do i = 1, nlayers
-                  if (cldfrac(i).ne.0._jprb .and. cldfrac(i).ne.1._jprb) then
+                  if (cldfrac(i).ne.0._rb .and. cldfrac(i).ne.1._rb) then
                      stop 'PARTIAL CLOUD NOT ALLOWED FOR IMCA=0'
                   endif
                enddo
                call cldprop_sw(nlayers, inflag, iceflag, liqflag, cldfrac, &
-                               tauc, ssac, asmc, ciwp, clwp, rei, dge, rel, &
+                               tauc, ssac, asmc, fsfc, ciwp, clwp, rei, dge, rel, &
                                taucldorig, taucloud, ssacloud, asmcloud)
                icpr = 1
             else
                call cldprmc_sw(nlayers, inflag, iceflag, liqflag, cldfmc, &
                                ciwpmc, clwpmc, reicmc, dgesmc, relqmc, &
-                               taormc, taucmc, ssacmc, asmcmc)
+                               taormc, taucmc, ssacmc, asmcmc, fsfcmc)
                icpr = 1
             endif
 
@@ -527,28 +547,28 @@
 !  Prevent using value of zero;
 
             cossza = zenith
-            if (cossza.eq.0._jprb) cossza = zepzen
+            if (cossza.eq.0._rb) cossza = zepzen
 
 ! Transfer albedo, cloud and aerosol properties into arrays for 2-stream radiative transfer 
   
 ! Surface albedo
             do ib=1,nbndsw
-               albdif(ib) = 1._jprb - semiss(jpb1-1+ib)
-               albdir(ib) = 1._jprb - semiss(jpb1-1+ib)
+               albdif(ib) = 1._rb - semiss(jpb1-1+ib)
+               albdir(ib) = 1._rb - semiss(jpb1-1+ib)
             enddo
 
 ! Clouds
             if (icld.eq.0) then
 
-               ztauc(:,:) = 0._jprb
-               ztaucorig(:,:) = 0._jprb
-               zasyc(:,:) = 0._jprb
-               zomgc(:,:) = 1._jprb
-               zcldfmc(:,:) = 0._jprb
-               ztaucmc(:,:) = 0._jprb
-               ztaormc(:,:) = 0._jprb
-               zasycmc(:,:) = 0._jprb
-               zomgcmc(:,:) = 1._jprb
+               ztauc(:,:) = 0._rb
+               ztaucorig(:,:) = 0._rb
+               zasyc(:,:) = 0._rb
+               zomgc(:,:) = 1._rb
+               zcldfmc(:,:) = 0._rb
+               ztaucmc(:,:) = 0._rb
+               ztaormc(:,:) = 0._rb
+               zasycmc(:,:) = 0._rb
+               zomgcmc(:,:) = 1._rb
 
             elseif (icld.ge.1) then
                if (imca.eq.0) then
@@ -579,9 +599,9 @@
 ! IAER = 0: no aerosols
             if (iaer.eq.0) then
 
-               ztaua(:,:) = 0._jprb
-               zasya(:,:) = 0._jprb
-               zomga(:,:) = 1._jprb
+               ztaua(:,:) = 0._rb
+               zasya(:,:) = 0._rb
+               zomga(:,:) = 1._rb
 
 ! IAER = 6: Use ECMWF six aerosol types. See rrsw_aer.f90 for details.
 ! Input aerosol optical thickness at 0.55 micron for each aerosol type (ecaer)
@@ -590,16 +610,16 @@
 
                do i = 1, nlayers
                   do ia = 1, naerec
-                     ecaer(i,ia) = 1.0e-15_jprb
-!                      ecaer(i,ia) = 1.0e-04_jprb
+                     ecaer(i,ia) = 1.0e-15_rb
+!                      ecaer(i,ia) = 1.0e-04_rb
                   enddo
                enddo
 
                do i = 1, nlayers
                   do ib = 1, nbndsw
-                     ztaua(i,ib) = 0._jprb
-                     zasya(i,ib) = 0._jprb
-                     zomga(i,ib) = 1._jprb
+                     ztaua(i,ib) = 0._rb
+                     zasya(i,ib) = 0._rb
+                     zomga(i,ib) = 1._rb
                      do ia = 1, naerec
                         ztaua(i,ib) = ztaua(i,ib) + rsrtaua(ib,ia) * ecaer(i,ia)
                         zomga(i,ib) = zomga(i,ib) + rsrtaua(ib,ia) * ecaer(i,ia) * &
@@ -607,10 +627,10 @@
                         zasya(i,ib) = zasya(i,ib) + rsrtaua(ib,ia) * ecaer(i,ia) * &
                                       rsrpiza(ib,ia) * rsrasya(ib,ia)
                      enddo
-                     if (zomga(i,ib) /= 0._jprb) then
+                     if (zomga(i,ib) /= 0._rb) then
                         zasya(i,ib) = zasya(i,ib) / zomga(i,ib)
                      endif
-                     if (ztaua(i,ib) /= 0._jprb) then
+                     if (ztaua(i,ib) /= 0._rb) then
                         zomga(i,ib) = zomga(i,ib) / ztaua(i,ib)
                      endif
                   enddo
@@ -632,20 +652,20 @@
 ! Call the 2-stream radiation transfer model
 
             do i=1,nlayers+1
-               zbbcu(i) = 0._jprb
-               zbbcd(i) = 0._jprb
-               zbbfu(i) = 0._jprb
-               zbbfd(i) = 0._jprb
-               zbbcddir(i) = 0._jprb
-               zbbfddir(i) = 0._jprb
-               zuvcd(i) = 0._jprb
-               zuvfd(i) = 0._jprb
-               zuvcddir(i) = 0._jprb
-               zuvfddir(i) = 0._jprb
-               znicd(i) = 0._jprb
-               znifd(i) = 0._jprb
-               znicddir(i) = 0._jprb
-               znifddir(i) = 0._jprb
+               zbbcu(i) = 0._rb
+               zbbcd(i) = 0._rb
+               zbbfu(i) = 0._rb
+               zbbfd(i) = 0._rb
+               zbbcddir(i) = 0._rb
+               zbbfddir(i) = 0._rb
+               zuvcd(i) = 0._rb
+               zuvfd(i) = 0._rb
+               zuvcddir(i) = 0._rb
+               zuvfddir(i) = 0._rb
+               znicd(i) = 0._rb
+               znifd(i) = 0._rb
+               znicddir(i) = 0._rb
+               znifddir(i) = 0._rb
             enddo
 
             if (imca.eq.0) then
@@ -698,8 +718,8 @@
                htrc(i-1) = (fnetc(i) - fnetc(i-1)) * zdpgcp
                htr(i-1) = (fnet(i) - fnet(i-1)) * zdpgcp
             enddo
-            htr(nlayers) = 0._jprb
-            htrc(nlayers) = 0._jprb
+            htr(nlayers) = 0._rb
+            htrc(nlayers) = 0._rb
 
 ! Process output.
             if (iout .lt. 0) goto 2000
@@ -733,17 +753,17 @@
                write(iwr,9901)
 
                do i = nlayers, 0, -1
-                  if (pz(i) .lt. 1.e-2_jprb) then
+                  if (pz(i) .lt. 1.e-2_rb) then
                      indform = 1
-                  elseif (pz(i) .lt. 1.e-1_jprb) then
+                  elseif (pz(i) .lt. 1.e-1_rb) then
                      indform = 2
-                  elseif (pz(i) .lt. 1._jprb) then
+                  elseif (pz(i) .lt. 1._rb) then
                      indform = 3
-                  elseif (pz(i) .lt. 10._jprb) then
+                  elseif (pz(i) .lt. 10._rb) then
                      indform = 4
-                  elseif (pz(i) .lt. 100._jprb) then
+                  elseif (pz(i) .lt. 100._rb) then
                      indform = 5
-                  elseif (pz(i) .lt. 1000._jprb) then
+                  elseif (pz(i) .lt. 1000._rb) then
                      indform = 6
                   else
                      indform = 7
@@ -804,17 +824,17 @@
                   write(iwr,9901)
 
                   do i = nlayers, 0, -1
-                     if (pz(i) .lt. 1.e-2_jprb) then
+                     if (pz(i) .lt. 1.e-2_rb) then
                         indform = 1
-                     elseif (pz(i) .lt. 1.e-1_jprb) then
+                     elseif (pz(i) .lt. 1.e-1_rb) then
                         indform = 2
-                     elseif (pz(i) .lt. 1._jprb) then
+                     elseif (pz(i) .lt. 1._rb) then
                         indform = 3
-                     elseif (pz(i) .lt. 10._jprb) then
+                     elseif (pz(i) .lt. 10._rb) then
                         indform = 4
-                     elseif (pz(i) .lt. 100._jprb) then
+                     elseif (pz(i) .lt. 100._rb) then
                         indform = 5
-                     elseif (pz(i) .lt. 1000._jprb) then
+                     elseif (pz(i) .lt. 1000._rb) then
                         indform = 6
                      else
                         indform = 7
@@ -883,7 +903,7 @@
       contains
 
 !*************************************************************************
-      real(kind=jprb) function earth_sun(idn)
+      real(kind=rb) function earth_sun(idn)
 !*************************************************************************
 !
 !  Purpose: Function to calculate the correction factor of Earth's orbit
@@ -894,21 +914,21 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_con, only : pi
 
       implicit none
 
-      integer(kind=jpim), intent(in) :: idn
+      integer(kind=im), intent(in) :: idn
 
-      real(kind=jprb) :: gamma
+      real(kind=rb) :: gamma
 
-      gamma = 2._jprb*pi*(idn-1)/365._jprb
+      gamma = 2._rb*pi*(idn-1)/365._rb
 
 ! Use Iqbal's equation 1.2.1
 
-      earth_sun = 1.000110_jprb + .034221_jprb * cos(gamma) + .001289_jprb * sin(gamma) + &
-                   .000719_jprb * cos(2._jprb*gamma) + .000077_jprb * sin(2._jprb*gamma)
+      earth_sun = 1.000110_rb + .034221_rb * cos(gamma) + .001289_rb * sin(gamma) + &
+                   .000719_rb * cos(2._rb*gamma) + .000077_rb * sin(2._rb*gamma)
 
       end function earth_sun
 
@@ -918,13 +938,13 @@
            pavel_out, tavel_out, pz_out, tz_out, tbound_out, semiss_out, &
            zenith_out, adjflux_out, &
            coldry_out, wkl_out, inflag_out, iceflag_out,liqflag_out, &
-           cldfrac_out, tauc, ssac, asmc, ciwp, clwp, rei, rel, &
+           cldfrac_out, tauc, ssac, asmc, fsfc, ciwp, clwp, rei, rel, &
            tauaer_out, ssaaer_out, asmaer_out)
 !************************************************************************
 
 ! -------- Modules --------
 
-      use parkind, only : jpim, jprb
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_con, only: pi,planck,boltz,clight,avogad,alosmt,gascon, &
                           radcn1,radcn2
       use rrsw_wvn, only: wavenum1, wavenum2, delwave
@@ -980,47 +1000,48 @@
       character*1 ctest, cdollar, cdum
 
 ! Dimensions for transfer to rrtmg
-      integer(kind=jpim), intent(in) :: ird_in                 ! input file unit
-      integer(kind=jpim), intent(out) :: nlayers_out           ! total number of layers
-      integer(kind=jpim), intent(out) :: imca                  ! McICA on/off flag (1 = use McICA)
-      integer(kind=jpim), intent(out) :: icld_out              ! clear/cloud/overlap flag
-      integer(kind=jpim), intent(out) :: iout_out              ! output option flag
-      integer(kind=jpim), intent(out) :: iaer_out              ! aerosol flag
-      integer(kind=jpim), intent(out) :: isccos_out            ! aerosol flag
-      integer(kind=jpim), intent(out) :: idelm_out             ! aerosol flag
+      integer(kind=im), intent(in) :: ird_in                 ! input file unit
+      integer(kind=im), intent(out) :: nlayers_out           ! total number of layers
+      integer(kind=im), intent(out) :: imca                  ! McICA on/off flag (1 = use McICA)
+      integer(kind=im), intent(out) :: icld_out              ! clear/cloud/overlap flag
+      integer(kind=im), intent(out) :: iout_out              ! output option flag
+      integer(kind=im), intent(out) :: iaer_out              ! aerosol flag
+      integer(kind=im), intent(out) :: isccos_out            ! aerosol flag
+      integer(kind=im), intent(out) :: idelm_out             ! aerosol flag
 
-      real(kind=jprb), intent(out) :: pavel_out(mxlay)         ! layer pressures (mb) 
-      real(kind=jprb), intent(out) :: tavel_out(mxlay)         ! layer temperatures (K)
-      real(kind=jprb), intent(out) :: pz_out(0:mxlay)          ! level (interface) pressures (hPa, mb)
-      real(kind=jprb), intent(out) :: tz_out(0:mxlay)          ! level (interface) temperatures (K)
-      real(kind=jprb), intent(out) :: tbound_out               ! surface temperature (K)
-      real(kind=jprb), intent(out) :: pdp(mxlay)               ! layer pressure thickness (hPa, mb)
-      real(kind=jprb), intent(out) :: coldry_out(mxlay)        ! dry air molecular amount
-      real(kind=jprb), intent(out) :: wkl_out(mxmol,mxlay)     ! molecular amounts (mol/cm-2)
-      real(kind=jprb), intent(out) :: semiss_out(jpbands)       ! surface emissivity
-      real(kind=jprb), intent(out) :: zenith_out               ! cos solar zenith angle
-      real(kind=jprb), intent(out) :: adjflux_out(jpbands)      ! adjustment for current Earth/Sun distance
+      real(kind=rb), intent(out) :: pavel_out(mxlay)         ! layer pressures (mb) 
+      real(kind=rb), intent(out) :: tavel_out(mxlay)         ! layer temperatures (K)
+      real(kind=rb), intent(out) :: pz_out(0:mxlay)          ! level (interface) pressures (hPa, mb)
+      real(kind=rb), intent(out) :: tz_out(0:mxlay)          ! level (interface) temperatures (K)
+      real(kind=rb), intent(out) :: tbound_out               ! surface temperature (K)
+      real(kind=rb), intent(out) :: pdp(mxlay)               ! layer pressure thickness (hPa, mb)
+      real(kind=rb), intent(out) :: coldry_out(mxlay)        ! dry air molecular amount
+      real(kind=rb), intent(out) :: wkl_out(mxmol,mxlay)     ! molecular amounts (mol/cm-2)
+      real(kind=rb), intent(out) :: semiss_out(jpbands)       ! surface emissivity
+      real(kind=rb), intent(out) :: zenith_out               ! cos solar zenith angle
+      real(kind=rb), intent(out) :: adjflux_out(jpbands)      ! adjustment for current Earth/Sun distance
 
-      integer(kind=jpim), intent(out) :: inflag_out              ! cloud property option flag
-      integer(kind=jpim), intent(out) :: iceflag_out             ! ice cloud property flag
-      integer(kind=jpim), intent(out) :: liqflag_out             ! liquid cloud property flag
+      integer(kind=im), intent(out) :: inflag_out              ! cloud property option flag
+      integer(kind=im), intent(out) :: iceflag_out             ! ice cloud property flag
+      integer(kind=im), intent(out) :: liqflag_out             ! liquid cloud property flag
 
-      real(kind=jprb), intent(out) :: cldfrac_out(mxlay)         ! cloud fraction
-      real(kind=jprb), intent(out) :: tauc(nbndsw,mxlay)         ! cloud optical depth (non-delta scaled)
-      real(kind=jprb), intent(out) :: ssac(nbndsw,mxlay)         ! cloud single scattering albedo (non-delta scaled)
-      real(kind=jprb), intent(out) :: asmc(nbndsw,mxlay)         ! cloud asymmetry parameter (non-delta scaled)
-      real(kind=jprb), intent(out) :: ciwp(mxlay)                ! cloud ice water path
-      real(kind=jprb), intent(out) :: clwp(mxlay)                ! cloud liquid water path
-      real(kind=jprb), intent(out) :: rei(mxlay)                 ! cloud ice particle size
-      real(kind=jprb), intent(out) :: rel(mxlay)                 ! cloud liquid particle size
-      real(kind=jprb), intent(out) :: tauaer_out(mxlay,jpbands)   ! aerosol optical depth
-      real(kind=jprb), intent(out) :: ssaaer_out(mxlay,jpbands)   ! aerosol single scattering albedo
-      real(kind=jprb), intent(out) :: asmaer_out(mxlay,jpbands)   ! aerosol asymmetry parameter
+      real(kind=rb), intent(out) :: cldfrac_out(mxlay)         ! cloud fraction
+      real(kind=rb), intent(out) :: tauc(nbndsw,mxlay)         ! in-cloud optical depth (non-delta scaled)
+      real(kind=rb), intent(out) :: ssac(nbndsw,mxlay)         ! in-cloud single scattering albedo (non-delta scaled)
+      real(kind=rb), intent(out) :: asmc(nbndsw,mxlay)         ! in-cloud asymmetry parameter (non-delta scaled)
+      real(kind=rb), intent(out) :: fsfc(nbndsw,mxlay)         ! in-cloud forward scattering fraction (non-delta scaled)
+      real(kind=rb), intent(out) :: ciwp(mxlay)                ! in-cloud ice water path
+      real(kind=rb), intent(out) :: clwp(mxlay)                ! in-cloud liquid water path
+      real(kind=rb), intent(out) :: rei(mxlay)                 ! cloud ice particle size
+      real(kind=rb), intent(out) :: rel(mxlay)                 ! cloud liquid particle size
+      real(kind=rb), intent(out) :: tauaer_out(mxlay,jpbands)   ! aerosol optical depth
+      real(kind=rb), intent(out) :: ssaaer_out(mxlay,jpbands)   ! aerosol single scattering albedo
+      real(kind=rb), intent(out) :: asmaer_out(mxlay,jpbands)   ! aerosol asymmetry parameter
                                                                  !   first momemnt of input phase function
 !
 ! Local
-      integer(kind=jpim) :: juldat                               ! day of year
-      real(kind=jprb) :: fice(mxlay)                             ! cloud ice fraction
+      integer(kind=im) :: juldat                               ! day of year
+      real(kind=rb) :: fice(mxlay)                             ! cloud ice fraction
 
 ! Initializations
 
@@ -1051,10 +1072,10 @@
 
       do ilay = 1,mxlay
          do isp = 1,mxmol
-            wkl(isp,ilay) = 0.0
+            wkl(isp,ilay) = 0.0_rb
          enddo
          do isp = 1,maxxsec
-            wx(isp,ilay) = 0.0
+            wx(isp,ilay) = 0.0_rb
          enddo
       enddo
 
@@ -1087,11 +1108,11 @@
          stop
       endif
 
-      read (ird,9020) juldat, sza, isolvar, (solvar(ib),ib=ib1,ib2)
+      read (ird,9020) juldat, sza, isolvar, solvar(ib1:ib2)
 
-      zenith = cos(sza * pi / 180.)
+      zenith = cos(sza * pi / 180._rb)
       if (juldat .eq. 0) then
-         adjflux_jd = 1.
+         adjflux_jd = 1._rb
       else
          adjflux_jd = earth_sun (juldat)
       endif
@@ -1120,10 +1141,10 @@
          stop
       endif
 
-      read (ird,9012) iemis, ireflect, (semiss(ib),ib=ib1,ib2)
+      read (ird,9012) iemis, ireflect, semiss(ib1:ib2)
       if (iemis .eq. 0) then
          do ib = ib1, ib2
-            semiss(ib) = 1.
+            semiss(ib) = 1._rb
          enddo
       elseif (iemis .eq. 1) then
          do ib = ib1, ib2
@@ -1180,7 +1201,7 @@
 ! Test for mixing ratio input.
       imix = 1
       do m = 1, nmol
-         if (wkl(m,1) .gt. 1.0) then
+         if (wkl(m,1) .gt. 1.0_rb) then
             imix = 0
             goto 3600
          endif
@@ -1189,15 +1210,15 @@
 
       if (ixsect .eq. 1) then
          imixx = 0
-         if (wx0(1,1) .le. 1.0) imixx = 1
+         if (wx0(1,1) .le. 1.0_rb) imixx = 1
       endif
       do l = 1, nlayers
-         summol = 0.0
+         summol = 0.0_rb
          do imol = 2, nmol
             summol = summol + wkl(imol,l)
          enddo
          if (imix .eq. 1) then
-            coldry(l) = wbrodl(l) / (1. - summol)
+            coldry(l) = wbrodl(l) / (1._rb - summol)
             do imol = 1, nmol
                wkl(imol,l) = coldry(l) * wkl(imol,l)
             enddo
@@ -1208,9 +1229,9 @@
             do ix = 1, nxmol0
                if (ixindx(ix) .ne. 0) then
                   if (imixx .eq. 1) then
-                     wx(ixindx(ix),l) = coldry(l) * wx0(ix,l) * 1.e-20
+                     wx(ixindx(ix),l) = coldry(l) * wx0(ix,l) * 1.e-20_rb
                   else
-                     wx(ixindx(ix),l) = wx0(ix,l) * 1.e-20
+                     wx(ixindx(ix),l) = wx0(ix,l) * 1.e-20_rb
                   endif
                endif
             enddo 
@@ -1250,22 +1271,24 @@
                tauc(n,l) = clddat1(l)
                ssac(n,l) = clddat2(l)
                asmc(n,l) = clddatmom(1,l)
+               fsfc(n,l) = asmc(n,l)**2
             enddo
-            ciwp(l) = 0._jprb
-            clwp(l) = 0._jprb
-            fice(l) = 0._jprb
-            rei(l) = 0._jprb
-            rel(l) = 0._jprb
+            ciwp(l) = 0._rb
+            clwp(l) = 0._rb
+            fice(l) = 0._rb
+            rei(l) = 0._rb
+            rel(l) = 0._rb
          else
             do n = 1, nbndsw
-               tauc(n,l) = 0._jprb
-               ssac(n,l) = 1._jprb
-               asmc(n,l) = 0._jprb
+               tauc(n,l) = 0._rb
+               ssac(n,l) = 1._rb
+               asmc(n,l) = 0._rb
+               fsfc(n,l) = 0._rb
             enddo
             cwp = clddat1(l)
             fice(l) = clddat2(l)
             ciwp(l) = cwp * fice(l)
-            clwp(l) = cwp * (1._jprb - fice(l))
+            clwp(l) = cwp * (1._rb - fice(l))
             rei(l) = clddat3(l)
             rel(l) = clddat4(l)
          endif 
@@ -1296,7 +1319,7 @@
  9011 format (18x,i2,29x,i1,32x,i1,1x,i1,2x,i3,3x,i1,i1,3x,i1,i1)
  9012 format (11x,i1,2x,i1,14f5.3)
  9013 format (1x,i1,i3,i5)                                     
- 9020 format (12x, i3, 3x, f7.4, 4x, i1,14f5.3)
+ 9020 format (12x, i3, 3x, f7.4, 4x, i1, 14f7.5)
  9300 format (i5)
  9301 format (1x,i1)
 
@@ -1306,7 +1329,7 @@
       subroutine readcld
 !***************************************************************************
 
-      use parkind, only : jpim, jprb
+      use parkind, only : im => kind_im, rb => kind_rb
 
 ! Purpose:  To read in IN_CLD_RRTM_SW, the file that contains input 
 !           cloud properties.
@@ -1339,7 +1362,7 @@
       read(irdcld,9050) inflag, iceflag, liqflag
 
       do lay = 1, nlayers
-         cldfrac(lay) = 0._jprb
+         cldfrac(lay) = 0._rb
       enddo
 
       if (inflag .eq. 0) then
@@ -1347,7 +1370,7 @@
 !  For INFLAG = 0 or 1, for each cloudy layer only LAY, FRAC, and
 !  DAT1 are pertinent.  If CTEST = '%', then there are no more 
 !  cloudy layers to process.
-         read (irdcld,9099,end=8950) ctest,lay,frac,dat1,dat2,(clddatmom(istr,lay),istr=0,nstr)
+         read (irdcld,9099,end=8950) ctest,lay,frac,dat1,dat2,clddatmom(0:nstr,lay)
          if (ctest .eq. cpercent) goto 8950
          cldfrac(lay) = frac
          clddat1(lay) = dat1
@@ -1383,7 +1406,7 @@
       subroutine readaer
 !***************************************************************************
 
-      use parkind, only : jpim, jprb
+      use parkind, only : im => kind_im, rb => kind_rb
 
 ! Purpose:  To read in IN_AER_RRTM, the file that contains input
 !           aerosol properties.
@@ -1416,21 +1439,21 @@
 
       data cpercent /'%'/
 
-      data rnu0 /2903._jprb,3601._jprb,4310._jprb,4892._jprb,5623._jprb,6872._jprb, &
-                 7872._jprb,10590._jprb,14420._jprb,18970._jprb,25015._jprb,30390._jprb, & 
-                 43507._jprb,1412._jprb/
-      data rnu1 /10530.7_jprb,14293.3_jprb,18678.0_jprb,24475.1_jprb/
+      data rnu0 /2903._rb,3601._rb,4310._rb,4892._rb,5623._rb,6872._rb, &
+                 7872._rb,10590._rb,14420._rb,18970._rb,25015._rb,30390._rb, & 
+                 43507._rb,1412._rb/
+      data rnu1 /10530.7_rb,14293.3_rb,18678.0_rb,24475.1_rb/
  
-      data f1  /0.9929_jprb,0.9883_jprb,0.978_jprb,0.9696_jprb/
-      data od0 /0.1084_jprb,0.167_jprb,0.245_jprb,0.3611_jprb/
-      data od1 /0.3144_jprb,0.4822_jprb,0.7013_jprb,1.0239_jprb/
+      data f1  /0.9929_rb,0.9883_rb,0.978_rb,0.9696_rb/
+      data od0 /0.1084_rb,0.167_rb,0.245_rb,0.3611_rb/
+      data od1 /0.3144_rb,0.4822_rb,0.7013_rb,1.0239_rb/
 
-      eps = 1.e-10_jprb
+      eps = 1.e-10_rb
       irdaer = 12
       open(irdaer,file='IN_AER_RRTM',form='formatted')
 
-      aod(:) = 0.0_jprb
-      tauaer(:,ib1:ib2) = 0.0_jprb
+      aod(:) = 0.0_rb
+      tauaer(:,ib1:ib2) = 0.0_rb
 
 ! Read in number of different aerosol models option.
       read (irdaer, 9010) naer
@@ -1442,16 +1465,16 @@
 ! For each aerosol read in optical properties and layer aerosol 
 ! optical depths.
       do ia = 1, naer
-	 read (irdaer, 9011) nlay, iaod, issa, iasym, (aerpar(i),i=1,3)
+	 read (irdaer, 9011) nlay, iaod, issa, iasym, aerpar(1:3)
 
          if (iaod .eq. 0) then
 ! Set defaults to get standard Angstrom relation.
-            if (aerpar(2) .lt. eps) aerpar(2) = 1._jprb
+            if (aerpar(2) .lt. eps) aerpar(2) = 1._rb
 
             do ib = ib1, ib2
-  	       rlambda(ib) = 10000._jprb/rnu0(ib)
+  	       rlambda(ib) = 10000._rb/rnu0(ib)
                specfac(ib) = (aerpar(2) + aerpar(3) * rlambda(ib)) / &
-                            ((aerpar(2) + aerpar(3) - 1._jprb) + &
+                            ((aerpar(2) + aerpar(3) - 1._rb) + &
                               rlambda(ib)**aerpar(1))
             enddo
          endif
@@ -1459,7 +1482,7 @@
 ! For this aerosol, read in layers and optical depth information.
 ! Store a nonzero optical depth in aod to check for double specification.
          do il = 1, nlay
-            read(irdaer, 9012) lay(il), (aod1(ib), ib = ib1,ib2)
+            read(irdaer, 9012) lay(il), aod1(ib1:ib2)
             if (aod(lay(il)) .lt. eps) then
                if (iaod .eq. 0) then
                   aod(lay(il)) = aod1(ib1)
@@ -1490,7 +1513,7 @@
                 od = sum(tauaer(ivec(1:nlay),ib))/zenith
                 rnu = rnu0(ib) + &
                      (rnu1(ib)-rnu0(ib))*(od-od0(ib))/(od1(ib)-od0(ib))
-               rlambda_new = 10000._jprb/rnu
+               rlambda_new = 10000._rb/rnu
                specfac_new = (aerpar(2)+aerpar(3)*rlambda_new) / &
                   ((aerpar(2)+aerpar(3)- 1.)+rlambda_new**aerpar(1))
                do il=1,nlay
@@ -1501,7 +1524,7 @@
          end do
 
 ! For this aerosol, read and store optical properties
-         read (irdaer, 9013) (ssa(ib), ib = ib1,ib2)
+         read (irdaer, 9013) ssa(ib1:ib2)
 
          do ib = ib1, ib2
             do il = 1, nlay
@@ -1514,7 +1537,7 @@
          enddo
 
          if (iasym .lt. 2) then
-            read (irdaer, 9013) (asym(ib), ib = ib1,ib2)
+            read (irdaer, 9013) asym(ib1:ib2)
 
             do ib = ib1, ib2
                do il = 1, nlay
@@ -1530,7 +1553,7 @@
          else
             do il = 1, nlay
                do istr = 1, nstr
-                  read (irdaer, 9013) (phase(istr,lay(il),ib),ib = ib1,ib2)
+                  read (irdaer, 9013) phase(istr,lay(il),ib1:ib2)
                enddo
             enddo
          endif

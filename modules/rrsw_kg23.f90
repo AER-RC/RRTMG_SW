@@ -1,6 +1,6 @@
       module rrsw_kg23
 
-      use parkind ,only : jpim, jprb
+      use parkind ,only : im => kind_im, rb => kind_rb
       use parrrsw, only : ng23
 
       implicit none
@@ -12,6 +12,7 @@
 !
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
+! Revised: MJIacono, AER, aug2008
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -23,15 +24,15 @@
 !sfluxrefo: real     
 !-----------------------------------------------------------------
 
-      integer(kind=jpim), parameter :: no23 = 16
+      integer(kind=im), parameter :: no23 = 16
 
-      real(kind=jprb) :: kao(5,13,no23)
-      real(kind=jprb) :: selfrefo(10,no23), forrefo(3,no23)
-      real(kind=jprb) :: sfluxrefo(no23)
-      real(kind=jprb) :: raylo(no23)
+      real(kind=rb) :: kao(5,13,no23)
+      real(kind=rb) :: selfrefo(10,no23), forrefo(3,no23)
+      real(kind=rb) :: sfluxrefo(no23)
+      real(kind=rb) :: raylo(no23)
 
-      integer(kind=jpim) :: layreffr
-      real(kind=jprb) :: givfac
+      integer(kind=im) :: layreffr
+      real(kind=rb) :: givfac
 
 !-----------------------------------------------------------------
 ! rrtmg_sw COMBINED abs. coefficients for interval 23
@@ -39,6 +40,7 @@
 !
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
+! Revised: MJIacono, AER, aug2008
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -52,9 +54,9 @@
 ! sfluxref: real     
 !-----------------------------------------------------------------
 
-      real(kind=jprb) :: ka(5,13,ng23), absa(65,ng23)
-      real(kind=jprb) :: selfref(10,ng23), forref(3,ng23)
-      real(kind=jprb) :: sfluxref(ng23), rayl(ng23)
+      real(kind=rb) :: ka(5,13,ng23), absa(65,ng23)
+      real(kind=rb) :: selfref(10,ng23), forref(3,ng23)
+      real(kind=rb) :: sfluxref(ng23), rayl(ng23)
 
       equivalence (ka(1,1,1),absa(1,1))
 

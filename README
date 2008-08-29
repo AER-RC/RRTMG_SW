@@ -15,7 +15,13 @@
 
  Web Site: www.rtweb.aer.com
 
- Reference (RRTM_SW/RRTMG_SW):  
+ References (RRTMG_SW/RRTM_SW):  
+             Iacono, M.J., J.S. Delamere, E.J. Mlawer, M.W. Shephard,
+             S.A. Clough, and W.D. Collins, Radiative forcing by long-
+             lived greenhouse gases: Calculations with the AER radiative
+             transfer models, J. Geophys. Res., 113, D13103, doi:
+             10.1029/2008JD009944, 2008.
+
              Clough, S.A., M.W. Shephard, E.J. Mlawer, J.S. Delamere, 
              M.J. Iacono, K. Cady-Pereira, S. Boukabara, and P.D. Brown, 
              Atmospheric radiative transfer modeling: a summary of the
@@ -133,13 +139,16 @@ SAMPLE INPUT/OUTPUT:
    IN_AER_RRTM               : Required input file for aerosol specification if aerosols
                                are present
    OUTPUT_RRTM               : Main output file for atmospheric fluxes and heating rates
-   input_rrtm.MLS            : Sample 51 layer mid-latitude summer standard atmosphere
+   input_rrtm.MLS-clr        : Sample 51 layer mid-latitude summer standard atmosphere
    input_rrtm.MLS-cld-imca0  : Sample 51 layer mid-latitude summer standard atmosphere
                                with cloud flag turn on (without McICA)
    input_rrtm.MLS-cld-imca1  : Sample 51 layer mid-latitude summer standard atmosphere
                                with cloud flag turn on (with McICA)
-   input_rrtm.SAW            : Sample 51 layer sub-arctic winter standard atmosphere
-   input_rrtm.TROP           : Sample 51 layer tropical standard atmosphere
+   input_rrtm.MLS-clr-aer12  : Sample 51 layer mid-latitude summer standard atmosphere
+                               with aerosol flag set
+   input_rrtm.MLW-clr        : Sample 51 layer mid-latitude winter standard atmosphere
+   input_rrtm.SAW-clr        : Sample 51 layer sub-arctic winter standard atmosphere
+   input_rrtm.TROP-clr       : Sample 51 layer tropical standard atmosphere
    in_cld_rrtm-cld5          : Sample cloud input file
    in_aer_rrtm-aer12         : Sample aerosol input file
 
@@ -157,8 +166,8 @@ SOURCE CODE:
    The following source files (in /gcm_model/src directory) must be used to run 
    RRTMG_SW as a callable subroutine:
 
-   rrtmg_sw.f90              : RRTMG_SW main module (with McICA)
-   rrtmg_sw.nomcica.f90      : Optional RRTMG_SW main module (without McICA only)
+   rrtmg_sw_rad.f90          : RRTMG_SW main module (with McICA)
+   rrtmg_sw_rad.nomcica.f90  : Optional RRTMG_SW main module (without McICA only)
    rrtmg_sw_cldprop.f90      : Calculation of cloud optical properties
    rrtmg_sw_cldprmc.f90      : Calculation of cloud optical properties (McICA)
    rrtmg_sw_init.f90         : RRTMG_SW initialization routine; reduces g-intervals
@@ -207,7 +216,7 @@ Notes regarding GCM version:
       If McICA is utilized, this will run only a single statistical sample per
       model grid box.  There are two options for the random number generator used
       with McICA, which is selected with the variable irnd in mcica_subcol_gen_sw.f90.
-      When using McICA, the main RRTMG_SW module is rrtmg_sw.f90.  If McICA is not
-      used, then the main module is rrtmg_sw.nomcica.f90, though cloud specification
+      When using McICA, the main RRTMG_SW module is rrtmg_sw_rad.f90.  If McICA is not
+      used, then the main module is rrtmg_sw_rad.nomcica.f90, though cloud specification
       is limited to overcast clouds.
 

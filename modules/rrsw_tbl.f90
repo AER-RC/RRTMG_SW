@@ -1,6 +1,6 @@
       module rrsw_tbl
 
-      use parkind, only : jpim, jprb
+      use parkind, only : im => kind_im, rb => kind_rb
 
       implicit none
       save
@@ -10,6 +10,7 @@
 
 ! Initial version: MJIacono, AER, may2007
 ! Revised: MJIacono, AER, aug2007
+! Revised: MJIacono, AER, aug2008
 !------------------------------------------------------------------
 
 !  name     type     purpose
@@ -24,17 +25,17 @@
 ! bpade  :  real   : Inverse of Pade constant
 !------------------------------------------------------------------
 
-      integer(kind=jpim), parameter :: ntbl = 10000
+      integer(kind=im), parameter :: ntbl = 10000
 
-      real(kind=jprb), parameter :: tblint = 10000.0
+      real(kind=rb), parameter :: tblint = 10000.0_rb
 
-      real(kind=jprb), parameter :: od_lo = 0.06
+      real(kind=rb), parameter :: od_lo = 0.06_rb
 
-      real(kind=jprb) :: tau_tbl
-      real(kind=jprb) , dimension(0:ntbl) :: exp_tbl
+      real(kind=rb) :: tau_tbl
+      real(kind=rb) , dimension(0:ntbl) :: exp_tbl
 
-      real(kind=jprb), parameter :: pade = 0.278_jprb
-      real(kind=jprb) :: bpade
+      real(kind=rb), parameter :: pade = 0.278_rb
+      real(kind=rb) :: bpade
 
       end module rrsw_tbl
 

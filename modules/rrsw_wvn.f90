@@ -1,6 +1,6 @@
       module rrsw_wvn
 
-      use parkind, only : jpim, jprb
+      use parkind, only : im => kind_im, rb => kind_rb
       use parrrsw, only : nbndsw, mg, ngptsw, jpb1, jpb2
 
       implicit none
@@ -11,6 +11,7 @@
 
 ! Initial version:  JJMorcrette, ECMWF, jul1998
 ! Revised: MJIacono, AER, jul2006
+! Revised: MJIacono, AER, aug2008
 !------------------------------------------------------------------
 
 !  name     type     purpose
@@ -35,21 +36,21 @@
 !                    (112 total)
 !------------------------------------------------------------------
 
-      integer(kind=jpim) :: ng(jpb1:jpb2)
-      integer(kind=jpim) :: nspa(jpb1:jpb2)
-      integer(kind=jpim) :: nspb(jpb1:jpb2)
+      integer(kind=im) :: ng(jpb1:jpb2)
+      integer(kind=im) :: nspa(jpb1:jpb2)
+      integer(kind=im) :: nspb(jpb1:jpb2)
 
-      real(kind=jprb) :: wavenum1(jpb1:jpb2)
-      real(kind=jprb) :: wavenum2(jpb1:jpb2)
-      real(kind=jprb) :: delwave(jpb1:jpb2)
+      real(kind=rb) :: wavenum1(jpb1:jpb2)
+      real(kind=rb) :: wavenum2(jpb1:jpb2)
+      real(kind=rb) :: delwave(jpb1:jpb2)
 
-      integer(kind=jpim) :: ngc(nbndsw)
-      integer(kind=jpim) :: ngs(nbndsw)
-      integer(kind=jpim) :: ngn(ngptsw)
-      integer(kind=jpim) :: ngb(ngptsw)
-      integer(kind=jpim) :: ngm(nbndsw*mg)
+      integer(kind=im) :: ngc(nbndsw)
+      integer(kind=im) :: ngs(nbndsw)
+      integer(kind=im) :: ngn(ngptsw)
+      integer(kind=im) :: ngb(ngptsw)
+      integer(kind=im) :: ngm(nbndsw*mg)
 
-      real(kind=jprb) :: wt(mg)
-      real(kind=jprb) :: rwgt(nbndsw*mg)
+      real(kind=rb) :: wt(mg)
+      real(kind=rb) :: rwgt(nbndsw*mg)
 
       end module rrsw_wvn

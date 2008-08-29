@@ -1,6 +1,6 @@
       module rrsw_ref
 
-      use parkind, only : jpim, jprb
+      use parkind, only : im => kind_im, rb => kind_rb
 
       implicit none
       save
@@ -11,6 +11,7 @@
 !
 ! Initial version:  JJMorcrette, ECMWF, jul1998
 ! Revised: MJIacono, AER, jun2006
+! Revised: MJIacono, AER, aug2008
 !------------------------------------------------------------------
 
 !  name     type     purpose
@@ -20,8 +21,8 @@
 ! tref   :  real   : Reference temperature levels for MLS profile
 !------------------------------------------------------------------
 
-      real(kind=jprb) , dimension(59) :: pref
-      real(kind=jprb) , dimension(59) :: preflog
-      real(kind=jprb) , dimension(59) :: tref
+      real(kind=rb) , dimension(59) :: pref
+      real(kind=rb) , dimension(59) :: preflog
+      real(kind=rb) , dimension(59) :: tref
 
       end module rrsw_ref

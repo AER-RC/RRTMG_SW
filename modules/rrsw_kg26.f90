@@ -1,6 +1,6 @@
       module rrsw_kg26
 
-      use parkind ,only : jpim, jprb
+      use parkind ,only : im => kind_im, rb => kind_rb
       use parrrsw, only : ng26
 
       implicit none
@@ -12,6 +12,7 @@
 !
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
+! Revised: MJIacono, AER, aug2008
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -20,10 +21,10 @@
 ! raylo   : real     
 !-----------------------------------------------------------------
 
-      integer(kind=jpim), parameter :: no26 = 16
+      integer(kind=im), parameter :: no26 = 16
 
-      real(kind=jprb) :: sfluxrefo(no26)
-      real(kind=jprb) :: raylo(no26)
+      real(kind=rb) :: sfluxrefo(no26)
+      real(kind=rb) :: raylo(no26)
 
 !-----------------------------------------------------------------
 ! rrtmg_sw COMBINED abs. coefficients for interval 26
@@ -31,6 +32,7 @@
 !
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
+! Revised: MJIacono, AER, aug2008
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -39,8 +41,8 @@
 ! rayl    : real     
 !-----------------------------------------------------------------
 
-      real(kind=jprb) :: sfluxref(ng26)
-      real(kind=jprb) :: rayl(ng26)
+      real(kind=rb) :: sfluxref(ng26)
+      real(kind=rb) :: rayl(ng26)
 
       end module rrsw_kg26
 

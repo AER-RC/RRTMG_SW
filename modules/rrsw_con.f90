@@ -1,6 +1,6 @@
       module rrsw_con
 
-      use parkind, only : jpim, jprb
+      use parkind, only : im => kind_im, rb => kind_rb
 
       implicit none
       save
@@ -9,6 +9,7 @@
 ! rrtmg_sw constants
 
 ! Initial version: MJIacono, AER, jun2006
+! Revised: MJIacono, AER, aug2008
 !------------------------------------------------------------------
 
 !  name     type     purpose
@@ -17,22 +18,25 @@
 ! heatfac:  real   : flux to heating rate conversion factor
 !oneminus:  real   : 1.-1.e-6
 ! pi     :  real   : pi
-! grav   :  real   : acceleration of gravity (m/s2)
+! grav   :  real   : acceleration of gravity
 ! planck :  real   : planck constant
-! boltz  :  real   : boltzman constant
+! boltz  :  real   : boltzmann constant
 ! clight :  real   : speed of light
-! avogad :  real   : avogadro's constant 
-! alosmt :  real   : 
-! gascon :  real   : gas constant
-! radcn1 :  real   : 
-! radcn2 :  real   : 
+! avogad :  real   : avogadro constant 
+! alosmt :  real   : loschmidt constant
+! gascon :  real   : molar gas constant
+! radcn1 :  real   : first radiation constant
+! radcn2 :  real   : second radiation constant
+! sbcnst :  real   : stefan-boltzmann constant
+!  secdy :  real   : seconds per day
 !------------------------------------------------------------------
 
-      real(kind=jprb) :: fluxfac, heatfac
-      real(kind=jprb) :: oneminus, pi, grav
-      real(kind=jprb) :: planck, boltz, clight
-      real(kind=jprb) :: avogad, alosmt, gascon
-      real(kind=jprb) :: radcn1, radcn2
+      real(kind=rb) :: fluxfac, heatfac
+      real(kind=rb) :: oneminus, pi, grav
+      real(kind=rb) :: planck, boltz, clight
+      real(kind=rb) :: avogad, alosmt, gascon
+      real(kind=rb) :: radcn1, radcn2
+      real(kind=rb) :: sbcnst, secdy
 
       end module rrsw_con
 

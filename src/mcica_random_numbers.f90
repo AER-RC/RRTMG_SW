@@ -77,7 +77,7 @@
   module MersenneTwister
 ! -------------------------------------------------------------
 
-  use parkind, only : jpim, jprb 
+  use parkind, only : im => kind_im, rb => kind_rb
 
   implicit none
   private
@@ -85,20 +85,20 @@
   ! Algorithm parameters
   ! -------
   ! Period parameters
-  integer(kind=jpim), parameter :: blockSize = 624,         &
+  integer(kind=im), parameter :: blockSize = 624,         &
                         M         = 397,         &
                         MATRIX_A  = -1727483681, & ! constant vector a         (0x9908b0dfUL)
                         UMASK     = -2147483648, & ! most significant w-r bits (0x80000000UL)
                         LMASK     =  2147483647    ! least significant r bits  (0x7fffffffUL)
   ! Tempering parameters
-  integer(kind=jpim), parameter :: TMASKB= -1658038656, & ! (0x9d2c5680UL)
+  integer(kind=im), parameter :: TMASKB= -1658038656, & ! (0x9d2c5680UL)
                         TMASKC= -272236544     ! (0xefc60000UL)
   ! -------
 
   ! The type containing the state variable  
   type randomNumberSequence
-    integer(kind=jpim)                            :: currentElement ! = blockSize
-    integer(kind=jpim), dimension(0:blockSize -1) :: state ! = 0
+    integer(kind=im)                            :: currentElement ! = blockSize
+    integer(kind=im), dimension(0:blockSize -1) :: state ! = 0
   end type randomNumberSequence
 
   interface new_RandomNumberSequence
@@ -114,48 +114,48 @@ contains
   ! Private functions
   ! ---------------------------
   function mixbits(u, v)
-    integer(kind=jpim), intent( in) :: u, v
-    integer(kind=jpim)              :: mixbits
+    integer(kind=im), intent( in) :: u, v
+    integer(kind=im)              :: mixbits
     
     mixbits = ior(iand(u, UMASK), iand(v, LMASK))
   end function mixbits
   ! ---------------------------
   function twist(u, v)
-    integer(kind=jpim), intent( in) :: u, v
-    integer(kind=jpim)              :: twist
+    integer(kind=im), intent( in) :: u, v
+    integer(kind=im)              :: twist
 
     ! Local variable
-    integer(kind=jpim), parameter, dimension(0:1) :: t_matrix = (/ 0_jpim, MATRIX_A /)
+    integer(kind=im), parameter, dimension(0:1) :: t_matrix = (/ 0_im, MATRIX_A /)
     
-    twist = ieor(ishft(mixbits(u, v), -1_jpim), t_matrix(iand(v, 1_jpim)))
-    twist = ieor(ishft(mixbits(u, v), -1_jpim), t_matrix(iand(v, 1_jpim)))
+    twist = ieor(ishft(mixbits(u, v), -1_im), t_matrix(iand(v, 1_im)))
+    twist = ieor(ishft(mixbits(u, v), -1_im), t_matrix(iand(v, 1_im)))
   end function twist
   ! ---------------------------
   subroutine nextState(twister)
     type(randomNumberSequence), intent(inout) :: twister
     
     ! Local variables
-    integer(kind=jpim) :: k
+    integer(kind=im) :: k
     
     do k = 0, blockSize - M - 1
       twister%state(k) = ieor(twister%state(k + M), &
-                              twist(twister%state(k), twister%state(k + 1_jpim)))
+                              twist(twister%state(k), twister%state(k + 1_im)))
     end do 
     do k = blockSize - M, blockSize - 2
       twister%state(k) = ieor(twister%state(k + M - blockSize), &
-                              twist(twister%state(k), twister%state(k + 1_jpim)))
+                              twist(twister%state(k), twister%state(k + 1_im)))
     end do 
-    twister%state(blockSize - 1_jpim) = ieor(twister%state(M - 1_jpim), &
-                                        twist(twister%state(blockSize - 1_jpim), twister%state(0_jpim)))
-    twister%currentElement = 0_jpim
+    twister%state(blockSize - 1_im) = ieor(twister%state(M - 1_im), &
+                                        twist(twister%state(blockSize - 1_im), twister%state(0_im)))
+    twister%currentElement = 0_im
 
   end subroutine nextState
   ! ---------------------------
   elemental function temper(y)
-    integer(kind=jpim), intent(in) :: y
-    integer(kind=jpim)             :: temper
+    integer(kind=im), intent(in) :: y
+    integer(kind=im)             :: temper
     
-    integer(kind=jpim) :: x
+    integer(kind=im) :: x
     
     ! Tempering
     x      = ieor(y, ishft(y, -11))
@@ -167,31 +167,31 @@ contains
   ! Public (but hidden) functions
   ! --------------------
   function initialize_scalar(seed) result(twister)
-    integer(kind=jpim),       intent(in   ) :: seed
+    integer(kind=im),       intent(in   ) :: seed
     type(randomNumberSequence)                :: twister 
     
-    integer(kind=jpim) :: i
+    integer(kind=im) :: i
     ! See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. In the previous versions, 
     !   MSBs of the seed affect only MSBs of the array state[].                       
     !   2002/01/09 modified by Makoto Matsumoto            
     
-    twister%state(0) = iand(seed, -1_jpim)
+    twister%state(0) = iand(seed, -1_im)
     do i = 1,  blockSize - 1 ! ubound(twister%state)
-       twister%state(i) = 1812433253_jpim * ieor(twister%state(i-1), &
-                                            ishft(twister%state(i-1), -30_jpim)) + i
-       twister%state(i) = iand(twister%state(i), -1_jpim) ! for >32 bit machines
+       twister%state(i) = 1812433253_im * ieor(twister%state(i-1), &
+                                            ishft(twister%state(i-1), -30_im)) + i
+       twister%state(i) = iand(twister%state(i), -1_im) ! for >32 bit machines
     end do
     twister%currentElement = blockSize
   end function initialize_scalar
   ! -------------------------------------------------------------
   function initialize_vector(seed) result(twister)
-    integer(kind=jpim), dimension(0:), intent(in) :: seed
+    integer(kind=im), dimension(0:), intent(in) :: seed
     type(randomNumberSequence)                      :: twister 
     
-    integer(kind=jpim) :: i, j, k, nFirstLoop, nWraps
+    integer(kind=im) :: i, j, k, nFirstLoop, nWraps
     
     nWraps  = 0
-    twister = initialize_scalar(19650218_jpim)
+    twister = initialize_scalar(19650218_im)
     
     nFirstLoop = max(blockSize, size(seed))
     do k = 1, nFirstLoop
@@ -201,16 +201,16 @@ contains
          twister%state(i) = twister%state(blockSize - 1)
          twister%state(1) = ieor(twister%state(1),                                 &
                                  ieor(twister%state(1-1),                          & 
-                                      ishft(twister%state(1-1), -30_jpim)) * 1664525_jpim) + & 
+                                      ishft(twister%state(1-1), -30_im)) * 1664525_im) + & 
                             seed(j) + j ! Non-linear
-         twister%state(i) = iand(twister%state(i), -1_jpim) ! for >32 bit machines
+         twister%state(i) = iand(twister%state(i), -1_im) ! for >32 bit machines
          nWraps = nWraps + 1
        else
          twister%state(i) = ieor(twister%state(i),                                 &
                                  ieor(twister%state(i-1),                          & 
-                                      ishft(twister%state(i-1), -30_jpim)) * 1664525_jpim) + & 
+                                      ishft(twister%state(i-1), -30_im)) * 1664525_im) + & 
                             seed(j) + j ! Non-linear
-         twister%state(i) = iand(twister%state(i), -1_jpim) ! for >32 bit machines
+         twister%state(i) = iand(twister%state(i), -1_im) ! for >32 bit machines
       end if
     end do
     
@@ -220,8 +220,8 @@ contains
     do i = mod(nFirstLoop, blockSize) + nWraps + 1, blockSize - 1
       twister%state(i) = ieor(twister%state(i),                                 &
                               ieor(twister%state(i-1),                          & 
-                                   ishft(twister%state(i-1), -30_jpim)) * 1566083941_jpim) - i ! Non-linear
-      twister%state(i) = iand(twister%state(i), -1_jpim) ! for >32 bit machines
+                                   ishft(twister%state(i-1), -30_im)) * 1566083941_im) - i ! Non-linear
+      twister%state(i) = iand(twister%state(i), -1_im) ! for >32 bit machines
     end do
     
     twister%state(0) = twister%state(blockSize - 1) 
@@ -229,8 +229,8 @@ contains
     do i = 1, mod(nFirstLoop, blockSize) + nWraps
       twister%state(i) = ieor(twister%state(i),                                 &
                               ieor(twister%state(i-1),                          & 
-                                   ishft(twister%state(i-1), -30_jpim)) * 1566083941_jpim) - i ! Non-linear
-      twister%state(i) = iand(twister%state(i), -1_jpim) ! for >32 bit machines
+                                   ishft(twister%state(i-1), -30_im)) * 1566083941_im) - i ! Non-linear
+      twister%state(i) = iand(twister%state(i), -1_im) ! for >32 bit machines
     end do
     
     twister%state(0) = UMASK 
@@ -242,7 +242,7 @@ contains
   ! --------------------
   function getRandomInt(twister)
     type(randomNumberSequence), intent(inout) :: twister
-    integer(kind=jpim)                        :: getRandomInt
+    integer(kind=im)                        :: getRandomInt
     ! Generate a random integer on the interval [0,0xffffffff]
     !   Equivalent to genrand_int32 in the C code. 
     !   Fortran doesn't have a type that's unsigned like C does, 
@@ -259,13 +259,13 @@ contains
   ! --------------------
   function getRandomPositiveInt(twister)
     type(randomNumberSequence), intent(inout) :: twister
-    integer(kind=jpim)                        :: getRandomPositiveInt
+    integer(kind=im)                        :: getRandomPositiveInt
     ! Generate a random integer on the interval [0,0x7fffffff]
     !   or [0,2**31]
     !   Equivalent to genrand_int31 in the C code. 
     
     ! Local integers
-    integer(kind=jpim) :: localInt
+    integer(kind=im) :: localInt
 
     localInt = getRandomInt(twister)
     getRandomPositiveInt = ishft(localInt, -1)
@@ -276,20 +276,20 @@ contains
   function getRandomReal(twister)
     type(randomNumberSequence), intent(inout) :: twister
 !    double precision             :: getRandomReal
-    real(kind=jprb)             :: getRandomReal
+    real(kind=rb)             :: getRandomReal
     ! Generate a random number on [0,1]
     !   Equivalent to genrand_real1 in the C code
     !   The result is stored as double precision but has 32 bit resolution
     
-    integer(kind=jpim) :: localInt
+    integer(kind=im) :: localInt
     
     localInt = getRandomInt(twister)
     if(localInt < 0) then
 !      getRandomReal = dble(localInt + 2.0d0**32)/(2.0d0**32 - 1.0d0)
-      getRandomReal = (localInt + 2.0**32_jprb)/(2.0**32_jprb - 1.0_jprb)
+      getRandomReal = (localInt + 2.0**32_rb)/(2.0**32_rb - 1.0_rb)
     else
 !      getRandomReal = dble(localInt            )/(2.0d0**32 - 1.0d0)
-      getRandomReal = (localInt            )/(2.0**32_jprb - 1.0_jprb)
+      getRandomReal = (localInt            )/(2.0**32_rb - 1.0_rb)
     end if
 
   end function getRandomReal
@@ -298,7 +298,7 @@ contains
     type(randomNumberSequence), intent(inout) :: twister
     
       twister%currentElement = blockSize
-      twister%state(:) = 0_jpim
+      twister%state(:) = 0_im
   end subroutine finalize_RandomNumberSequence
 
   ! --------------------  
@@ -319,7 +319,7 @@ contains
 !! mji
 !!  use time_manager_mod, only: time_type, get_date
 
-  use parkind, only : jpim, jprb 
+  use parkind, only : im => kind_im, rb => kind_rb
 
   implicit none
   private
@@ -346,7 +346,7 @@ contains
   ! Initialization
   ! ---------------------------------------------------------
   function initializeRandomNumberStream_S(seed) result(new) 
-    integer(kind=jpim), intent( in)     :: seed
+    integer(kind=im), intent( in)     :: seed
     type(randomNumberStream) :: new
     
     new%theNumbers = new_RandomNumberSequence(seed)
@@ -354,7 +354,7 @@ contains
   end function initializeRandomNumberStream_S
   ! ---------------------------------------------------------
   function initializeRandomNumberStream_V(seed) result(new) 
-    integer(kind=jpim), dimension(:), intent( in) :: seed
+    integer(kind=im), dimension(:), intent( in) :: seed
     type(randomNumberStream)           :: new
     
     new%theNumbers = new_RandomNumberSequence(seed)
@@ -365,17 +365,17 @@ contains
   ! ---------------------------------------------------------
   subroutine getRandomNumber_Scalar(stream, number)
     type(randomNumberStream), intent(inout) :: stream
-    real(kind=jprb),                     intent(  out) :: number
+    real(kind=rb),                     intent(  out) :: number
     
     number = getRandomReal(stream%theNumbers)
   end subroutine getRandomNumber_Scalar
   ! ---------------------------------------------------------
   subroutine getRandomNumber_1D(stream, numbers)
     type(randomNumberStream), intent(inout) :: stream
-    real(kind=jprb), dimension(:),       intent(  out) :: numbers
+    real(kind=rb), dimension(:),       intent(  out) :: numbers
     
     ! Local variables
-    integer(kind=jpim) :: i
+    integer(kind=im) :: i
     
     do i = 1, size(numbers)
       numbers(i) = getRandomReal(stream%theNumbers)
@@ -384,10 +384,10 @@ contains
   ! ---------------------------------------------------------
   subroutine getRandomNumber_2D(stream, numbers)
     type(randomNumberStream), intent(inout) :: stream
-    real(kind=jprb), dimension(:, :),    intent(  out) :: numbers
+    real(kind=rb), dimension(:, :),    intent(  out) :: numbers
     
     ! Local variables
-    integer(kind=jpim) :: i
+    integer(kind=im) :: i
     
     do i = 1, size(numbers, 2)
       call getRandomNumber_1D(stream, numbers(:, i))
@@ -399,12 +399,12 @@ contains
 !  !   Once we have the GFDL stuff we'll add the year, month, day, hour, minute
 !  ! ---------------------------------------------------------
 !  function constructSeed(i, j, time) result(seed)
-!    integer(kind=jpim),         intent( in)  :: i, j
+!    integer(kind=im),         intent( in)  :: i, j
 !    type(time_type), intent( in) :: time
-!    integer(kind=jpim), dimension(8) :: seed
+!    integer(kind=im), dimension(8) :: seed
 !    
 !    ! Local variables
-!    integer(kind=jpim) :: year, month, day, hour, minute, second
+!    integer(kind=im) :: year, month, day, hour, minute, second
 !    
 !    
 !    call get_date(time, year, month, day, hour, minute, second)

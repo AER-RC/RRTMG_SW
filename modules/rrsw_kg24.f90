@@ -1,6 +1,6 @@
       module rrsw_kg24
 
-      use parkind ,only : jpim, jprb
+      use parkind ,only : im => kind_im, rb => kind_rb
       use parrrsw, only : ng24
 
       implicit none
@@ -12,6 +12,7 @@
 !
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
+! Revised: MJIacono, AER, aug2008
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -27,17 +28,17 @@
 ! raylbo  : real     
 !-----------------------------------------------------------------
 
-      integer(kind=jpim), parameter :: no24 = 16
+      integer(kind=im), parameter :: no24 = 16
 
-      real(kind=jprb) :: kao(9,5,13,no24)
-      real(kind=jprb) :: kbo(5,13:59,no24)
-      real(kind=jprb) :: selfrefo(10,no24), forrefo(3,no24)
-      real(kind=jprb) :: sfluxrefo(no24,9)
-      real(kind=jprb) :: abso3ao(no24), abso3bo(no24)
-      real(kind=jprb) :: raylao(no24,9), raylbo(no24)
+      real(kind=rb) :: kao(9,5,13,no24)
+      real(kind=rb) :: kbo(5,13:59,no24)
+      real(kind=rb) :: selfrefo(10,no24), forrefo(3,no24)
+      real(kind=rb) :: sfluxrefo(no24,9)
+      real(kind=rb) :: abso3ao(no24), abso3bo(no24)
+      real(kind=rb) :: raylao(no24,9), raylbo(no24)
 
-      integer(kind=jpim) :: layreffr
-      real(kind=jprb) :: strrat
+      integer(kind=im) :: layreffr
+      real(kind=rb) :: strrat
 
 !-----------------------------------------------------------------
 ! rrtmg_sw COMBINED abs. coefficients for interval 24
@@ -45,6 +46,7 @@
 !
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
+! Revised: MJIacono, AER, aug2008
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -62,12 +64,12 @@
 ! raylb   : real     
 !-----------------------------------------------------------------
 
-      real(kind=jprb) :: ka(9,5,13,ng24), absa(585,ng24)
-      real(kind=jprb) :: kb(5,13:59,ng24), absb(235,ng24)
-      real(kind=jprb) :: selfref(10,ng24), forref(3,ng24)
-      real(kind=jprb) :: sfluxref(ng24,9)
-      real(kind=jprb) :: abso3a(ng24), abso3b(ng24)
-      real(kind=jprb) :: rayla(ng24,9), raylb(ng24)
+      real(kind=rb) :: ka(9,5,13,ng24), absa(585,ng24)
+      real(kind=rb) :: kb(5,13:59,ng24), absb(235,ng24)
+      real(kind=rb) :: selfref(10,ng24), forref(3,ng24)
+      real(kind=rb) :: sfluxref(ng24,9)
+      real(kind=rb) :: abso3a(ng24), abso3b(ng24)
+      real(kind=rb) :: rayla(ng24,9), raylb(ng24)
 
       equivalence (ka(1,1,1,1),absa(1,1)), (kb(1,13,1),absb(1,1))
 

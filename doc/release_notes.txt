@@ -9,6 +9,51 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+August 29, 2008:
+
+	Release_3_6
+
+        Revised cloud property input to require in-cloud averaged cloud optical
+        depth or in-cloud averaged cloud ice and liquid water paths in both the 
+        single-column and gcm versions of the code. In earlier versions of the gcm
+        code, input grid-averaged cloud properties were scaled by the cloud fraction
+        internally to generate in-cloud averaged properties.  This change requires
+        that this scaling be performed during the interfacing if necessary.  The
+        minor structural modifications to the code have no effect on the results,
+        though a minor change to the factor used to convert flux to heating rate
+        will have a negligible effect on the heating rates. 
+
+        Publicly released on AER RT web site in August 2008.
+
+        - Added requirement that cloud properties be input as in-cloud averages
+          rather than grid-averaged values in GCM code.
+        - Renamed rrtmg_sw.f90 to rrtmg_sw_rad.f90 and renamed rrtmg_sw.nomcica.f90
+          to rrtmg_sw_rad.nomcica.f90 for consistency between file names and
+          module names. 
+        - Replaced several 'where' statements with traditional loops in module
+          mcica_subcol_gen_sw to improve computational performance on some systems.
+        - Moved subroutine swcldpr, which contains cloud absorption coefficient
+          data, from module rrtmg_sw_cldprop.f90 to rrtmg_sw_init.f90.
+        - Removed unnecessary use association of module mcica_subcol_gen_sw
+          from rrtmg_sw_rad.nomcica.f90. 
+        - Revised definition and naming of integer and real kind type parameters. 
+        - Changed setting of flag for selecting random number generator (irng) for
+          McICA to make it a required input variable. Available options are kissvec 
+          or Mersenne Twister.
+        - Increased precision of heatfac by changing it from a hard-wired value to 
+          a calculated value and changed code to require input of specific heat of 
+          dry air into init module (rrtmg_sw_init.f90) for heatfac calculation.   
+        - Oxygen volume mixing ratio was changed from a hard-wired parameter to
+          a required input array. 
+        - Forward scattering fraction was added as required input array.  This
+          was previously set as the square of the asymmetry parameter internally.
+          This change was made to enhance the code flexibility to allow this value
+          to be defined by the host GCM. 
+        - In the column version of the code, increased the number of digits required 
+          to input variable solvar from INPUT_RRTM input file from three (f5.3) to
+          five (f7.5) to improve code flexibility. 
+
+
 January 3, 2008:
 
 	Release_3_5

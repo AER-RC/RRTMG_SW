@@ -1,6 +1,6 @@
       module rrsw_kg18
 
-      use parkind ,only : jpim, jprb
+      use parkind ,only : im => kind_im, rb => kind_rb
       use parrrsw, only : ng18
 
       implicit none
@@ -12,6 +12,7 @@
 !
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
+! Revised: MJIacono, AER, aug2008
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -23,15 +24,15 @@
 !sfluxrefo: real     
 !-----------------------------------------------------------------
 
-      integer(kind=jpim), parameter :: no18 = 16
+      integer(kind=im), parameter :: no18 = 16
 
-      real(kind=jprb) :: kao(9,5,13,no18)
-      real(kind=jprb) :: kbo(5,13:59,no18)
-      real(kind=jprb) :: selfrefo(10,no18), forrefo(3,no18)
-      real(kind=jprb) :: sfluxrefo(no18,9)
+      real(kind=rb) :: kao(9,5,13,no18)
+      real(kind=rb) :: kbo(5,13:59,no18)
+      real(kind=rb) :: selfrefo(10,no18), forrefo(3,no18)
+      real(kind=rb) :: sfluxrefo(no18,9)
 
-      integer(kind=jpim) :: layreffr
-      real(kind=jprb) :: rayl, strrat
+      integer(kind=im) :: layreffr
+      real(kind=rb) :: rayl, strrat
 
 !-----------------------------------------------------------------
 ! rrtmg_sw COMBINED abs. coefficients for interval 18
@@ -39,6 +40,7 @@
 !
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
+! Revised: MJIacono, AER, aug2008
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -52,10 +54,10 @@
 ! sfluxref: real     
 !-----------------------------------------------------------------
 
-      real(kind=jprb) :: ka(9,5,13,ng18), absa(585,ng18)
-      real(kind=jprb) :: kb(5,13:59,ng18), absb(235,ng18)
-      real(kind=jprb) :: selfref(10,ng18), forref(3,ng18)
-      real(kind=jprb) :: sfluxref(ng18,9)
+      real(kind=rb) :: ka(9,5,13,ng18), absa(585,ng18)
+      real(kind=rb) :: kb(5,13:59,ng18), absb(235,ng18)
+      real(kind=rb) :: selfref(10,ng18), forref(3,ng18)
+      real(kind=rb) :: sfluxref(ng18,9)
 
       equivalence (ka(1,1,1,1),absa(1,1)), (kb(1,13,1),absb(1,1))
 

@@ -7,7 +7,7 @@
 
 !  --------------------------------------------------------------------------
 ! |                                                                          |
-! |  Copyright 2002-2007, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  Copyright 2002-2008, Atmospheric & Environmental Research, Inc. (AER).  |
 ! |  This software may be used, copied, or redistributed as long as it is    |
 ! |  not sold and this copyright notice is reproduced on each copy made.     |
 ! |  This model is provided as is without any express or implied warranties. |
@@ -17,7 +17,7 @@
 
 ! ------- Modules -------
 
-      use parkind, only : jpim, jprb 
+      use parkind, only : im => kind_im, rb => kind_rb
 !      use parrrsw, only : mg, jpband, nbndsw, ngptsw
       use rrsw_con, only: oneminus
       use rrsw_wvn, only: nspa, nspb
@@ -165,56 +165,56 @@
 ! ------- Declarations -------
 
 ! ----- Input -----
-      integer(kind=jpim), intent(in) :: nlayers            ! total number of layers
+      integer(kind=im), intent(in) :: nlayers            ! total number of layers
 
-      integer(kind=jpim), intent(in) :: laytrop            ! tropopause layer index
-      integer(kind=jpim), intent(in) :: jp(:)              ! 
-                                                           !   Dimensions: (nlayers)
-      integer(kind=jpim), intent(in) :: jt(:)              !
-                                                           !   Dimensions: (nlayers)
-      integer(kind=jpim), intent(in) :: jt1(:)             !
-                                                           !   Dimensions: (nlayers)
+      integer(kind=im), intent(in) :: laytrop            ! tropopause layer index
+      integer(kind=im), intent(in) :: jp(:)              ! 
+                                                         !   Dimensions: (nlayers)
+      integer(kind=im), intent(in) :: jt(:)              !
+                                                         !   Dimensions: (nlayers)
+      integer(kind=im), intent(in) :: jt1(:)             !
+                                                         !   Dimensions: (nlayers)
 
-      real(kind=jprb), intent(in) :: colh2o(:)             ! column amount (h2o)
-                                                           !   Dimensions: (nlayers)
-      real(kind=jprb), intent(in) :: colco2(:)             ! column amount (co2)
-                                                           !   Dimensions: (nlayers)
-      real(kind=jprb), intent(in) :: colo3(:)              ! column amount (o3)
-                                                           !   Dimensions: (nlayers)
-      real(kind=jprb), intent(in) :: colch4(:)             ! column amount (ch4)
-                                                           !   Dimensions: (nlayers)
-                                                           !   Dimensions: (nlayers)
-      real(kind=jprb), intent(in) :: colo2(:)              ! column amount (o2)
-                                                           !   Dimensions: (nlayers)
-      real(kind=jprb), intent(in) :: colmol(:)             ! 
-                                                           !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: colh2o(:)             ! column amount (h2o)
+                                                         !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: colco2(:)             ! column amount (co2)
+                                                         !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: colo3(:)              ! column amount (o3)
+                                                         !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: colch4(:)             ! column amount (ch4)
+                                                         !   Dimensions: (nlayers)
+                                                         !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: colo2(:)              ! column amount (o2)
+                                                         !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: colmol(:)             ! 
+                                                         !   Dimensions: (nlayers)
 
-      integer(kind=jpim), intent(in) :: indself(:)    
-                                                           !   Dimensions: (nlayers)
-      integer(kind=jpim), intent(in) :: indfor(:)
-                                                           !   Dimensions: (nlayers)
-      real(kind=jprb), intent(in) :: selffac(:)
-                                                           !   Dimensions: (nlayers)
-      real(kind=jprb), intent(in) :: selffrac(:)
-                                                           !   Dimensions: (nlayers)
-      real(kind=jprb), intent(in) :: forfac(:)
-                                                           !   Dimensions: (nlayers)
-      real(kind=jprb), intent(in) :: forfrac(:)
-                                                           !   Dimensions: (nlayers)
+      integer(kind=im), intent(in) :: indself(:)    
+                                                         !   Dimensions: (nlayers)
+      integer(kind=im), intent(in) :: indfor(:)
+                                                         !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: selffac(:)
+                                                         !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: selffrac(:)
+                                                         !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: forfac(:)
+                                                         !   Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: forfrac(:)
+                                                         !   Dimensions: (nlayers)
 
-      real(kind=jprb), intent(in) :: &                     !
-                         fac00(:), fac01(:), &             !   Dimensions: (nlayers)
-                         fac10(:), fac11(:) 
+      real(kind=rb), intent(in) :: &                     !
+                       fac00(:), fac01(:), &             !   Dimensions: (nlayers)
+                       fac10(:), fac11(:) 
 
 ! ----- Output -----
-      real(kind=jprb), intent(out) :: sfluxzen(:)          ! solar source function
-                                                           !   Dimensions: (ngptsw)
-      real(kind=jprb), intent(out) :: taug(:,:)            ! gaseous optical depth 
-                                                           !   Dimensions: (nlayers,ngptsw)
-      real(kind=jprb), intent(out) :: taur(:,:)            ! Rayleigh 
-                                                           !   Dimensions: (nlayers,ngptsw)
-!      real(kind=jprb), intent(out) :: ssa(:,:)             ! single scattering albedo (inactive)
-                                                           !   Dimensions: (nlayers,ngptsw)
+      real(kind=rb), intent(out) :: sfluxzen(:)          ! solar source function
+                                                         !   Dimensions: (ngptsw)
+      real(kind=rb), intent(out) :: taug(:,:)            ! gaseous optical depth 
+                                                         !   Dimensions: (nlayers,ngptsw)
+      real(kind=rb), intent(out) :: taur(:,:)            ! Rayleigh 
+                                                         !   Dimensions: (nlayers,ngptsw)
+!      real(kind=rb), intent(out) :: ssa(:,:)            ! single scattering albedo (inactive)
+                                                         !   Dimensions: (nlayers,ngptsw)
 
       hvrtau = '$Revision$'
 
@@ -257,10 +257,10 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -271,15 +271,15 @@
          speccomb = colh2o(lay) + strrat1*colch4(lay)
          specparm = colh2o(lay)/speccomb 
          if (specparm .ge. oneminus) specparm = oneminus
-         specmult = 8._jprb*(specparm)
+         specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
-         fs = mod(specmult, 1._jprb )
-         fac000 = (1._jprb - fs) * fac00(lay)
-         fac010 = (1._jprb - fs) * fac10(lay)
+         fs = mod(specmult, 1._rb )
+         fac000 = (1._rb - fs) * fac00(lay)
+         fac010 = (1._rb - fs) * fac10(lay)
          fac100 = fs * fac00(lay)
          fac110 = fs * fac10(lay)
-         fac001 = (1._jprb - fs) * fac01(lay)
-         fac011 = (1._jprb - fs) * fac11(lay)
+         fac001 = (1._rb - fs) * fac01(lay)
+         fac011 = (1._rb - fs) * fac11(lay)
          fac101 = fs * fac01(lay)
          fac111 = fs * fac11(lay)
          ind0 = ((jp(lay)-1)*5+(jt(lay)-1))*nspa(16) + js
@@ -352,10 +352,10 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -366,15 +366,15 @@
          speccomb = colh2o(lay) + strrat*colco2(lay)
          specparm = colh2o(lay)/speccomb 
          if (specparm .ge. oneminus) specparm = oneminus
-         specmult = 8._jprb*(specparm)
+         specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
-         fs = mod(specmult, 1._jprb )
-         fac000 = (1._jprb - fs) * fac00(lay)
-         fac010 = (1._jprb - fs) * fac10(lay)
+         fs = mod(specmult, 1._rb )
+         fac000 = (1._rb - fs) * fac00(lay)
+         fac010 = (1._rb - fs) * fac10(lay)
          fac100 = fs * fac00(lay)
          fac110 = fs * fac10(lay)
-         fac001 = (1._jprb - fs) * fac01(lay)
-         fac011 = (1._jprb - fs) * fac11(lay)
+         fac001 = (1._rb - fs) * fac01(lay)
+         fac011 = (1._rb - fs) * fac11(lay)
          fac101 = fs * fac01(lay)
          fac111 = fs * fac11(lay)
          ind0 = ((jp(lay)-1)*5+(jt(lay)-1))*nspa(17) + js
@@ -414,15 +414,15 @@
          speccomb = colh2o(lay) + strrat*colco2(lay)
          specparm = colh2o(lay)/speccomb 
          if (specparm .ge. oneminus) specparm = oneminus
-         specmult = 4._jprb*(specparm)
+         specmult = 4._rb*(specparm)
          js = 1 + int(specmult)
-         fs = mod(specmult, 1._jprb )
-         fac000 = (1._jprb - fs) * fac00(lay)
-         fac010 = (1._jprb - fs) * fac10(lay)
+         fs = mod(specmult, 1._rb )
+         fac000 = (1._rb - fs) * fac00(lay)
+         fac010 = (1._rb - fs) * fac10(lay)
          fac100 = fs * fac00(lay)
          fac110 = fs * fac10(lay)
-         fac001 = (1._jprb - fs) * fac01(lay)
-         fac011 = (1._jprb - fs) * fac11(lay)
+         fac001 = (1._rb - fs) * fac01(lay)
+         fac011 = (1._rb - fs) * fac11(lay)
          fac101 = fs * fac01(lay)
          fac111 = fs * fac11(lay)
          ind0 = ((jp(lay)-13)*5+(jt(lay)-1))*nspb(17) + js
@@ -471,10 +471,10 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -489,15 +489,15 @@
          speccomb = colh2o(lay) + strrat*colch4(lay)
          specparm = colh2o(lay)/speccomb 
          if (specparm .ge. oneminus) specparm = oneminus
-         specmult = 8._jprb*(specparm)
+         specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
-         fs = mod(specmult, 1._jprb )
-         fac000 = (1._jprb - fs) * fac00(lay)
-         fac010 = (1._jprb - fs) * fac10(lay)
+         fs = mod(specmult, 1._rb )
+         fac000 = (1._rb - fs) * fac00(lay)
+         fac010 = (1._rb - fs) * fac10(lay)
          fac100 = fs * fac00(lay)
          fac110 = fs * fac10(lay)
-         fac001 = (1._jprb - fs) * fac01(lay)
-         fac011 = (1._jprb - fs) * fac11(lay)
+         fac001 = (1._rb - fs) * fac01(lay)
+         fac011 = (1._rb - fs) * fac11(lay)
          fac101 = fs * fac01(lay)
          fac111 = fs * fac11(lay)
          ind0 = ((jp(lay)-1)*5+(jt(lay)-1))*nspa(18) + js
@@ -567,10 +567,10 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -585,15 +585,15 @@
          speccomb = colh2o(lay) + strrat*colco2(lay)
          specparm = colh2o(lay)/speccomb 
          if (specparm .ge. oneminus) specparm = oneminus
-         specmult = 8._jprb*(specparm)
+         specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
-         fs = mod(specmult, 1._jprb )
-         fac000 = (1._jprb - fs) * fac00(lay)
-         fac010 = (1._jprb - fs) * fac10(lay)
+         fs = mod(specmult, 1._rb )
+         fac000 = (1._rb - fs) * fac00(lay)
+         fac010 = (1._rb - fs) * fac10(lay)
          fac100 = fs * fac00(lay)
          fac110 = fs * fac10(lay)
-         fac001 = (1._jprb - fs) * fac01(lay)
-         fac011 = (1._jprb - fs) * fac11(lay)
+         fac001 = (1._rb - fs) * fac01(lay)
+         fac011 = (1._rb - fs) * fac11(lay)
          fac101 = fs * fac01(lay)
          fac111 = fs * fac11(lay)
          ind0 = ((jp(lay)-1)*5+(jt(lay)-1))*nspa(19) + js
@@ -665,10 +665,10 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -747,10 +747,10 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -765,15 +765,15 @@
          speccomb = colh2o(lay) + strrat*colco2(lay)
          specparm = colh2o(lay)/speccomb 
          if (specparm .ge. oneminus) specparm = oneminus
-         specmult = 8._jprb*(specparm)
+         specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
-         fs = mod(specmult, 1._jprb )
-         fac000 = (1._jprb - fs) * fac00(lay)
-         fac010 = (1._jprb - fs) * fac10(lay)
+         fs = mod(specmult, 1._rb )
+         fac000 = (1._rb - fs) * fac00(lay)
+         fac010 = (1._rb - fs) * fac10(lay)
          fac100 = fs * fac00(lay)
          fac110 = fs * fac10(lay)
-         fac001 = (1._jprb - fs) * fac01(lay)
-         fac011 = (1._jprb - fs) * fac11(lay)
+         fac001 = (1._rb - fs) * fac01(lay)
+         fac011 = (1._rb - fs) * fac11(lay)
          fac101 = fs * fac01(lay)
          fac111 = fs * fac11(lay)
          ind0 = ((jp(lay)-1)*5+(jt(lay)-1))*nspa(21) + js
@@ -811,15 +811,15 @@
          speccomb = colh2o(lay) + strrat*colco2(lay)
          specparm = colh2o(lay)/speccomb 
          if (specparm .ge. oneminus) specparm = oneminus
-         specmult = 4._jprb*(specparm)
+         specmult = 4._rb*(specparm)
          js = 1 + int(specmult)
-         fs = mod(specmult, 1._jprb )
-         fac000 = (1._jprb - fs) * fac00(lay)
-         fac010 = (1._jprb - fs) * fac10(lay)
+         fs = mod(specmult, 1._rb )
+         fac000 = (1._rb - fs) * fac00(lay)
+         fac010 = (1._rb - fs) * fac10(lay)
          fac100 = fs * fac00(lay)
          fac110 = fs * fac10(lay)
-         fac001 = (1._jprb - fs) * fac01(lay)
-         fac011 = (1._jprb - fs) * fac11(lay)
+         fac001 = (1._rb - fs) * fac01(lay)
+         fac011 = (1._rb - fs) * fac11(lay)
          fac101 = fs * fac01(lay)
          fac111 = fs * fac11(lay)
          ind0 = ((jp(lay)-13)*5+(jt(lay)-1))*nspb(21) + js
@@ -866,15 +866,15 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray, o2adj, o2cont
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray, o2adj, o2cont
 
 ! The following factor is the ratio of total O2 band intensity (lines 
 ! and Mate continuum) to O2 band intensity (line only).  It is needed
 ! to adjust the optical depths since the k's include only lines.
-      o2adj = 1.6_jprb
+      o2adj = 1.6_rb
       
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -886,20 +886,20 @@
       do lay = 1, laytrop
          if (jp(lay) .lt. layreffr .and. jp(lay+1) .ge. layreffr) &
             laysolfr = min(lay+1,laytrop)
-         o2cont = 4.35e-4_jprb*colo2(lay)/(350.0_jprb*2.0_jprb)
+         o2cont = 4.35e-4_rb*colo2(lay)/(350.0_rb*2.0_rb)
          speccomb = colh2o(lay) + o2adj*strrat*colo2(lay)
          specparm = colh2o(lay)/speccomb 
          if (specparm .ge. oneminus) specparm = oneminus
-         specmult = 8._jprb*(specparm)
-!         odadj = specparm + o2adj * (1._jprb - specparm)
+         specmult = 8._rb*(specparm)
+!         odadj = specparm + o2adj * (1._rb - specparm)
          js = 1 + int(specmult)
-         fs = mod(specmult, 1._jprb )
-         fac000 = (1._jprb - fs) * fac00(lay)
-         fac010 = (1._jprb - fs) * fac10(lay)
+         fs = mod(specmult, 1._rb )
+         fac000 = (1._rb - fs) * fac00(lay)
+         fac010 = (1._rb - fs) * fac10(lay)
          fac100 = fs * fac00(lay)
          fac110 = fs * fac10(lay)
-         fac001 = (1._jprb - fs) * fac01(lay)
-         fac011 = (1._jprb - fs) * fac11(lay)
+         fac001 = (1._rb - fs) * fac01(lay)
+         fac011 = (1._rb - fs) * fac11(lay)
          fac101 = fs * fac01(lay)
          fac111 = fs * fac11(lay)
          ind0 = ((jp(lay)-1)*5+(jt(lay)-1))*nspa(22) + js
@@ -935,7 +935,7 @@
 
 ! Upper atmosphere loop
       do lay = laytrop+1, nlayers
-         o2cont = 4.35e-4_jprb*colo2(lay)/(350.0_jprb*2.0_jprb)
+         o2cont = 4.35e-4_rb*colo2(lay)/(350.0_rb*2.0_rb)
          ind0 = ((jp(lay)-13)*5+(jt(lay)-1))*nspb(22) + 1
          ind1 = ((jp(lay)-12)*5+(jt1(lay)-1))*nspb(22) + 1
          tauray = colmol(lay) * rayl
@@ -972,10 +972,10 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1015,8 +1015,8 @@
       do lay = laytrop+1, nlayers
          do ig = 1, ng23
 !            taug(lay,ngs22+ig) = colmol(lay) * rayl(ig)
-!            ssa(lay,ngs22+ig) = 1.0_jprb
-            taug(lay,ngs22+ig) = 0._jprb
+!            ssa(lay,ngs22+ig) = 1.0_rb
+            taug(lay,ngs22+ig) = 0._rb
             taur(lay,ngs22+ig) = colmol(lay) * rayl(ig) 
          enddo
       enddo
@@ -1042,10 +1042,10 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1060,15 +1060,15 @@
          speccomb = colh2o(lay) + strrat*colo2(lay)
          specparm = colh2o(lay)/speccomb 
          if (specparm .ge. oneminus) specparm = oneminus
-         specmult = 8._jprb*(specparm)
+         specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
-         fs = mod(specmult, 1._jprb )
-         fac000 = (1._jprb - fs) * fac00(lay)
-         fac010 = (1._jprb - fs) * fac10(lay)
+         fs = mod(specmult, 1._rb )
+         fac000 = (1._rb - fs) * fac00(lay)
+         fac010 = (1._rb - fs) * fac10(lay)
          fac100 = fs * fac00(lay)
          fac110 = fs * fac10(lay)
-         fac001 = (1._jprb - fs) * fac01(lay)
-         fac011 = (1._jprb - fs) * fac11(lay)
+         fac001 = (1._rb - fs) * fac01(lay)
+         fac011 = (1._rb - fs) * fac11(lay)
          fac101 = fs * fac01(lay)
          fac111 = fs * fac11(lay)
          ind0 = ((jp(lay)-1)*5+(jt(lay)-1))*nspa(24) + js
@@ -1141,10 +1141,10 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1202,10 +1202,10 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1217,9 +1217,9 @@
       do lay = 1, laytrop
          do ig = 1, ng26 
 !            taug(lay,ngs25+ig) = colmol(lay) * rayl(ig)
-!            ssa(lay,ngs25+ig) = 1.0_jprb
+!            ssa(lay,ngs25+ig) = 1.0_rb
             if (lay .eq. laysolfr) sfluxzen(ngs25+ig) = sfluxref(ig) 
-            taug(lay,ngs25+ig) = 0._jprb
+            taug(lay,ngs25+ig) = 0._rb
             taur(lay,ngs25+ig) = colmol(lay) * rayl(ig) 
          enddo
       enddo
@@ -1228,8 +1228,8 @@
       do lay = laytrop+1, nlayers
          do ig = 1, ng26
 !            taug(lay,ngs25+ig) = colmol(lay) * rayl(ig)
-!            ssa(lay,ngs25+ig) = 1.0_jprb
-            taug(lay,ngs25+ig) = 0._jprb
+!            ssa(lay,ngs25+ig) = 1.0_rb
+            taug(lay,ngs25+ig) = 0._rb
             taur(lay,ngs25+ig) = colmol(lay) * rayl(ig) 
          enddo
       enddo
@@ -1254,10 +1254,10 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1322,10 +1322,10 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
@@ -1336,15 +1336,15 @@
          speccomb = colo3(lay) + strrat*colo2(lay)
          specparm = colo3(lay)/speccomb 
          if (specparm .ge. oneminus) specparm = oneminus
-         specmult = 8._jprb*(specparm)
+         specmult = 8._rb*(specparm)
          js = 1 + int(specmult)
-         fs = mod(specmult, 1._jprb )
-         fac000 = (1._jprb - fs) * fac00(lay)
-         fac010 = (1._jprb - fs) * fac10(lay)
+         fs = mod(specmult, 1._rb )
+         fac000 = (1._rb - fs) * fac00(lay)
+         fac010 = (1._rb - fs) * fac10(lay)
          fac100 = fs * fac00(lay)
          fac110 = fs * fac10(lay)
-         fac001 = (1._jprb - fs) * fac01(lay)
-         fac011 = (1._jprb - fs) * fac11(lay)
+         fac001 = (1._rb - fs) * fac01(lay)
+         fac011 = (1._rb - fs) * fac11(lay)
          fac101 = fs * fac01(lay)
          fac111 = fs * fac11(lay)
          ind0 = ((jp(lay)-1)*5+(jt(lay)-1))*nspa(28) + js
@@ -1375,15 +1375,15 @@
          speccomb = colo3(lay) + strrat*colo2(lay)
          specparm = colo3(lay)/speccomb 
          if (specparm .ge. oneminus) specparm = oneminus
-         specmult = 4._jprb*(specparm)
+         specmult = 4._rb*(specparm)
          js = 1 + int(specmult)
-         fs = mod(specmult, 1._jprb )
-         fac000 = (1._jprb - fs) * fac00(lay)
-         fac010 = (1._jprb - fs) * fac10(lay)
+         fs = mod(specmult, 1._rb )
+         fac000 = (1._rb - fs) * fac00(lay)
+         fac010 = (1._rb - fs) * fac10(lay)
          fac100 = fs * fac00(lay)
          fac110 = fs * fac10(lay)
-         fac001 = (1._jprb - fs) * fac01(lay)
-         fac011 = (1._jprb - fs) * fac11(lay)
+         fac001 = (1._rb - fs) * fac01(lay)
+         fac011 = (1._rb - fs) * fac11(lay)
          fac101 = fs * fac01(lay)
          fac111 = fs * fac11(lay)
          ind0 = ((jp(lay)-13)*5+(jt(lay)-1))*nspb(28) + js
@@ -1427,10 +1427,10 @@
 
 ! Local
 
-      integer(kind=jpim) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
-      real(kind=jprb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
-                         fac110, fac111, fs, speccomb, specmult, specparm, &
-                         tauray
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
+                       fac110, fac111, fs, speccomb, specmult, specparm, &
+                       tauray
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water

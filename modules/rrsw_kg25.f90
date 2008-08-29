@@ -1,6 +1,6 @@
       module rrsw_kg25
 
-      use parkind ,only : jpim, jprb
+      use parkind ,only : im => kind_im, rb => kind_rb
       use parrrsw, only : ng25
 
       implicit none
@@ -12,6 +12,7 @@
 !
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
+! Revised: MJIacono, AER, aug2008
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -23,14 +24,14 @@
 ! raylo   : real     
 !-----------------------------------------------------------------
 
-      integer(kind=jpim), parameter :: no25 = 16
+      integer(kind=im), parameter :: no25 = 16
 
-      real(kind=jprb) :: kao(5,13,no25)
-      real(kind=jprb) :: sfluxrefo(no25)
-      real(kind=jprb) :: abso3ao(no25), abso3bo(no25)
-      real(kind=jprb) :: raylo(no25)
+      real(kind=rb) :: kao(5,13,no25)
+      real(kind=rb) :: sfluxrefo(no25)
+      real(kind=rb) :: abso3ao(no25), abso3bo(no25)
+      real(kind=rb) :: raylo(no25)
 
-      integer(kind=jpim) :: layreffr
+      integer(kind=im) :: layreffr
 
 !-----------------------------------------------------------------
 ! rrtmg_sw COMBINED abs. coefficients for interval 25
@@ -38,6 +39,7 @@
 !
 ! Initial version:  JJMorcrette, ECMWF, oct1999
 ! Revised: MJIacono, AER, jul2006
+! Revised: MJIacono, AER, aug2008
 !-----------------------------------------------------------------
 !
 !  name     type     purpose
@@ -50,10 +52,10 @@
 ! rayl    : real     
 !-----------------------------------------------------------------
 
-      real(kind=jprb) :: ka(5,13,ng25), absa(65,ng25)
-      real(kind=jprb) :: sfluxref(ng25)
-      real(kind=jprb) :: abso3a(ng25), abso3b(ng25)
-      real(kind=jprb) :: rayl(ng25)
+      real(kind=rb) :: ka(5,13,ng25), absa(65,ng25)
+      real(kind=rb) :: sfluxref(ng25)
+      real(kind=rb) :: abso3a(ng25), abso3b(ng25)
+      real(kind=rb) :: rayl(ng25)
 
       equivalence (ka(1,1,1),absa(1,1))
 

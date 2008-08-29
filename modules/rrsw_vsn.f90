@@ -1,7 +1,5 @@
       module rrsw_vsn
 
-      use parkind, only : jpim, jprb
-
       implicit none
       save
 
@@ -10,6 +8,7 @@
 
 ! Initial version:  JJMorcrette, ECMWF, jul1998
 ! Revised: MJIacono, AER, jul2006
+! Revised: MJIacono, AER, aug2008
 !------------------------------------------------------------------
 
 !  name     type     purpose

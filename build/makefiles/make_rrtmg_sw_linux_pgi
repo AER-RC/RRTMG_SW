@@ -8,7 +8,7 @@ SHELL  = /bin/sh
 ################################
 
 PLATFORM = linux_pgi
-VERSION = v3.5
+VERSION = v3.6
 
 ##################################
 # Options for the FORTRAN compiler
