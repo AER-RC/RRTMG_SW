@@ -244,6 +244,16 @@
                                                       !    Dimensions: (ncol,nlay)
       real(kind=rb), intent(in) :: reice(:,:)         ! Cloud ice effective radius (microns)
                                                       !    Dimensions: (ncol,nlay)
+                                                      ! specific definition of reice depends on setting of iceflglw:
+                                                      ! iceflglw = 0: ice effective radius, r_ec, (Ebert and Curry, 1992),
+                                                      !               r_ec must be >= 10.0 microns
+                                                      ! iceflglw = 1: ice effective radius, r_ec, (Ebert and Curry, 1992),
+                                                      !               r_ec range is limited to 13.0 to 130.0 microns
+                                                      ! iceflglw = 2: ice effective radius, r_k, (Key, Streamer Ref. Manual, 1996)
+                                                      !               r_k range is limited to 5.0 to 131.0 microns
+                                                      ! iceflglw = 3: generalized effective size, dge, (Fu, 1996),
+                                                      !               dge range is limited to 5.0 to 140.0 microns
+                                                      !               [dge = 1.0315 * r_ec]
       real(kind=rb), intent(in) :: reliq(:,:)         ! Cloud water drop effective radius (microns)
                                                       !    Dimensions: (ncol,nlay)
       real(kind=rb), intent(in) :: tauaer(:,:,:)      ! Aerosol optical depth (iaer=10 only)
@@ -360,8 +370,7 @@
       real(kind=rb) :: ciwp(nlay+1)           ! in-cloud ice water path
       real(kind=rb) :: clwp(nlay+1)           ! in-cloud liquid water path
       real(kind=rb) :: rel(nlay+1)            ! cloud liquid particle effective radius (microns)
-      real(kind=rb) :: rei(nlay+1)            ! cloud ice particle effective radius (microns)
-      real(kind=rb) :: dge(nlay+1)            ! cloud ice particle generalized effective size (microns)
+      real(kind=rb) :: rei(nlay+1)            ! cloud ice particle effective size (microns)
 
       real(kind=rb) :: taucloud(nlay+1,jpband)  ! in-cloud optical depth
       real(kind=rb) :: taucldorig(nlay+1,jpband)! in-cloud optical depth (non-delta scaled)
@@ -481,7 +490,7 @@
               reice, reliq, tauaer, ssaaer, asmaer, &
               nlayers, pavel, pz, pdp, tavel, tz, tbound, coldry, wkl, &
               adjflux, solvar, inflag, iceflag, liqflag, cldfrac, tauc, &
-              ssac, asmc, fsfc, ciwp, clwp, rei, dge, rel, taua, ssaa, asma)
+              ssac, asmc, fsfc, ciwp, clwp, rei, rel, taua, ssaa, asma)
 
 !  For cloudy atmosphere, use cldprop to set cloud optical properties based on
 !  input cloud physical properties.  Select method based on choices described
@@ -498,7 +507,7 @@
             endif
          enddo
          call cldprop_sw(nlayers, inflag, iceflag, liqflag, cldfrac, &
-                         tauc, ssac, asmc, fsfc, ciwp, clwp, rei, dge, rel, &
+                         tauc, ssac, asmc, fsfc, ciwp, clwp, rei, rel, &
                          taucldorig, taucloud, ssacloud, asmcloud)
          icpr = 1
 
@@ -722,7 +731,7 @@
             reice, reliq, tauaer, ssaaer, asmaer, &
             nlayers, pavel, pz, pdp, tavel, tz, tbound, coldry, wkl, &
             adjflux, solvar, inflag, iceflag, liqflag, cldfrac, tauc, &
-            ssac, asmc, fsfc, ciwp, clwp, rei, dge, rel, taua, ssaa, asma)
+            ssac, asmc, fsfc, ciwp, clwp, rei, rel, taua, ssaa, asma)
 !***************************************************************************
 !
 !  Input atmospheric profile from GCM, and prepare it for use in RRTMG_SW.
@@ -791,7 +800,7 @@
                                                       ! Dimensions: (ncol,nlay)
       real(kind=rb), intent(in) :: cliqwp(:,:)        ! In-cloud liquid water path (g/m2)
                                                       ! Dimensions: (ncol,nlay)
-      real(kind=rb), intent(in) :: reice(:,:)         ! Cloud ice effective radius (microns)
+      real(kind=rb), intent(in) :: reice(:,:)         ! Cloud ice effective size (microns)
                                                       ! Dimensions: (ncol,nlay)
       real(kind=rb), intent(in) :: reliq(:,:)         ! Cloud water drop effective radius (microns)
                                                       ! Dimensions: (ncol,nlay)
@@ -855,9 +864,7 @@
                                                       ! Dimensions: (nlay)
       real(kind=rb), intent(out) :: rel(:)            ! cloud liquid particle effective radius (microns)
                                                       ! Dimensions: (nlay)
-      real(kind=rb), intent(out) :: rei(:)            ! cloud ice particle effective radius (microns)
-                                                      ! Dimensions: (nlay)
-      real(kind=rb), intent(out) :: dge(:)            ! cloud ice particle generalized effective size (microns)
+      real(kind=rb), intent(out) :: rei(:)            ! cloud ice particle effective size (microns)
                                                       ! Dimensions: (nlay)
 
 ! ----- Local -----
@@ -900,7 +907,6 @@
       ciwp(:) = 0.0_rb
       clwp(:) = 0.0_rb
       rei(:) = 0.0_rb
-      dge(:) = 0.0_rb
       rel(:) = 0.0_rb
       taua(:,:) = 0.0_rb
       ssaa(:,:) = 1.0_rb
@@ -1024,17 +1030,13 @@
          liqflag = liqflgsw
 
 ! Move incoming GCM cloud arrays to RRTMG cloud arrays.
-! For GCM input, incoming reice is in effective radius; for Fu parameterization (iceflag = 3)
-! convert effective radius to generalized effective size using method of Mitchell, JAS, 2002:
+! For GCM input, incoming reice is defined based on selected ice parameterization (inflglw)
 
          do l = 1, nlayers
             cldfrac(l) = cldfr(iplon,l)
             ciwp(l) = cicewp(iplon,l)
             clwp(l) = cliqwp(iplon,l)
             rei(l) = reice(iplon,l)
-            if (iceflag .eq. 3) then
-               dge(l) = 1.5396_rb * reice(iplon,l)
-            endif
             rel(l) = reliq(iplon,l)
             do n = 1,nbndsw
                tauc(n,l) = taucld(n,iplon,l)
@@ -1054,7 +1056,6 @@
 !         ciwp(nlayers) = 0.0_rb
 !         clwp(nlayers) = 0.0_rb
 !         rei(nlayers) = 0.0_rb
-!         dge(nlayers) = 0.0_rb
 !         rel(nlayers) = 0.0_rb
       
       endif

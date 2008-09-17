@@ -9,6 +9,24 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+September 17, 2008:
+
+        Release_3_61
+
+        Modified input of ice particle effective size to require input of value
+        appropriate for the selected ice optics parameterization. Previous scaling
+        that was applied internally to convert ice effective radius to generalized
+        effective size for the Fu parameterization has been removed.  Any necessary
+        scaling needed to provide the proper ice particle size must be done before
+        input to the radiation in the GCM version of the code.  This is consistent 
+        with the input requirement for the column version of the model.  Note that
+        the internal ice optics parameterizations are effective over specific ranges
+        of particle size.  Results may be different from previous versions if the
+        Fu parameterization is used in the GCM version of the code. 
+
+        Publicly released on AER RT web site in September 2008.
+
+
 August 29, 2008:
 
 	Release_3_6

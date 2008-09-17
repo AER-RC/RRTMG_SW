@@ -609,15 +609,18 @@ Band #   Wavenumber Range (cm-1)       1050 - 96 mb      96 - 0.01 mb
                        is also needed.  If ICEFLAG = 1, generalized effective size is
 		       is also needed.
 
-            ICEFLAG = 2 the optical properties are computed by a method based on the parameterization
+            ICEFLAG = 0 inactive
+                    = 1 the optical depths (non-gray) due to ice clouds are computed as closely as
+                        possible to the method in E.E. Ebert and J.A. Curry, JGR, 97, 3831-3836 (1992).
+                    = 2 the optical properties are computed by a method based on the parameterization
                         of spherical ice particles in the RT code, STREAMER v3.0 (Reference: 
                         Key. J., Streamer User's Guide, Cooperative Institute for
                         Meteorological Satellite Studies, 2001, 96 pp.).
-
                     = 3 the optical depths are computed by a method based on the parameterization
 			of ice clouds due to Q. Fu, J. Clim., 9, 2058 (1996).
 
-            LIQFLAG = 1 the optical depths (non-gray) due to water clouds are computed by a method
+            LIQFLAG = 0 inactive
+                    = 1 the optical depths (non-gray) due to water clouds are computed by a method
                         based on the parameterization of water clouds due to Y.X. Hu and K. Stamnes,
                         J. Clim., 6, 728-742 (1993).
                        
@@ -696,7 +699,11 @@ Band #   Wavenumber Range (cm-1)       1050 - 96 mb      96 - 0.01 mb
             FRACICE    (INFLAG = 2) fraction of the layer's cloud water path in the form
                        of ice particles  
 
-            EFFSIZEICE (INFLAG = 2 and ICEFLAG = 2) Effective radius of spherical  
+            EFFSIZEICE (INFLAG = 2 and ICEFLAG = 1) Effective radius of spherical  
+	               ice crystals with equivalent projected area to hexagonal ice particles
+	               following Ebert and Curry (1992).
+                  
+                       (INFLAG = 2 and ICEFLAG = 2) Effective radius of spherical  
 	               ice crystals, re (see STREAMER manual for defition of this parameter)
 	               Valid sizes are 5.0 - 131.0 microns. 
                   

@@ -102,7 +102,8 @@
 !    1) Input cloud fraction and cloud optical depth directly (inflgsw = 0)
 !    2) Input cloud fraction and cloud physical properties (inflgsw = 1 or 2);  
 !       cloud optical properties are calculated by cldprop or cldprmc based
-!       on input settings of iceflgsw and liqflgsw
+!       on input settings of iceflgsw and liqflgsw. Ice particle size provided
+!       must be appropriately defined for the ice parameterization selected. 
 !
 ! Two methods of aerosol property input are possible:
 !     Aerosol properties can be input in one of two ways (controlled by input 
@@ -266,8 +267,17 @@
       real(kind=rb) :: fsfc(nbndsw,mxlay)     ! in-cloud forward scattering fraction (non-delta scaled)
       real(kind=rb) :: ciwp(mxlay)            ! in-cloud ice water path
       real(kind=rb) :: clwp(mxlay)            ! in-cloud liquid water path
-      real(kind=rb) :: rei(mxlay)             ! cloud ice particle effective radius (microns)
-      real(kind=rb) :: dge(mxlay)             ! cloud ice particle generalized effective size (microns)
+      real(kind=rb) :: rei(mxlay)             ! cloud ice particle effective size (microns)
+                                              ! specific definition of rei depends on setting of iceflag:
+                                              ! iceflag = 0: ice effective radius, r_ec, (Ebert and Curry, 1992),
+                                              !              r_ec must be >= 10.0 microns
+                                              ! iceflag = 1: ice effective radius, r_ec, (Ebert and Curry, 1992),
+                                              !              r_ec range is limited to 13.0 to 130.0 microns
+                                              ! iceflag = 2: ice effective radius, r_k, (Key, Streamer Ref. Manual, 1996)
+                                              !              r_k range is limited to 5.0 to 131.0 microns
+                                              ! iceflag = 3: generalized effective size, dge, (Fu, 1996),
+                                              !              dge range is limited to 5.0 to 140.0 microns
+                                              !              [dge = 1.0315 * r_ec]
       real(kind=rb) :: rel(mxlay)             ! cloud liquid particle effective radius (microns)
 
       real(kind=rb) :: taucloud(mxlay,jpband) ! in-cloud optical depth
@@ -281,7 +291,6 @@
       real(kind=rb) :: clwpmc(ngptsw,mxlay)   ! in-cloud liquid water path [mcica]
       real(kind=rb) :: relqmc(mxlay)          ! liquid particle effective radius (microns)
       real(kind=rb) :: reicmc(mxlay)          ! ice particle effective radius (microns)
-      real(kind=rb) :: dgesmc(mxlay)          ! ice particle generalized effective size (microns)
       real(kind=rb) :: taucmc(ngptsw,mxlay)   ! in-cloud optical depth [mcica]
       real(kind=rb) :: taormc(ngptsw,mxlay)   ! unscaled in-cloud optical depth [mcica]
       real(kind=rb) :: ssacmc(ngptsw,mxlay)   ! in-cloud single scattering albedo [mcica]
@@ -498,12 +507,6 @@
                           ssacmc, asmcmc, fsfcmc)
             endif
 
-! For iceflag=3 option, set dge arrays
-            if (iceflag.eq.3) then
-               dge(:) = rei(:)
-               dgesmc(:) = reicmc(:)
-            endif
-
 !  For cloudy atmosphere, use cldprop to set cloud optical properties based on
 !  input cloud physical properties.  Select method based on choices described
 !  in cldprop.  Cloud fraction, water path, liquid droplet and ice particle
@@ -521,12 +524,12 @@
                   endif
                enddo
                call cldprop_sw(nlayers, inflag, iceflag, liqflag, cldfrac, &
-                               tauc, ssac, asmc, fsfc, ciwp, clwp, rei, dge, rel, &
+                               tauc, ssac, asmc, fsfc, ciwp, clwp, rei, rel, &
                                taucldorig, taucloud, ssacloud, asmcloud)
                icpr = 1
             else
                call cldprmc_sw(nlayers, inflag, iceflag, liqflag, cldfmc, &
-                               ciwpmc, clwpmc, reicmc, dgesmc, relqmc, &
+                               ciwpmc, clwpmc, reicmc, relqmc, &
                                taormc, taucmc, ssacmc, asmcmc, fsfcmc)
                icpr = 1
             endif
