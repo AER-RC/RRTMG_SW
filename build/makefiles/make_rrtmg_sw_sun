@@ -8,7 +8,7 @@ SHELL  = /bin/sh
 ################################
 
 PLATFORM = sun
-VERSION = v3.61
+VERSION = v3.7
 
 ##################################
 # Options for the FORTRAN compiler

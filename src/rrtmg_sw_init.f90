@@ -54,6 +54,8 @@
       real(kind=rb) :: wtsum, wtsm(mg)
       real(kind=rb) :: tfn
 
+      real(kind=rb), parameter :: expeps = 1.e-20_rb   ! Smallest value for exponential table
+
 ! ------- Definitions -------
 !     Arrays for 10000-point look-up tables:
 !     TAU_TBL  Clear-sky optical depth 
@@ -92,12 +94,13 @@
 ! the tau transition function is set to bpade.
 
       exp_tbl(0) = 1.0_rb
-      exp_tbl(ntbl) = 0.0_rb
+      exp_tbl(ntbl) = expeps
       bpade = 1.0_rb / pade
       do itr = 1, ntbl-1
          tfn = float(itr) / float(ntbl)
          tau_tbl = bpade * tfn / (1._rb - tfn)
          exp_tbl(itr) = exp(-tau_tbl)
+         if (exp_tbl(itr) .le. expeps) exp_tbl(itr) = expeps
       enddo
 
 ! Perform g-point reduction from 16 per band (224 total points) to
@@ -487,7 +490,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg16, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            ka, kb, selfref, forref, sfluxref
+                            absa, ka, absb, kb, selfref, forref, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -568,7 +571,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg17, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            ka, kb, selfref, forref, sfluxref
+                            absa, ka, absb, kb, selfref, forref, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -653,7 +656,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg18, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            ka, kb, selfref, forref, sfluxref
+                            absa, ka, absb, kb, selfref, forref, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -736,7 +739,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg19, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            ka, kb, selfref, forref, sfluxref
+                            absa, ka, absb, kb, selfref, forref, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -819,7 +822,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg20, only : kao, kbo, selfrefo, forrefo, sfluxrefo, absch4o, &
-                            ka, kb, selfref, forref, sfluxref, absch4
+                            absa, ka, absb, kb, selfref, forref, sfluxref, absch4
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
@@ -898,7 +901,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg21, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            ka, kb, selfref, forref, sfluxref
+                            absa, ka, absb, kb, selfref, forref, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -983,7 +986,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg22, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            ka, kb, selfref, forref, sfluxref
+                            absa, ka, absb, kb, selfref, forref, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -1066,7 +1069,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg23, only : kao, selfrefo, forrefo, sfluxrefo, raylo, &
-                            ka, selfref, forref, sfluxref, rayl
+                            absa, ka, selfref, forref, sfluxref, rayl
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
@@ -1135,7 +1138,7 @@
 
       use rrsw_kg24, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             abso3ao, abso3bo, raylao, raylbo, &
-                            ka, kb, selfref, forref, sfluxref, &
+                            absa, ka, absb, kb, selfref, forref, sfluxref, &
                             abso3a, abso3b, rayla, raylb
 
 ! ------- Local -------
@@ -1239,7 +1242,7 @@
 
       use rrsw_kg25, only : kao, sfluxrefo, &
                             abso3ao, abso3bo, raylo, &
-                            ka, sfluxref, &
+                            absa, ka, sfluxref, &
                             abso3a, abso3b, rayl
 
 ! ------- Local -------
@@ -1320,7 +1323,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg27, only : kao, kbo, sfluxrefo, raylo, &
-                            ka, kb, sfluxref, rayl
+                            absa, ka, absb, kb, sfluxref, rayl
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
@@ -1375,7 +1378,7 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg28, only : kao, kbo, sfluxrefo, &
-                            ka, kb, sfluxref
+                            absa, ka, absb, kb, sfluxref
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
@@ -1437,7 +1440,7 @@
 
       use rrsw_kg29, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             absh2oo, absco2o, &
-                            ka, kb, selfref, forref, sfluxref, &
+                            absa, ka, absb, kb, selfref, forref, sfluxref, &
                             absh2o, absco2
 
 ! ------- Local -------

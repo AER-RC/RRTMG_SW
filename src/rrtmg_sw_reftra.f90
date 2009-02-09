@@ -92,13 +92,13 @@
 
 ! ------- Output -------
 
-      real(kind=rb), intent(out) :: pref(:)                    ! direct beam reflectivity
+      real(kind=rb), intent(inout) :: pref(:)                  ! direct beam reflectivity
                                                                !   Dimensions: (nlayers+1)
-      real(kind=rb), intent(out) :: prefd(:)                   ! diffuse beam reflectivity
+      real(kind=rb), intent(inout) :: prefd(:)                 ! diffuse beam reflectivity
                                                                !   Dimensions: (nlayers+1)
-      real(kind=rb), intent(out) :: ptra(:)                    ! direct beam transmissivity
+      real(kind=rb), intent(inout) :: ptra(:)                  ! direct beam transmissivity
                                                                !   Dimensions: (nlayers+1)
-      real(kind=rb), intent(out) :: ptrad(:)                   ! diffuse beam transmissivity
+      real(kind=rb), intent(inout) :: ptrad(:)                 ! diffuse beam transmissivity
                                                                !   Dimensions: (nlayers+1)
 
 ! ------- Local -------
@@ -116,6 +116,8 @@
       real(kind=rb) :: zsr3, zt1, zt2, zt3, zt4, zt5, zto1
       real(kind=rb) :: zw, zwcrit, zwo
 
+      real(kind=rb), parameter :: eps = 1.e-08_rb
+
 !     ------------------------------------------------------------------
 
 ! Initialize
@@ -123,7 +125,7 @@
       hvrrft = '$Revision$'
 
       zsr3=sqrt(3._rb)
-      zwcrit=0.9995_rb
+      zwcrit=0.9999995_rb
       kmodts=2
 
       do jk=1, nlayers
@@ -223,7 +225,11 @@
                zt3  = zrk2 * (zgamma4 + za1 * prmuz )
                zt4  = zr4
                zt5  = zr5
-               zbeta = - zr5 / zr4
+
+! mji - reformulated code to avoid potential floating point exceptions
+!               zbeta = - zr5 / zr4
+               zbeta = (zgamma1 - zrk) / zrkg
+!!
         
 ! Homogeneous reflectance and transmittance
 
@@ -266,10 +272,22 @@
 
 ! collimated beam
 
+! mji - reformulated code to avoid potential floating point exceptions
+!               zdenr = zr4*zep1 + zr5*zem1
+!               pref(jk) = zw * (zr1*zep1 - zr2*zem1 - zr3*zem2) / zdenr
+!               zdent = zt4*zep1 + zt5*zem1
+!               ptra(jk) = zem2 - zem2 * zw * (zt1*zep1 - zt2*zem1 - zt3*zep2) / zdent
+
                zdenr = zr4*zep1 + zr5*zem1
-               pref(jk) = zw * (zr1*zep1 - zr2*zem1 - zr3*zem2) / zdenr
                zdent = zt4*zep1 + zt5*zem1
-               ptra(jk) = zem2 - zem2 * zw * (zt1*zep1 - zt2*zem1 - zt3*zep2) / zdent
+               if (zdenr .ge. -eps .and. zdenr .le. eps) then
+                  pref(jk) = eps
+                  ptra(jk) = zem2
+               else 
+                  pref(jk) = zw * (zr1*zep1 - zr2*zem1 - zr3*zem2) / zdenr
+                  ptra(jk) = zem2 - zem2 * zw * (zt1*zep1 - zt2*zem1 - zt3*zep2) / zdent
+               endif
+!!
 
 ! diffuse beam
 

@@ -56,7 +56,6 @@
       use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_vsn
       use rrtmg_sw_cldprop, only: cldprop_sw
-      use rrtmg_sw_cldprmc, only: cldprmc_sw
 ! *** Move the required call to rrtmg_sw_ini below and the following 
 ! use association to GCM initialization area ***
 !      use rrtmg_sw_init, only: rrtmg_sw_ini
@@ -166,6 +165,9 @@
 !     Feb 2007: M. J. Iacono, AER, Inc.
 !-- Modifications to formatting to use assumed-shape arrays. 
 !     Aug 2007: M. J. Iacono, AER, Inc.
+!-- Modified to output direct and diffuse fluxes either with or without
+!   delta scaling based on setting of idelm flag. 
+!     Dec 2008: M. J. Iacono, AER, Inc.
 
 ! --------- Modules ---------
 
@@ -178,6 +180,8 @@
 ! ------- Declarations
 
 ! ----- Input -----
+! Note: All volume mixing ratios are in dimensionless units of mole fraction obtained
+! by scaling mass mixing ratio (g/g) with the appropriate molecular weights (g/mol) 
       integer(kind=im), intent(in) :: ncol            ! Number of horizontal columns     
       integer(kind=im), intent(in) :: nlay            ! Number of model layers
       integer(kind=im), intent(inout) :: icld         ! Cloud overlap method
@@ -244,14 +248,14 @@
                                                       !    Dimensions: (ncol,nlay)
       real(kind=rb), intent(in) :: reice(:,:)         ! Cloud ice effective radius (microns)
                                                       !    Dimensions: (ncol,nlay)
-                                                      ! specific definition of reice depends on setting of iceflglw:
-                                                      ! iceflglw = 0: ice effective radius, r_ec, (Ebert and Curry, 1992),
-                                                      !               r_ec must be >= 10.0 microns
-                                                      ! iceflglw = 1: ice effective radius, r_ec, (Ebert and Curry, 1992),
+                                                      ! specific definition of reice depends on setting of iceflgsw:
+                                                      ! iceflgsw = 0: (inactive)
+                                                      !              
+                                                      ! iceflgsw = 1: ice effective radius, r_ec, (Ebert and Curry, 1992),
                                                       !               r_ec range is limited to 13.0 to 130.0 microns
-                                                      ! iceflglw = 2: ice effective radius, r_k, (Key, Streamer Ref. Manual, 1996)
+                                                      ! iceflgsw = 2: ice effective radius, r_k, (Key, Streamer Ref. Manual, 1996)
                                                       !               r_k range is limited to 5.0 to 131.0 microns
-                                                      ! iceflglw = 3: generalized effective size, dge, (Fu, 1996),
+                                                      ! iceflgsw = 3: generalized effective size, dge, (Fu, 1996),
                                                       !               dge range is limited to 5.0 to 140.0 microns
                                                       !               [dge = 1.0315 * r_ec]
       real(kind=rb), intent(in) :: reliq(:,:)         ! Cloud water drop effective radius (microns)
@@ -293,7 +297,10 @@
       integer(kind=im) :: icpr                ! cldprop/cldprmc use flag
       integer(kind=im) :: iout                ! output option flag (inactive)
       integer(kind=im) :: iaer                ! aerosol option flag
-      integer(kind=im) :: idelm               ! delta-m scaling flag (inactive)
+      integer(kind=im) :: idelm               ! delta-m scaling flag
+                                              ! [0 = direct and diffuse fluxes are unscaled]
+                                              ! [1 = direct and diffuse fluxes are scaled]
+                                              ! (total downward fluxes are always delta scaled)
       integer(kind=im) :: isccos              ! instrumental cosine response flag (inactive)
       integer(kind=im) :: iplon               ! column loop index
       integer(kind=im) :: i                   ! layer loop index                       ! jk
@@ -466,6 +473,14 @@
 !            and asymmetry parameter (tauaer, ssaaer, asmaer) directly
       iaer = 0
 
+! Set idelm to select between delta-M scaled or unscaled output direct and diffuse fluxes
+! NOTE: total downward fluxes are always delta scaled
+! idelm = 0, output direct and diffuse flux components are not delta scaled
+!            (direct flux does not include forward scattering peak)
+! idelm = 1, output direct and diffuse flux components are delta scaled (default)
+!            (direct flux includes part or most of forward scattering peak)
+      idelm = 1
+
 ! Call model and data initialization, compute lookup tables, perform
 ! reduction of g-points from 224 to 112 for input absorption
 ! coefficient data and other arrays.
@@ -527,7 +542,7 @@
 !  is below horizon
 
          cossza = coszen(iplon)
-         if (cossza .eq. 0._rb) cossza = zepzen
+         if (cossza .lt. zepzen) cossza = zepzen
 
 
 ! Transfer albedo, cloud and aerosol properties into arrays for 2-stream radiative transfer 
@@ -558,12 +573,10 @@
          elseif (icld.ge.1) then
             do i=1,nlayers
                do ib=1,nbndsw
-                  if (cldfrac(i) .ge. zepsec) then
-                     ztauc(i,ib) = taucloud(i,jpb1-1+ib)
-                     ztaucorig(i,ib) = taucldorig(i,jpb1-1+ib)
-                     zasyc(i,ib) = asmcloud(i,jpb1-1+ib)
-                     zomgc(i,ib) = ssacloud(i,jpb1-1+ib)
-                  endif
+                  ztauc(i,ib) = taucloud(i,jpb1-1+ib)
+                  ztaucorig(i,ib) = taucldorig(i,jpb1-1+ib)
+                  zasyc(i,ib) = asmcloud(i,jpb1-1+ib)
+                  zomgc(i,ib) = ssacloud(i,jpb1-1+ib)
                enddo
             enddo
 
@@ -643,7 +656,7 @@
          enddo
 
          call spcvrt_sw &
-             (nlayers, istart, iend, icpr, iout, &
+             (nlayers, istart, iend, icpr, idelm, iout, &
               pavel, tavel, pz, tz, tbound, albdif, albdir, &
               cldfrac, ztauc, zasyc, zomgc, ztaucorig, &
               ztaua, zasya, zomga, cossza, coldry, wkl, adjflux, &	 
@@ -749,6 +762,8 @@
 ! ------- Declarations -------
 
 ! ----- Input -----
+! Note: All volume mixing ratios are in dimensionless units of mole fraction obtained
+! by scaling mass mixing ratio (g/g) with the appropriate molecular weights (g/mol) 
       integer(kind=im), intent(in) :: iplon           ! column loop index
       integer(kind=im), intent(in) :: nlay            ! number of model layers
       integer(kind=im), intent(in) :: icld            ! clear/cloud flag

@@ -139,6 +139,9 @@
 !     Nov 2005: M. J. Iacono, AER, Inc.
 !-- Reformatted for consistency with rrtmg_lw.
 !     Feb 2007: M. J. Iacono, AER, Inc.
+!-- Modified to output direct and diffuse fluxes either with or without
+!   delta scaling based on setting of idelm flag. 
+!     Dec 2008: M. J. Iacono, AER, Inc.
 
 ! --------- Modules ---------
 
@@ -173,6 +176,8 @@
       integer(kind=im) :: iout                ! output option flag
       integer(kind=im) :: iaer                ! aerosol option flag
       integer(kind=im) :: idelm               ! delta-m scaling flag
+                                              ! [0 = direct and diffuse fluxes are unscaled]
+                                              ! [1 = direct and diffuse fluxes are scaled]
       integer(kind=im) :: isccos              ! instrumental cosine response flag
       integer(kind=im) :: ird                 ! input unit
       integer(kind=im) :: iwr                 ! output unit
@@ -673,7 +678,7 @@
 
             if (imca.eq.0) then
                call spcvrt_sw &
-                   (nlayers, istart, iend, icpr, iout, &
+                   (nlayers, istart, iend, icpr, idelm, iout, &
                     pavel, tavel, pz, tz, tbound, albdif, albdir, &
                     cldfrac, ztauc, zasyc, zomgc, ztaucorig, &
                     ztaua, zasya, zomga, cossza, coldry, wkl, adjflux, &	 
@@ -685,7 +690,7 @@
                     zbbfddir, zbbcddir, zuvfddir, zuvcddir, znifddir, znicddir)
             else
                call spcvmc_sw &
-                   (nlayers, istart, iend, icpr, iout, &
+                   (nlayers, istart, iend, icpr, idelm, iout, &
                     pavel, tavel, pz, tz, tbound, albdif, albdir, &
                     zcldfmc, ztaucmc, zasycmc, zomgcmc, ztaormc, &
                     ztaua, zasya, zomga, cossza, coldry, wkl, adjflux, &	 
@@ -1089,7 +1094,7 @@
 
       read (ird,9011) iaer, iatm, iscat, istrm, iout, imca, icld, idelm, icos
 
-      if (idelm.gt.0 .or. idelm.lt.0 .or. icos.gt.0 .or. icos.lt.0) then
+      if (idelm.gt.1 .or. idelm.lt.0 .or. icos.gt.0 .or. icos.lt.0) then
          print *,'INVALID MEASUREMENT COMPARISON FLAG'
          stop
       endif

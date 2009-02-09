@@ -57,7 +57,6 @@
       use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_vsn
       use mcica_subcol_gen_sw, only: mcica_subcol_sw
-      use rrtmg_sw_cldprop, only: cldprop_sw
       use rrtmg_sw_cldprmc, only: cldprmc_sw
 ! *** Move the required call to rrtmg_sw_ini below and the following 
 ! use association to GCM initialization area ***
@@ -132,13 +131,13 @@
 ! Two methods of cloud property input are possible:
 !     Cloud properties can be input in one of two ways (controlled by input 
 !     flags inflag, iceflag and liqflag; see text file rrtmg_sw_instructions
-!     and subroutine rrtmg_sw_cldprop.f90 for further details):
+!     and subroutine rrtmg_sw_cldprmc.f90 for further details):
 !
 !    1) Input cloud fraction, cloud optical depth, single scattering albedo 
 !       and asymmetry parameter directly (inflgsw = 0)
 !    2) Input cloud fraction and cloud physical properties: ice fracion,
 !       ice and liquid particle sizes (inflgsw = 1 or 2);  
-!       cloud optical properties are calculated by cldprop or cldprmc based
+!       cloud optical properties are calculated by cldprmc based
 !       on input settings of iceflgsw and liqflgsw
 !
 ! Two methods of aerosol property input are possible:
@@ -177,6 +176,9 @@
 !     Feb 2007: M. J. Iacono, AER, Inc.
 !-- Modifications to formatting to use assumed-shape arrays. 
 !     Aug 2007: M. J. Iacono, AER, Inc.
+!-- Modified to output direct and diffuse fluxes either with or without
+!   delta scaling based on setting of idelm flag. 
+!     Dec 2008: M. J. Iacono, AER, Inc.
 
 ! --------- Modules ---------
 
@@ -189,6 +191,8 @@
 ! ------- Declarations
 
 ! ----- Input -----
+! Note: All volume mixing ratios are in dimensionless units of mole fraction obtained
+! by scaling mass mixing ratio (g/g) with the appropriate molecular weights (g/mol) 
       integer(kind=im), intent(in) :: ncol            ! Number of horizontal columns     
       integer(kind=im), intent(in) :: nlay            ! Number of model layers
       integer(kind=im), intent(inout) :: icld         ! Cloud overlap method
@@ -255,14 +259,14 @@
                                                       !    Dimensions: (ngptsw,ncol,nlay)
       real(kind=rb), intent(in) :: reicmcl(:,:)       ! Cloud ice effective radius (microns)
                                                       !    Dimensions: (ncol,nlay)
-                                                      ! specific definition of reicmcl depends on setting of iceflglw:
-                                                      ! iceflglw = 0: ice effective radius, r_ec, (Ebert and Curry, 1992),
-                                                      !               r_ec must be >= 10.0 microns
-                                                      ! iceflglw = 1: ice effective radius, r_ec, (Ebert and Curry, 1992),
+                                                      ! specific definition of reicmcl depends on setting of iceflgsw:
+                                                      ! iceflgsw = 0: (inactive)
+                                                      ! 
+                                                      ! iceflgsw = 1: ice effective radius, r_ec, (Ebert and Curry, 1992),
                                                       !               r_ec range is limited to 13.0 to 130.0 microns
-                                                      ! iceflglw = 2: ice effective radius, r_k, (Key, Streamer Ref. Manual, 1996)
+                                                      ! iceflgsw = 2: ice effective radius, r_k, (Key, Streamer Ref. Manual, 1996)
                                                       !               r_k range is limited to 5.0 to 131.0 microns
-                                                      ! iceflglw = 3: generalized effective size, dge, (Fu, 1996),
+                                                      ! iceflgsw = 3: generalized effective size, dge, (Fu, 1996),
                                                       !               dge range is limited to 5.0 to 140.0 microns
                                                       !               [dge = 1.0315 * r_ec]
       real(kind=rb), intent(in) :: relqmcl(:,:)       ! Cloud water drop effective radius (microns)
@@ -304,7 +308,10 @@
       integer(kind=im) :: icpr                ! cldprop/cldprmc use flag
       integer(kind=im) :: iout                ! output option flag (inactive)
       integer(kind=im) :: iaer                ! aerosol option flag
-      integer(kind=im) :: idelm               ! delta-m scaling flag (inactive)
+      integer(kind=im) :: idelm               ! delta-m scaling flag
+                                              ! [0 = direct and diffuse fluxes are unscaled]
+                                              ! [1 = direct and diffuse fluxes are scaled]
+                                              ! (total downward fluxes are always delta scaled)
       integer(kind=im) :: isccos              ! instrumental cosine response flag (inactive)
       integer(kind=im) :: iplon               ! column loop index
       integer(kind=im) :: i                   ! layer loop index                       ! jk
@@ -479,8 +486,8 @@
 
 ! *** This version uses McICA (imca = 1) ***
 
-! Set icld to select of clear or cloud calculation and cloud 
-! overlap method (read by subroutine readprof from input file INPUT_RRTM):  
+! Set icld to default selection of clear or cloud calculation and cloud overlap method
+! if not passed in with valid value
 ! icld = 0, clear only
 ! icld = 1, with clouds using random cloud overlap (McICA only)
 ! icld = 2, with clouds using maximum/random cloud overlap (McICA only)
@@ -494,6 +501,14 @@
 ! iaer = 10, input total aerosol optical depth, single scattering albedo 
 !            and asymmetry parameter (tauaer, ssaaer, asmaer) directly
       iaer = 0
+
+! Set idelm to select between delta-M scaled or unscaled output direct and diffuse fluxes
+! NOTE: total downward fluxes are always delta scaled
+! idelm = 0, output direct and diffuse flux components are not delta scaled
+!            (direct flux does not include forward scattering peak)
+! idelm = 1, output direct and diffuse flux components are delta scaled (default)
+!            (direct flux includes part or most of forward scattering peak)
+      idelm = 1
 
 ! Call model and data initialization, compute lookup tables, perform
 ! reduction of g-points from 224 to 112 for input absorption
@@ -522,11 +537,11 @@
               ssacmc, asmcmc, fsfcmc, ciwpmc, clwpmc, reicmc, relqmc, &
               taua, ssaa, asma)
 
-!  For cloudy atmosphere, use cldprop to set cloud optical properties based on
+!  For cloudy atmosphere, use cldprmc to set cloud optical properties based on
 !  input cloud physical properties.  Select method based on choices described
-!  in cldprop.  Cloud fraction, water path, liquid droplet and ice particle
-!  effective radius must be passed in cldprop.  Cloud fraction and cloud
-!  optical properties are transferred to rrtmg_sw arrays in cldprop.  
+!  in cldprmc.  Cloud fraction, water path, liquid droplet and ice particle
+!  effective radius must be passed in cldprmc.  Cloud fraction and cloud
+!  optical properties are transferred to rrtmg_sw arrays in cldprmc.  
 
          call cldprmc_sw(nlayers, inflag, iceflag, liqflag, cldfmc, &
                          ciwpmc, clwpmc, reicmc, relqmc, &
@@ -549,7 +564,7 @@
 !  is below horizon
 
          cossza = coszen(iplon)
-         if (cossza .eq. 0._rb) cossza = zepzen
+         if (cossza .lt. zepzen) cossza = zepzen
 
 
 ! Transfer albedo, cloud and aerosol properties into arrays for 2-stream radiative transfer 
@@ -666,7 +681,7 @@
 
 
          call spcvmc_sw &
-             (nlayers, istart, iend, icpr, iout, &
+             (nlayers, istart, iend, icpr, idelm, iout, &
               pavel, tavel, pz, tz, tbound, albdif, albdir, &
               zcldfmc, ztaucmc, zasycmc, zomgcmc, ztaormc, &
               ztaua, zasya, zomga, cossza, coldry, wkl, adjflux, &	 
@@ -773,6 +788,8 @@
 ! ------- Declarations -------
 
 ! ----- Input -----
+! Note: All volume mixing ratios are in dimensionless units of mole fraction obtained
+! by scaling mass mixing ratio (g/g) with the appropriate molecular weights (g/mol) 
       integer(kind=im), intent(in) :: iplon           ! column loop index
       integer(kind=im), intent(in) :: nlay            ! number of model layers
       integer(kind=im), intent(in) :: icld            ! clear/cloud and cloud overlap flag
@@ -867,7 +884,7 @@
       real(kind=rb), intent(out) :: asma(:,:)         ! Aerosol asymmetry parameter
                                                       ! Dimensions: (nlay,nbndsw)
 
-! Atmosphere/clouds - cldprop
+! Atmosphere/clouds - cldprmc
       integer(kind=im), intent(out) :: inflag         ! flag for cloud property method
       integer(kind=im), intent(out) :: iceflag        ! flag for ice cloud properties
       integer(kind=im), intent(out) :: liqflag        ! flag for liquid cloud properties

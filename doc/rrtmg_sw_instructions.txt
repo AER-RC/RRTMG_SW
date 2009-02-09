@@ -23,7 +23,7 @@
 
                          USER INSTRUCTIONS FOR RRTMG_SW
  
-                                October 2005
+ 
 
 
 
@@ -60,8 +60,8 @@
                   = 0   no layers contain aerosols
                   = 6   uses ECMWF global mean aerosol properties for one or all of
                         six aerosol types.  Aerosol optical thickness at 0.55 micron,
-                        PAER, must be set manually in main source module rrtmg_sw.F90
-                        to activate the aerosols with this option.
+                        ECAER, must be set manually in the main source module, 
+                        rrtmg_sw.1col.f90, to activate the aerosols with this option.
                   = 10  one or more layers contain aerosols
                        (requires the presence of file IN_AER_RRTM)
 
@@ -85,26 +85,37 @@
 		       for each of the 14 bands.
  
 	  IMCA   (0,1) flag for McICA (Monte Carlo Independent Column Approximation)
+                       for statistical representation of sub-grid cloud fraction 
+                       and cloud overlap
                   = 0  standard forward calculation; do not use McICA (valid for
                        clear or overcast conditions only)
                   = 1  use McICA (will perform statistical sample of 200 forward
                        calculations and output average flux and heating rates)
   
-	  ICLD   (0,1) flag for clouds     
+	  ICLD   (0,1,2,3) flag for clouds     
                   = 0  no cloudy layers in atmosphere
-                  = 1  one or more cloudy layers present in atmosphere
-                       (requires the presence of file IN_CLD_RRTM)
+                  = 1  one or more cloudy layers present in atmosphere.  Cloud layers
+                       are treated as overcast only for IMCA = 0, or they are treated
+                       using a RANDOM overlap assumption for IMCA = 1.
+                       (requires the presence of file IN_CLD_RRTM for column model)
+                       (available for IMCA = 0 or 1)
+                  = 2  one or more cloudy layers present in atmosphere.  Cloud layers
+		       are treated using a MAXIMUM/RANDOM overlap assmption.
+                       (requires the presence of file IN_CLD_RRTM for column model)
+                       (available only for IMCA = 1)
+                  = 3  one or more cloudy layers present in atmosphere.  Cloud layers
+		       are treated using a MAXIMUM overlap assmption.
+                       (requires the presence of file IN_CLD_RRTM for column model)
+                       (available only for IMCA = 1)
   
   Measurement comparison flags:
           IDELM  (0,1) flag for outputting downwelling fluxes computed using the delta-M scaling approximation
                   = 0  output "true" direct and diffuse downwelling fluxes (default)
                   = 1  output direct and diffuse downwelling fluxes computed with delta-M approximation
-                       (unavailable)
                  (Note:  The delta-M approximation is always used internally in RRTMG_SW to compute the total
                  downwelling flux at each level.  What the IDELM flag determines is whether the components 
                  of the downwelling flux, the direct and diffuse fluxes, that are output are the actual direct
                  and diffuse fluxes (IDELM = 0) or are those computed using the delta-M approximation (IDELM = 1).
-                 Only the IDELM=0 option is available in RRTMG_SW.
 
           ICOS   = 0 there is no need to account for instrumental cosine response (default)
                  = 1 to account for instrumental cosine response in the computation of the direct and diffuse fluxes 

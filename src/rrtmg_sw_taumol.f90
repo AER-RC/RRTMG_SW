@@ -250,7 +250,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng16
-      use rrsw_kg16, only : absa, absb, forref, selfref, &
+      use rrsw_kg16, only : absa, ka, absb, kb, forref, selfref, &
                             sfluxref, rayl, layreffr, strrat1
 
 ! ------- Declarations -------
@@ -345,7 +345,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng17, ngs16
-      use rrsw_kg17, only : absa, absb, forref, selfref, &
+      use rrsw_kg17, only : absa, ka, absb, kb, forref, selfref, &
                             sfluxref, rayl, layreffr, strrat
 
 ! ------- Declarations -------
@@ -464,7 +464,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng18, ngs17
-      use rrsw_kg18, only : absa, absb, forref, selfref, &
+      use rrsw_kg18, only : absa, ka, absb, kb, forref, selfref, &
                             sfluxref, rayl, layreffr, strrat
 
 ! ------- Declarations -------
@@ -560,7 +560,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng19, ngs18
-      use rrsw_kg19, only : absa, absb, forref, selfref, &
+      use rrsw_kg19, only : absa, ka, absb, kb, forref, selfref, &
                             sfluxref, rayl, layreffr, strrat
 
 ! ------- Declarations -------
@@ -656,7 +656,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng20, ngs19
-      use rrsw_kg20, only : absa, absb, forref, selfref, &
+      use rrsw_kg20, only : absa, ka, absb, kb, forref, selfref, &
                             sfluxref, absch4, rayl, layreffr
 
       implicit none
@@ -740,7 +740,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng21, ngs20
-      use rrsw_kg21, only : absa, absb, forref, selfref, &
+      use rrsw_kg21, only : absa, ka, absb, kb, forref, selfref, &
                             sfluxref, rayl, layreffr, strrat
 
 ! ------- Declarations -------
@@ -859,7 +859,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng22, ngs21
-      use rrsw_kg22, only : absa, absb, forref, selfref, &
+      use rrsw_kg22, only : absa, ka, absb, kb, forref, selfref, &
                             sfluxref, rayl, layreffr, strrat
 
 ! ------- Declarations -------
@@ -965,7 +965,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng23, ngs22
-      use rrsw_kg23, only : absa, forref, selfref, &
+      use rrsw_kg23, only : absa, ka, forref, selfref, &
                             sfluxref, rayl, layreffr, givfac
 
 ! ------- Declarations -------
@@ -1034,7 +1034,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng24, ngs23
-      use rrsw_kg24, only : absa, absb, forref, selfref, &
+      use rrsw_kg24, only : absa, ka, absb, kb, forref, selfref, &
                             sfluxref, abso3a, abso3b, rayla, raylb, &
                             layreffr, strrat
 
@@ -1134,7 +1134,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng25, ngs24
-      use rrsw_kg25, only : absa, &
+      use rrsw_kg25, only : absa, ka, &
                             sfluxref, abso3a, abso3b, rayl, layreffr
 
 ! ------- Declarations -------
@@ -1247,7 +1247,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng27, ngs26
-      use rrsw_kg27, only : absa, absb, &
+      use rrsw_kg27, only : absa, ka, absb, kb, &
                             sfluxref, rayl, layreffr, scalekur
 
 ! ------- Declarations -------
@@ -1315,7 +1315,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng28, ngs27
-      use rrsw_kg28, only : absa, absb, &
+      use rrsw_kg28, only : absa, ka, absb, kb, &
                             sfluxref, rayl, layreffr, strrat
 
 ! ------- Declarations -------
@@ -1420,7 +1420,7 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng29, ngs28
-      use rrsw_kg29, only : absa, absb, forref, selfref, &
+      use rrsw_kg29, only : absa, ka, absb, kb, forref, selfref, &
                             sfluxref, absh2o, absco2, rayl, layreffr
 
 ! ------- Declarations -------

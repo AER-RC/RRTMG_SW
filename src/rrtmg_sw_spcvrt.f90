@@ -32,7 +32,7 @@
 
 ! ---------------------------------------------------------------------------
       subroutine spcvrt_sw &
-            (nlayers, istart, iend, icpr, iout, &
+            (nlayers, istart, iend, icpr, idelm, iout, &
              pavel, tavel, pz, tz, tbound, palbd, palbp, &
              pclfr, ptauc, pasyc, pomgc, ptaucorig, &
              ptaua, pasya, pomga, prmu0, coldry, wkl, adjflux, &
@@ -79,6 +79,9 @@
       integer(kind=im), intent(in) :: istart
       integer(kind=im), intent(in) :: iend
       integer(kind=im), intent(in) :: icpr
+      integer(kind=im), intent(in) :: idelm   ! delta-m scaling flag
+                                              ! [0 = direct and diffuse fluxes are unscaled]
+                                              ! [1 = direct and diffuse fluxes are scaled]
       integer(kind=im), intent(in) :: iout
       integer(kind=im), intent(in) :: laytrop
       integer(kind=im), intent(in) :: layswtch
@@ -347,6 +350,13 @@
             zrupc(klev+1) =palbp(ibm)
             zrupdc(klev+1)=palbd(ibm)
            
+! Cloudy-sky    
+!   Surface values
+            ztrao(klev+1) =0.0_rb
+            ztrado(klev+1)=0.0_rb
+            zrefo(klev+1) =palbp(ibm)
+            zrefdo(klev+1)=palbd(ibm)
+           
 ! Total sky    
 !   TOA direct beam    
             ztdbt(1)=1.0_rb
@@ -396,46 +406,47 @@
                zomcc(jk) = zomcc(jk) / ztauc(jk)
 
 ! Pre-delta-scaling clear and cloudy direct beam transmittance (must use 'orig', unscaled cloud OD)       
-!   \/\/\/ This block of code is only needed for direct beam calculation
+!   \/\/\/ This block of code is only needed for unscaled direct beam calculation
+               if (idelm .eq. 0) then
 !     
-               zclear = 1.0_rb - pclfr(ikl)
-               zcloud = pclfr(ikl)
+                  zclear = 1.0_rb - pclfr(ikl)
+                  zcloud = pclfr(ikl)
 
 ! Clear
-!                zdbtmc = exp(-ztauc(jk) / prmu0)
+!                   zdbtmc = exp(-ztauc(jk) / prmu0)
  
-! Use exponential lookup table for transmittance, or expansion of 
-! exponential for low tau
-               ze1 = ztauc(jk) / prmu0
-               if (ze1 .le. od_lo) then
-                  zdbtmc = 1._rb - ze1 + 0.5_rb * ze1 * ze1
-               else 
-                  tblind = ze1 / (bpade + ze1)
-                  itind = tblint * tblind + 0.5_rb
-                  zdbtmc = exp_tbl(itind)
-               endif
+! Use exponential lookup table for transmittance, or expansion of exponential for low tau
+                  ze1 = ztauc(jk) / prmu0
+                  if (ze1 .le. od_lo) then
+                     zdbtmc = 1._rb - ze1 + 0.5_rb * ze1 * ze1
+                  else 
+                     tblind = ze1 / (bpade + ze1)
+                     itind = tblint * tblind + 0.5_rb
+                     zdbtmc = exp_tbl(itind)
+                  endif
 
-               zdbtc_nodel(jk) = zdbtmc
-               ztdbtc_nodel(jk+1) = zdbtc_nodel(jk) * ztdbtc_nodel(jk)
+                  zdbtc_nodel(jk) = zdbtmc
+                  ztdbtc_nodel(jk+1) = zdbtc_nodel(jk) * ztdbtc_nodel(jk)
 
 ! Clear + Cloud
-               tauorig = ztauc(jk) + ptaucorig(ikl,ibm)
-!                zdbtmo = exp(-tauorig / prmu0)
+                  tauorig = ztauc(jk) + ptaucorig(ikl,ibm)
+!                   zdbtmo = exp(-tauorig / prmu0)
 
-! Use exponential lookup table for transmittance, or expansion of 
-! exponential for low tau
-               ze1 = tauorig / prmu0
-               if (ze1 .le. od_lo) then
-                  zdbtmo = 1._rb - ze1 + 0.5_rb * ze1 * ze1
-               else
-                  tblind = ze1 / (bpade + ze1)
-                  itind = tblint * tblind + 0.5_rb
-                  zdbtmo = exp_tbl(itind)
+! Use exponential lookup table for transmittance, or expansion of exponential for low tau
+                  ze1 = tauorig / prmu0
+                  if (ze1 .le. od_lo) then
+                     zdbtmo = 1._rb - ze1 + 0.5_rb * ze1 * ze1
+                  else
+                     tblind = ze1 / (bpade + ze1)
+                     itind = tblint * tblind + 0.5_rb
+                     zdbtmo = exp_tbl(itind)
+                  endif
+
+                  zdbt_nodel(jk) = zclear * zdbtmc + zcloud * zdbtmo
+                  ztdbt_nodel(jk+1) = zdbt_nodel(jk) * ztdbt_nodel(jk)
+
                endif
-
-               zdbt_nodel(jk) = zclear * zdbtmc + zcloud * zdbtmo
-               ztdbt_nodel(jk+1) = zdbt_nodel(jk) * ztdbt_nodel(jk)
-!   /\/\/\ Above code only needed for direct beam calculation
+!   /\/\/\ Above code only needed for unscaled direct beam calculation
 
 
 ! Delta scaling - clear   
@@ -572,21 +583,36 @@
                pbbfd(ikl) = pbbfd(ikl) + zincflx(iw)*zfd(jk,iw)
                pbbcu(ikl) = pbbcu(ikl) + zincflx(iw)*zcu(jk,iw)
                pbbcd(ikl) = pbbcd(ikl) + zincflx(iw)*zcd(jk,iw)
-               pbbfddir(ikl) = pbbfddir(ikl) + zincflx(iw)*ztdbt_nodel(jk)
-               pbbcddir(ikl) = pbbcddir(ikl) + zincflx(iw)*ztdbtc_nodel(jk)
+               if (idelm .eq. 0) then 
+                  pbbfddir(ikl) = pbbfddir(ikl) + zincflx(iw)*ztdbt_nodel(jk)
+                  pbbcddir(ikl) = pbbcddir(ikl) + zincflx(iw)*ztdbtc_nodel(jk)
+               elseif (idelm .eq. 1) then
+                  pbbfddir(ikl) = pbbfddir(ikl) + zincflx(iw)*ztdbt(jk)
+                  pbbcddir(ikl) = pbbcddir(ikl) + zincflx(iw)*ztdbtc(jk)
+               endif
 
 ! Accumulate direct fluxes for UV/visible bands
                if (ibm >= 10 .and. ibm <= 13) then
                   puvcd(ikl) = puvcd(ikl) + zincflx(iw)*zcd(jk,iw)
                   puvfd(ikl) = puvfd(ikl) + zincflx(iw)*zfd(jk,iw)
-                  puvcddir(ikl) = puvcddir(ikl) + zincflx(iw)*ztdbtc_nodel(jk)
-                  puvfddir(ikl) = puvfddir(ikl) + zincflx(iw)*ztdbt_nodel(jk)
+                  if (idelm .eq. 0) then 
+                     puvfddir(ikl) = puvfddir(ikl) + zincflx(iw)*ztdbt_nodel(jk)
+                     puvcddir(ikl) = puvcddir(ikl) + zincflx(iw)*ztdbtc_nodel(jk)
+                  elseif (idelm .eq. 1) then
+                     puvfddir(ikl) = puvfddir(ikl) + zincflx(iw)*ztdbt(jk)
+                     puvcddir(ikl) = puvcddir(ikl) + zincflx(iw)*ztdbtc(jk)
+                  endif
 ! Accumulate direct fluxes for near-IR bands
                else if (ibm == 14 .or. ibm <= 9) then  
                   pnicd(ikl) = pnicd(ikl) + zincflx(iw)*zcd(jk,iw)
                   pnifd(ikl) = pnifd(ikl) + zincflx(iw)*zfd(jk,iw)
-                  pnicddir(ikl) = pnicddir(ikl) + zincflx(iw)*ztdbtc_nodel(jk)
-                  pnifddir(ikl) = pnifddir(ikl) + zincflx(iw)*ztdbt_nodel(jk)
+                  if (idelm .eq. 0) then 
+                     pnifddir(ikl) = pnifddir(ikl) + zincflx(iw)*ztdbt_nodel(jk)
+                     pnicddir(ikl) = pnicddir(ikl) + zincflx(iw)*ztdbtc_nodel(jk)
+                  elseif (idelm .eq. 1) then
+                     pnifddir(ikl) = pnifddir(ikl) + zincflx(iw)*ztdbt(jk)
+                     pnicddir(ikl) = pnicddir(ikl) + zincflx(iw)*ztdbtc(jk)
+                  endif
                endif
 
             enddo

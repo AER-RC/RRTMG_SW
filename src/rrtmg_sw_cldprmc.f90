@@ -38,8 +38,8 @@
 
 ! Purpose: Compute the cloud optical properties for each cloudy layer
 ! and g-point interval for use by the McICA method.  
-! Note: Only inflag = 0 and inflag=2/liqflag=1/iceflag=2,3 are available;
-! (Hu & Stamnes, Key, and Fu) are implemented. 
+! Note: Only inflag = 0 and inflag=2/liqflag=1/iceflag=1,2,3 are available;
+! (Hu & Stamnes, Ebert and Curry, Key, and Fu) are implemented. 
 
 ! ------- Input -------
 
@@ -59,6 +59,8 @@
       real(kind=rb), intent(in) :: reicmc(:)          ! cloud ice particle effective radius (microns)
                                                       !    Dimensions: (nlayers)
                                                       ! specific definition of reicmc depends on setting of iceflag:
+                                                      ! iceflag = 0: (inactive)
+                                                      !              
                                                       ! iceflag = 1: ice effective radius, r_ec, (Ebert and Curry, 1992),
                                                       !              r_ec range is limited to 13.0 to 130.0 microns
                                                       ! iceflag = 2: ice effective radius, r_k, (Key, Streamer Ref. Manual, 1996)
@@ -86,7 +88,7 @@
       integer(kind=im) :: ib, lay, istr, index, icx, ig
 
       real(kind=rb), parameter :: eps = 1.e-06_rb     ! epsilon
-      real(kind=rb), parameter :: cldmin = 1.e-80_rb  ! minimum value for cloud quantities
+      real(kind=rb), parameter :: cldmin = 1.e-20_rb  ! minimum value for cloud quantities
       real(kind=rb) :: cwp                            ! total cloud water path
       real(kind=rb) :: radliq                         ! cloud liquid droplet radius (microns)
       real(kind=rb) :: radice                         ! cloud ice effective size (microns)

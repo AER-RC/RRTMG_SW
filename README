@@ -126,6 +126,7 @@ MAKEFILES:
    make_rrtmg_sw_linux_pgi   : Sample makefile for LINUX (PGI compiler)
    make_rrtmg_sw_aix_xlf90   : Sample makefile for AIX (XLF90 compiler)
    make_rrtmg_sw_OS_X_g95    : Sample makefile for OS_X (G95 compiler)
+   make_rrtmg_sw_OS_X_ibm_xl : Sample makefile for OS_X (IBM XL compiler)
 
 
 SAMPLE INPUT/OUTPUT: 

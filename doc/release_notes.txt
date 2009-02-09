@@ -9,6 +9,53 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+February 9, 2009:
+
+	Release_3_7
+
+        Modified setting of the single scattering albedo threshold that selects
+        between the general 2-stream scattering solution (for most SSA values)
+        and a simpler, conservative scattering solution when SSA is close to 1.0.
+        The new more restrictive threhold generates improved results within 
+        multi-layer, highly scattering clouds when the SSA is just under one. 
+        This change will affect fluxes and will significantly affect heating rates
+        within highly scattering clouds, especially those that extend over multiple
+        layers. Also made several changes that prevent exception problems under
+        single precision.  A new flag was installed (idelm) that is used to
+        select between either unscaled 'true' direct and diffuse fluxes or
+        delta-scaled direct and diffuse fluxes.  Total fluxes continue to be
+        provided as delta-scaled quantities only.  
+
+        Publicly released on AER RT web site in February 2009.
+
+        - Revised value of variable zwcrit in rrtmg_sw_reftra.f90 from 0.9995 to
+          0.9999995.  This variable selects between the general 2-stream scattering
+          solution and a conservative scattering solution that is used when the SSA 
+          approaches 1.0.  The more restrictive threshold improves fluxes in heating
+          rates in multi-layer, highly scattering clouds.  Results may also change
+          slightly in other cloud or aerosol cases and may change negligibly due to 
+          Rayleigh scattering in clear sky. 
+        - Added flag idelm to GCM version of code to switch output direct and diffuse
+          fluxes between delta-scaled and unscaled 'true' flux values.  The flag is
+          set to 1 by default to output delta-scaled direct and diffuse fluxes in the
+          GCM version of the code. Total fluxes continue to be output only as delta-
+          scaled values. The idelm input flag in the column version of the code has 
+          also been activated and is set to 0 by default to provide unscaled direct
+          and diffuse fluxes.  See rrtmg_sw_instructions.txt for more information. 
+        - Made several code changes in rrtmg_sw_reftra.f90 to prevent possible 
+          divide by zero exception problems when the code is compiled with single
+          precision.  
+        - Removed an unnecessary module use association to module rrtmg_sw_cldprop
+          in main module rrtmg_sw_rad. 
+        - Converted declarations of arrays pref, prefd, ptra, and ptrad from 
+          intent(out) to intent(inout) in module rrtmg_sw_reftra.f90.
+        - Modified use associations related to rrsw_kgnn.f90 modules in source 
+          files rrtmg_sw_taumol.f90 and rrtmg_sw_init.f90 for compatibility with
+          gfortran and ifort compilers.  This has no affect on results. 
+        - Added makefile in build directory for IBM XL platforms. 
+        - Added a few updates to the file rrtmg_sw_instructions.txt. 
+
+
 September 17, 2008:
 
         Release_3_61
@@ -63,10 +110,11 @@ August 29, 2008:
           dry air into init module (rrtmg_sw_init.f90) for heatfac calculation.   
         - Oxygen volume mixing ratio was changed from a hard-wired parameter to
           a required input array. 
-        - Forward scattering fraction was added as required input array.  This
-          was previously set as the square of the asymmetry parameter internally.
+        - Forward scattering fraction was added as required input array when cloud
+          optical properties are input directly (inflag=0 option).  This was 
+          previously set as the square of the asymmetry parameter internally.
           This change was made to enhance the code flexibility to allow this value
-          to be defined by the host GCM. 
+          to be defined by the host GCM when cloud optical properties are provided.  
         - In the column version of the code, increased the number of digits required 
           to input variable solvar from INPUT_RRTM input file from three (f5.3) to
           five (f7.5) to improve code flexibility. 
