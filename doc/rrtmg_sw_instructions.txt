@@ -713,19 +713,21 @@ Band #   Wavenumber Range (cm-1)       1050 - 96 mb      96 - 0.01 mb
             EFFSIZEICE (INFLAG = 2 and ICEFLAG = 1) Effective radius of spherical  
 	               ice crystals with equivalent projected area to hexagonal ice particles
 	               following Ebert and Curry (1992).
+	               Valid sizes are 13.0 - 130.0 microns. 
                   
                        (INFLAG = 2 and ICEFLAG = 2) Effective radius of spherical  
-	               ice crystals, re (see STREAMER manual for defition of this parameter)
+	               ice crystals, re (see STREAMER manual for definition of this parameter)
 	               Valid sizes are 5.0 - 131.0 microns. 
                   
                        (INFLAG = 2 and ICEFLAG = 3) Generalized effective size of hexagonal
 	               ice crystals, dge (see Q. Fu, 1996, for definition of this parameter)
 	               Valid sizes are 5.0 - 140.0 microns.  
 
-		       NOTE: The size descriptions for the two iceflag options are NOT
-		       equivalent.  See the particular references for the appropriate definition.
+		       NOTE: The size descriptions for effective radius and generalized effective
+		       size are NOT equivalent.  See the particular references for the appropriate 
+		       definition.
 
-            EFFSIZELIQ  (INFLAG = 2 and LIQFLAG = 1) liquid droplet effective radius, re (microns) 
+            EFFSIZELIQ (INFLAG = 2 and LIQFLAG = 1) Liquid droplet effective radius, re (microns) 
                        Valid sizes are 2.5 - 60.0 microns.
 
 

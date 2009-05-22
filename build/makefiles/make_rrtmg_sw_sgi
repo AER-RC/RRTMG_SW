@@ -3,21 +3,47 @@
 
 SHELL  = /bin/sh
 
+##############################################################
+# Select rrtmg_sw input data option
+# KGSRC = dat : Input absorption coefficients from source data
+# KGSRC = nc  : Input absorption coefficients from netCDF file
+##############################################################
+
+KGSRC = dat
+# KGSRC = nc
+
 ################################
 # Set variables
 ################################
 
 PLATFORM = sgi
-VERSION = v3.7
+VERSION = v3.8
+
+##############################################################
+# Set location of netCDF libraries
+#
+# They must be compiled with the same compiler and at the same 
+# precision as rrtmg_sw
+##############################################################
+
+ifeq ($(KGSRC),nc)
+   LIB_NETCDF = /usr/local/netcdf-3.5.0/gnu/lib
+   INC_NETCDF = /usr/local/netcdf-3.5.0/gnu/include
+endif
 
 ##################################
 # Options for the FORTRAN compiler
 ##################################
 
 FC = f90
-FCOPTS = -mips4 -r10000 -lfastm -O3 -64 -r8 -i8 -TENV:X=0
+ifeq ($(KGSRC),nc)
+   FCOPTS = -mips4 -r10000 -lfastm -O3 -64 -r8 -i8 -TENV:X=0 -I$(INC_NETCDF)
+   LDFLAGS = -L$(LIB_NETCDF) -lnetcdf
+else
+   FCOPTS = -mips4 -r10000 -lfastm -O3 -64 -r8 -i8 -TENV:X=0
 # Compile absorption coefficient data without optimization
-FCOPTK = -mips4 -r10000 -lfastm -O0 -64 -r8 -i8 -TENV:X=0
+   FCOPTK = -mips4 -r10000 -lfastm -O0 -64 -r8 -i8 -TENV:X=0
+endif
 
 #################
 # Executable name
@@ -52,6 +78,9 @@ MK26 = rrsw_kg26
 MK27 = rrsw_kg27
 MK28 = rrsw_kg28
 MK29 = rrsw_kg29
+ifeq ($(KGSRC),nc)
+   MNCP = rrsw_ncpar
+endif
 MREF = rrsw_ref
 MTBL = rrsw_tbl
 MVSN = rrsw_vsn
@@ -61,7 +90,11 @@ CRTM = rrtmg_sw.1col
 CCLD = rrtmg_sw_cldprop
 CCMC = rrtmg_sw_cldprmc
 CINI = rrtmg_sw_init
-CKGS = rrtmg_sw_k_g
+ifeq ($(KGSRC),nc)
+   CKGS = rrtmg_sw_read_nc
+else
+   CKGS = rrtmg_sw_k_g
+endif
 CRFT = rrtmg_sw_reftra
 CSET = rrtmg_sw_setcoef
 CSVT = rrtmg_sw_spcvrt
@@ -108,6 +141,32 @@ OBJPTH = $(CDOTO)/$(CMRN).o \
          $(CDOTO)/$(CEXT).o \
          $(CDOTO)/$(CUTL).o
 
+ifeq ($(KGSRC),nc)
+OBMPTH = $(CDOTO)/$(MPRK).o \
+         $(CDOTO)/$(MPAR).o \
+         $(CDOTO)/$(MAER).o \
+         $(CDOTO)/$(MCLD).o \
+         $(CDOTO)/$(MCON).o \
+         $(CDOTO)/$(MK16).o \
+         $(CDOTO)/$(MK17).o \
+         $(CDOTO)/$(MK18).o \
+         $(CDOTO)/$(MK19).o \
+         $(CDOTO)/$(MK20).o \
+         $(CDOTO)/$(MK21).o \
+         $(CDOTO)/$(MK22).o \
+         $(CDOTO)/$(MK23).o \
+         $(CDOTO)/$(MK24).o \
+         $(CDOTO)/$(MK25).o \
+         $(CDOTO)/$(MK26).o \
+         $(CDOTO)/$(MK27).o \
+         $(CDOTO)/$(MK28).o \
+         $(CDOTO)/$(MK29).o \
+         $(CDOTO)/$(MNCP).o \
+         $(CDOTO)/$(MREF).o \
+         $(CDOTO)/$(MTBL).o \
+         $(CDOTO)/$(MVSN).o \
+         $(CDOTO)/$(MWVN).o
+else
 OBMPTH = $(CDOTO)/$(MPRK).o \
          $(CDOTO)/$(MPAR).o \
          $(CDOTO)/$(MAER).o \
@@ -131,14 +190,21 @@ OBMPTH = $(CDOTO)/$(MPRK).o \
          $(CDOTO)/$(MTBL).o \
          $(CDOTO)/$(MVSN).o \
          $(CDOTO)/$(MWVN).o
+endif
 
 #################
 # Load line
 #################
 
+ifeq ($(KGSRC),nc)
+$(OUTPUT) : \
+	intro makedir $(OBMPTH) $(OBJPTH) conclude
+	$(FC) $(FCOPTS) -I$(CDOTO) -o $(OUTPUT) $(OBMPTH) $(OBJPTH) $(LDFLAGS)
+else
 $(OUTPUT) : \
 	intro makedir $(OBMPTH) $(OBJPTH) conclude
 	$(FC) $(FCOPTS) -I$(CDOTO) -o $(OUTPUT) $(OBMPTH) $(OBJPTH)
+endif
 
 #################
 # Compile modules
@@ -220,6 +286,12 @@ $(CDOTO)/$(MK29).o : $(MPATH)/$(MK29).f90
 	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK29).f90
 	\mv $(MK29).o *.mod $(CDOTO)
 
+ifeq ($(KGSRC),nc)
+$(CDOTO)/$(MNCP).o : $(MPATH)/$(MNCP).f90
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MNCP).f90
+	\mv $(MNCP).o *.mod $(CDOTO)
+endif
+
 $(CDOTO)/$(MREF).o : $(MPATH)/$(MREF).f90
 	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MREF).f90
 	\mv $(MREF).o *.mod $(CDOTO)
@@ -256,9 +328,15 @@ $(CDOTO)/$(CCMC).o : $(CPATH)/$(CCMC).f90
 	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CCMC).f90
 	\mv $(CCMC).o *.mod $(CDOTO)
 
+ifeq ($(KGSRC), nc)
+$(CDOTO)/$(CKGS).o : $(CPATH)/$(CKGS).f90
+	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CKGS).f90 $(LDFLAGS)
+	\mv $(CKGS).o $(CDOTO)
+else
 $(CDOTO)/$(CKGS).o : $(CPATH)/$(CKGS).f90
 	$(FC) $(FCOPTK) -I$(CDOTO) -c $(CPATH)/$(CKGS).f90
 	\mv $(CKGS).o $(CDOTO)
+endif
 
 $(CDOTO)/$(CRFT).o : $(CPATH)/$(CRFT).f90
 	$(FC) $(FCOPTS) -I$(CDOTO) -c $(CPATH)/$(CRFT).f90

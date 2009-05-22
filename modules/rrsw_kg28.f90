@@ -28,8 +28,7 @@
       real(kind=rb) :: kbo(5,5,13:59,no28)
       real(kind=rb) :: sfluxrefo(no28,5)
 
-      integer(kind=im) :: layreffr
-      real(kind=rb) :: rayl, strrat
+      real(kind=rb) :: rayl
 
 !-----------------------------------------------------------------
 ! rrtmg_sw COMBINED abs. coefficients for interval 28

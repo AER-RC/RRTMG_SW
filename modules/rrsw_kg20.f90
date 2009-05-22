@@ -33,7 +33,6 @@
       real(kind=rb) :: sfluxrefo(no20)
       real(kind=rb) :: absch4o(no20)
 
-      integer(kind=im) :: layreffr
       real(kind=rb) :: rayl 
 
 !-----------------------------------------------------------------

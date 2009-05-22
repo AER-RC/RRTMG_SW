@@ -31,9 +31,6 @@
       real(kind=rb) :: sfluxrefo(no23)
       real(kind=rb) :: raylo(no23)
 
-      integer(kind=im) :: layreffr
-      real(kind=rb) :: givfac
-
 !-----------------------------------------------------------------
 ! rrtmg_sw COMBINED abs. coefficients for interval 23
 ! band 23:  8050-12850 cm-1 (low - h2o; high - nothing)

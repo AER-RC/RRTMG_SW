@@ -8,7 +8,7 @@
 
 !  --------------------------------------------------------------------------
 ! |                                                                          |
-! |  Copyright 2002-2008, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
 ! |  This software may be used, copied, or redistributed as long as it is    |
 ! |  not sold and this copyright notice is reproduced on each copy made.     |
 ! |  This model is provided as is without any express or implied warranties. |
@@ -295,7 +295,7 @@
       integer(kind=im) :: istart              ! beginning band of calculation
       integer(kind=im) :: iend                ! ending band of calculation
       integer(kind=im) :: icpr                ! cldprop/cldprmc use flag
-      integer(kind=im) :: iout                ! output option flag (inactive)
+      integer(kind=im) :: iout                ! output option flag
       integer(kind=im) :: iaer                ! aerosol option flag
       integer(kind=im) :: idelm               ! delta-m scaling flag
                                               ! [0 = direct and diffuse fluxes are unscaled]
@@ -445,6 +445,7 @@
 
       istart = jpb1
       iend = jpb2
+      iout = 0
       icpr = 0
 
 ! In a GCM with or without McICA, set nlon to the longitude dimension

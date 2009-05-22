@@ -37,9 +37,6 @@
       real(kind=rb) :: abso3ao(no24), abso3bo(no24)
       real(kind=rb) :: raylao(no24,9), raylbo(no24)
 
-      integer(kind=im) :: layreffr
-      real(kind=rb) :: strrat
-
 !-----------------------------------------------------------------
 ! rrtmg_sw COMBINED abs. coefficients for interval 24
 ! band 24: 12850-16000 cm-1 (low - h2o,o2; high - o2)

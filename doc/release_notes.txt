@@ -9,6 +9,24 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+May 22, 2009:
+
+	Release_3_8
+
+        New option added to input absorption coefficient data either through 
+        original source statements or through a netCDF data file. Choice of 
+        input source is selected in the makefile. 
+
+        Publicly released on AER RT web site in May 2009.
+
+        - Added option for obtaining input absorption coefficient data either
+          through a netCDF file or through the original source statements. 
+          Global attributes of netCDF file header include detail on RRTM_SW
+          source version of k-distribution data and water continuum version. 
+        - Changed lower bound of allowable liquid droplet effective radius from
+          1.5 to 2.5 microns for the inflag=2/liqflag=1 cloud input option.
+
+
 February 9, 2009:
 
 	Release_3_7

@@ -31,8 +31,6 @@
       real(kind=rb) :: abso3ao(no25), abso3bo(no25)
       real(kind=rb) :: raylo(no25)
 
-      integer(kind=im) :: layreffr
-
 !-----------------------------------------------------------------
 ! rrtmg_sw COMBINED abs. coefficients for interval 25
 ! band 25: 16000-22650 cm-1 (low - h2o; high - nothing)

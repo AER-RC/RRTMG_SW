@@ -31,8 +31,7 @@
       real(kind=rb) :: selfrefo(10,no17), forrefo(4,no17)
       real(kind=rb) :: sfluxrefo(no17,5)
 
-      integer(kind=im) :: layreffr
-      real(kind=rb) :: rayl, strrat
+      real(kind=rb) :: rayl
 
 !-----------------------------------------------------------------
 ! rrtmg_sw COMBINED abs. coefficients for interval 17

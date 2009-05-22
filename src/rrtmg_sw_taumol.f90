@@ -7,7 +7,7 @@
 
 !  --------------------------------------------------------------------------
 ! |                                                                          |
-! |  Copyright 2002-2008, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
 ! |  This software may be used, copied, or redistributed as long as it is    |
 ! |  not sold and this copyright notice is reproduced on each copy made.     |
 ! |  This model is provided as is without any express or implied warranties. |
@@ -251,20 +251,24 @@
 
       use parrrsw, only : ng16
       use rrsw_kg16, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl, layreffr, strrat1
+                            sfluxref, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray
+                       tauray, strrat1
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.  
+
+      strrat1 = 252.131_rb
+      layreffr = 18
 
 ! Lower atmosphere loop
       do lay = 1, laytrop
@@ -346,20 +350,24 @@
 
       use parrrsw, only : ng17, ngs16
       use rrsw_kg17, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl, layreffr, strrat
+                            sfluxref, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray
+                       tauray, strrat
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.  
+
+      strrat = 0.364641_rb
+      layreffr = 30
 
 ! Lower atmosphere loop
       do lay = 1, laytrop
@@ -465,21 +473,24 @@
 
       use parrrsw, only : ng18, ngs17
       use rrsw_kg18, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl, layreffr, strrat
+                            sfluxref, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray
+                       tauray, strrat
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.  
 
+      strrat = 38.9589_rb
+      layreffr = 6
       laysolfr = laytrop
       
 ! Lower atmosphere loop
@@ -561,21 +572,24 @@
 
       use parrrsw, only : ng19, ngs18
       use rrsw_kg19, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl, layreffr, strrat
+                            sfluxref, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray
+                       tauray, strrat
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.  
 
+      strrat = 5.49281_rb
+      layreffr = 3
       laysolfr = laytrop
 
 ! Lower atmosphere loop      
@@ -657,7 +671,7 @@
 
       use parrrsw, only : ng20, ngs19
       use rrsw_kg20, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, absch4, rayl, layreffr
+                            sfluxref, absch4, rayl
 
       implicit none
 
@@ -665,7 +679,8 @@
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
                        tauray
@@ -674,6 +689,7 @@
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.  
 
+      layreffr = 3
       laysolfr = laytrop
 
 ! Lower atmosphere loop
@@ -741,21 +757,24 @@
 
       use parrrsw, only : ng21, ngs20
       use rrsw_kg21, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl, layreffr, strrat
+                            sfluxref, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray
+                       tauray, strrat
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.  
 
+      strrat = 0.0045321_rb
+      layreffr = 8
       laysolfr = laytrop
       
 ! Lower atmosphere loop
@@ -860,16 +879,17 @@
 
       use parrrsw, only : ng22, ngs21
       use rrsw_kg22, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl, layreffr, strrat
+                            sfluxref, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray, o2adj, o2cont
+                       tauray, o2adj, o2cont, strrat
 
 ! The following factor is the ratio of total O2 band intensity (lines 
 ! and Mate continuum) to O2 band intensity (line only).  It is needed
@@ -880,6 +900,8 @@
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.  
 
+      strrat = 0.022708_rb
+      layreffr = 2
       laysolfr = laytrop
 
 ! Lower atmosphere loop
@@ -966,21 +988,26 @@
 
       use parrrsw, only : ng23, ngs22
       use rrsw_kg23, only : absa, ka, forref, selfref, &
-                            sfluxref, rayl, layreffr, givfac
+                            sfluxref, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray
+                       tauray, givfac
+
+! Average Giver et al. correction factor for this band.
+      givfac = 1.029_rb
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.  
 
+      layreffr = 6
       laysolfr = laytrop
 
 ! Lower atmosphere loop
@@ -1035,22 +1062,24 @@
 
       use parrrsw, only : ng24, ngs23
       use rrsw_kg24, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, abso3a, abso3b, rayla, raylb, &
-                            layreffr, strrat
+                            sfluxref, abso3a, abso3b, rayla, raylb
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray
+                       tauray, strrat
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.  
 
+      strrat = 0.124692_rb
+      layreffr = 1
       laysolfr = laytrop
 
 ! Lower atmosphere loop
@@ -1135,13 +1164,14 @@
 
       use parrrsw, only : ng25, ngs24
       use rrsw_kg25, only : absa, ka, &
-                            sfluxref, abso3a, abso3b, rayl, layreffr
+                            sfluxref, abso3a, abso3b, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
                        tauray
@@ -1150,6 +1180,7 @@
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.  
 
+      layreffr = 2
       laysolfr = laytrop
 
 ! Lower atmosphere loop
@@ -1247,21 +1278,32 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng27, ngs26
-      use rrsw_kg27, only : absa, ka, absb, kb, &
-                            sfluxref, rayl, layreffr, scalekur
+      use rrsw_kg27, only : absa, ka, absb, kb, sfluxref, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray
+                       tauray, scalekur
+
+! Kurucz solar source function
+! The values in sfluxref were obtained using the "low resolution"
+! version of the Kurucz solar source function.  For unknown reasons,
+! the total irradiance in this band differs from the corresponding
+! total in the "high-resolution" version of the Kurucz function.
+! Therefore, these values are scaled below by the factor SCALEKUR.
+
+      scalekur = 50.15_rb/48.37_rb
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.  
+
+      layreffr = 32
 
 ! Lower atmosphere loop
       do lay = 1, laytrop
@@ -1315,21 +1357,24 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng28, ngs27
-      use rrsw_kg28, only : absa, ka, absb, kb, &
-                            sfluxref, rayl, layreffr, strrat
+      use rrsw_kg28, only : absa, ka, absb, kb, sfluxref, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
-                       tauray
+                       tauray, strrat
 
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.  
+
+      strrat = 6.67029e-07_rb
+      layreffr = 58
 
 ! Lower atmosphere loop
       do lay = 1, laytrop
@@ -1421,13 +1466,14 @@
 
       use parrrsw, only : ng29, ngs28
       use rrsw_kg29, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, absh2o, absco2, rayl, layreffr
+                            sfluxref, absh2o, absco2, rayl
 
 ! ------- Declarations -------
 
 ! Local
 
-      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr
+      integer(kind=im) :: ig, ind0, ind1, inds, indf, js, lay, laysolfr, &
+                          layreffr
       real(kind=rb) :: fac000, fac001, fac010, fac011, fac100, fac101, &
                        fac110, fac111, fs, speccomb, specmult, specparm, &
                        tauray
@@ -1435,6 +1481,8 @@
 ! Compute the optical depth by interpolating in ln(pressure), 
 ! temperature, and appropriate species.  Below LAYTROP, the water
 ! vapor self-continuum is interpolated (in temperature) separately.  
+
+      layreffr = 49
 
 ! Lower atmosphere loop
       do lay = 1, laytrop

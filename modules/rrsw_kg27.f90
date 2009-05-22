@@ -30,9 +30,6 @@
       real(kind=rb) :: sfluxrefo(no27)
       real(kind=rb) :: raylo(no27)
 
-      integer(kind=im) :: layreffr
-      real(kind=rb) :: scalekur
-
 !-----------------------------------------------------------------
 ! rrtmg_sw COMBINED abs. coefficients for interval 27
 ! band 27: 29000-38000 cm-1 (low - o3; high - o3)

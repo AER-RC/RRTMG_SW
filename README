@@ -51,7 +51,8 @@ made to enhance computational performance.  Total fluxes are accurate to within
 1-2 W/m2 relative to the standard RRTM_SW (using DISORT) in clear sky and in the
 presence of aerosols and within 6 W/m2 in overcast sky.  RRTM_SW with DISORT is
 itself accurate to within 2 W/m2 of the data-validated multiple scattering 
-model, CHARTS.  
+model, CHARTS.  Absorption coefficient data can be read in from original 
+source statements or from a netCDF file as selected in the makefile. 
 
 This model can also utilize McICA, the Monte-Carlo Independent Column 
 Approximation, to represent sub-grid scale cloud variability such as cloud 
@@ -85,6 +86,7 @@ SOURCE CODE:
    rrtmg_sw_init.f90         : RRTMG_SW initialization routine; reduces g-intervals
                                from 224 to 112
    rrtmg_sw_k_g.f90          : Absorption coefficient data file
+   rrtmg_sw_read_nc.f90      : Alternate absorption coefficient data netCDF input
    rrtmg_sw_reftra.f90       : Calculation of two-stream reflectivities and 
                                transmissivities
    rrtmg_sw_setcoef.f90      : Set up routine
@@ -110,10 +112,19 @@ SOURCE CODE:
    rrsw_cld.f90              : cloud property coefficients
    rrsw_con.f90              : constants
    rrsw_kg**.f90             : absorption coefficient arrays for 16 spectral bands
+   rrsw_ncpar.f90            : parameters for netCDF input data option
    rrsw_ref.f90              : reference atmosphere data arrays
    rrsw_tbl.f90              : exponential lookup table arrays
    rrsw_vsn.f90              : version number information
    rrsw_wvn.f90              : spectral band and g-interval array information
+
+
+INPUT DATA:
+   The following file (in directory /column_model/data) is the netCDF file
+   containing absorption coefficient and other input data for the model.
+   The file is used if netCDF input is selected in the makefile. 
+
+   rrtmg_sw.nc               : Optional netCDF input data file
 
 
 MAKEFILES:
@@ -166,6 +177,7 @@ DOCUMENTATION:
 SOURCE CODE:
    The following source files (in /gcm_model/src directory) must be used to run 
    RRTMG_SW as a callable subroutine:
+   NOTE: Only one of rrtmg_sw_k_g.f90 or rrtmg_sw_read_nc.f90 is required. 
 
    rrtmg_sw_rad.f90          : RRTMG_SW main module (with McICA)
    rrtmg_sw_rad.nomcica.f90  : Optional RRTMG_SW main module (without McICA only)
@@ -175,6 +187,7 @@ SOURCE CODE:
                                from 224 to 112; (This has to run only once and should 
                                be installed in the GCM initialization section)
    rrtmg_sw_k_g.f90          : Absorption coefficient data file
+   rrtmg_sw_read_nc.f90      : Alternate absorption coefficient data netCDF input
    rrtmg_sw_reftra.f90       : Calculation of two-stream reflectivities and 
                                transmissivities
    rrtmg_sw_setcoef.f90      : Set up routine
@@ -196,10 +209,20 @@ SOURCE CODE:
    rrsw_cld.f90              : cloud property coefficients
    rrsw_con.f90              : constants
    rrsw_kg**.f90             : absorption coefficient arrays for 16 spectral bands
+   rrsw_ncpar.f90            : parameters for netCDF input data option
    rrsw_ref.f90              : reference atmosphere data arrays
    rrsw_tbl.f90              : exponential lookup table arrays
    rrsw_vsn.f90              : version number information
    rrsw_wvn.f90              : spectral band and g-interval array information
+
+
+INPUT DATA:
+   The following file (in directory /gcm_model/data) is the netCDF file
+   containing absorption coefficient and other input data for the model.
+   The file is used if source file rrtmg_sw_read_nc.f90 is used in place
+   of rrtmg_sw_k_g.f90 (only one or the other is required). 
+
+   rrtmg_sw.nc               : Optional netCDF input data file
 
 
 Notes regarding GCM version:

@@ -5,7 +5,7 @@
 
 !  --------------------------------------------------------------------------
 ! |                                                                          |
-! |  Copyright 2002-2008, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
 ! |  This software may be used, copied, or redistributed as long as it is    |
 ! |  not sold and this copyright notice is reproduced on each copy made.     |
 ! |  This model is provided as is without any express or implied warranties. |
@@ -34,8 +34,7 @@
 ! **************************************************************************
 
       use parkind, only : im => kind_im, rb => kind_rb 
-      use rrsw_kg16, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            rayl, strrat1, layreffr
+      use rrsw_kg16, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl
       use rrsw_vsn, only: hvrkg, hnamkg
 
       implicit none
@@ -52,10 +51,6 @@
 
 ! Rayleigh extinction coefficient at v = 2925 cm-1.
       rayl = 2.91e-10_rb
-
-      strrat1 = 252.131_rb
-
-      layreffr = 18
 
 !     -----------------------------------------------------------------
 !     The array KAO contains absorption coefs at the 16 chosen g-values 
@@ -4798,8 +4793,7 @@
 ! **************************************************************************
 
       use parkind, only : im => kind_im, rb => kind_rb 
-      use rrsw_kg17, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            rayl, strrat, layreffr
+      use rrsw_kg17, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl
 
       implicit none
       save
@@ -4833,10 +4827,6 @@
 
 ! Rayleigh extinction coefficient at v = 3625 cm-1.
       rayl = 6.86e-10_rb
-
-      strrat = 0.364641_rb
-
-      layreffr = 30
 
 !     ------------------------------------------------------------------
 !     The array KAO contains absorption coefs at the 16 chosen g-values 
@@ -15594,8 +15584,7 @@
 ! **************************************************************************
 
       use parkind, only : im => kind_im, rb => kind_rb 
-      use rrsw_kg18, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            rayl, strrat, layreffr
+      use rrsw_kg18, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl
 
       implicit none
       save
@@ -15649,10 +15638,6 @@
 
 ! Rayleigh extinction coefficient at v = 4325 cm-1.
       rayl = 1.39e-09_rb
-
-      strrat = 38.9589_rb
-
-      layreffr = 6
 
 !     ------------------------------------------------------------------
 !     The array KAO contains absorption coefs at the 16 chosen g-values 
@@ -20394,8 +20379,7 @@
 ! **************************************************************************
 
       use parkind, only : im => kind_im, rb => kind_rb 
-      use rrsw_kg19, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            rayl, strrat, layreffr
+      use rrsw_kg19, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl
 
       implicit none
       save
@@ -20449,10 +20433,6 @@
 
 ! Rayleigh extinction coefficient at v = 4900 cm-1.
       rayl = 2.29e-09_rb
-
-      strrat = 5.49281_rb
-
-      layreffr = 3
 
 !     ------------------------------------------------------------------
 !     The array KAO contains absorption coefs at the 16 chosen g-values 
@@ -25195,7 +25175,7 @@
 
       use parkind, only : im => kind_im, rb => kind_rb 
       use rrsw_kg20, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absch4o, rayl, layreffr
+                            absch4o, rayl
 
       implicit none
       save
@@ -25215,8 +25195,6 @@
 
 ! Rayleigh extinction coefficient at v = 5670 cm-1.
       rayl = 4.12e-09_rb
-
-      layreffr = 3
 
 !     ------------------------------------------------------------------
 !     The array KAO contains absorption coefs at the 16 chosen g-values 
@@ -27254,8 +27232,7 @@
 ! **************************************************************************
 
       use parkind, only : im => kind_im, rb => kind_rb 
-      use rrsw_kg21, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            rayl, strrat, layreffr
+      use rrsw_kg21, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl
 
       implicit none
       save
@@ -27309,10 +27286,6 @@
 
 ! Rayleigh extinction coefficient at v = 6925 cm-1.
       rayl = 9.41e-09_rb
-
-      strrat = 0.0045321_rb
-
-      layreffr = 8
 
 !     ------------------------------------------------------------------
 !     The array KAO contains absorption coefs at the 16 chosen g-values 
@@ -38070,8 +38043,7 @@
 ! **************************************************************************
 
       use parkind, only : im => kind_im, rb => kind_rb 
-      use rrsw_kg22, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            rayl, strrat, layreffr
+      use rrsw_kg22, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl
 
       implicit none
       save
@@ -38125,10 +38097,6 @@
 
 ! Rayleigh extinction coefficient at v = 8000 cm-1.
       rayl = 1.54e-08_rb
-
-      strrat = 0.022708_rb
-
-      layreffr = 2
 
 !     ------------------------------------------------------------------
 !     The array KAO contains absorption coefs at the 16 chosen g-values 
@@ -42870,8 +42838,7 @@
 ! **************************************************************************
 
       use parkind, only : im => kind_im, rb => kind_rb 
-      use rrsw_kg23, only : kao, selfrefo, forrefo, sfluxrefo, &
-                            raylo, givfac, layreffr
+      use rrsw_kg23, only : kao, selfrefo, forrefo, sfluxrefo, raylo
 
       implicit none
       save
@@ -42889,11 +42856,6 @@
         & 5.25571e-08_rb,4.73388e-08_rb,4.17466e-08_rb,3.98097e-08_rb, &
         & 4.00786e-08_rb,3.67478e-08_rb,3.45186e-08_rb,3.46156e-08_rb, &
         & 3.32155e-08_rb,3.23642e-08_rb,2.72590e-08_rb,2.96813e-08_rb /)
-
-! Average Giver et al. correction factor for this band.
-      givfac = 1.029_rb
-
-      layreffr = 6
 
 !     ------------------------------------------------------------------
 !     The array KAO contains absorption coefs at the 16 chosen g-values 
@@ -43413,7 +43375,7 @@
 
       use parkind, only : im => kind_im, rb => kind_rb 
       use rrsw_kg24, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            raylao, raylbo, abso3ao, abso3bo, strrat, layreffr
+                            raylao, raylbo, abso3ao, abso3bo
 
       implicit none
       save
@@ -43529,10 +43491,6 @@
         & 0.156180_rb   ,0.214638_rb   ,0.266281_rb   ,0.317941_rb   , &
         & 0.355327_rb   ,0.371241_rb   ,0.374396_rb   ,0.326847_rb   , &
         & 0.126497_rb   ,6.95264e-02_rb,2.58175e-02_rb,2.52862e-02_rb /)
-
-      strrat = 0.124692_rb
-
-      layreffr = 1
 
 !     ------------------------------------------------------------------
 !     The array KAO contains absorption coefs at the 16 chosen g-values 
@@ -48275,7 +48233,7 @@
 
       use parkind, only : im => kind_im, rb => kind_rb 
       use rrsw_kg25, only : kao, sfluxrefo, &
-                            raylo, abso3ao, abso3bo, layreffr
+                            raylo, abso3ao, abso3bo
 
       implicit none
       save
@@ -48305,8 +48263,6 @@
         & 0.303858_rb   ,0.400248_rb   ,0.447357_rb   ,0.470009_rb, &
         & 0.498673_rb   ,0.515696_rb   ,0.517053_rb   ,0.517930_rb, &
         & 0.518345_rb   ,0.524952_rb   ,0.508244_rb   ,0.468981_rb /)
-
-     layreffr = 2
 
 !     ------------------------------------------------------------------
 !     The array KAO contains absorption coefs at the 16 chosen g-values 
@@ -48777,8 +48733,7 @@
 ! **************************************************************************
 
       use parkind, only : im => kind_im, rb => kind_rb 
-      use rrsw_kg27, only : kao, kbo, sfluxrefo, raylo, &
-                            scalekur, layreffr
+      use rrsw_kg27, only : kao, kbo, sfluxrefo, raylo
 
       implicit none
       save
@@ -48788,7 +48743,7 @@
 ! version of the Kurucz solar source function.  For unknown reasons,
 ! the total irradiance in this band differs from the corresponding
 ! total in the "high-resolution" version of the Kurucz function.
-! Therefore, below these values are scaled by the factor SCALEKUR.
+! Therefore, these values are scaled later by the factor SCALEKUR.
       sfluxrefo(:) = (/ &
         & 14.0526_rb    , 11.4794_rb    , 8.72590_rb    , 5.56966_rb    , &
         & 3.80927_rb    , 1.57690_rb    , 1.15099_rb    , 1.10012_rb    , &
@@ -48801,10 +48756,6 @@
         & 6.69748e-06_rb,7.56488e-06_rb,8.36344e-06_rb,9.04135e-06_rb, &
         & 9.58324e-06_rb,9.81542e-06_rb,9.75119e-06_rb,9.74533e-06_rb, &
         & 9.74139e-06_rb,9.73525e-06_rb,9.73577e-06_rb,9.73618e-06_rb /)
-
-      scalekur = 50.15_rb/48.37_rb
-
-      layreffr = 32
 
 !     ------------------------------------------------------------------
 !     The array KAO contains absorption coefs at the 16 chosen g-values 
@@ -50767,8 +50718,7 @@
 ! **************************************************************************
 
       use parkind, only : im => kind_im, rb => kind_rb 
-      use rrsw_kg28, only : kao, kbo, sfluxrefo, &
-                            rayl, strrat, layreffr
+      use rrsw_kg28, only : kao, kbo, sfluxrefo, rayl
 
       implicit none
       save
@@ -50802,10 +50752,6 @@
 
 ! Rayleigh extinction coefficient at v = ????? cm-1.
       rayl = 2.02e-05_rb
-
-      strrat = 6.67029e-07_rb
-
-      layreffr = 58
 
 !     ------------------------------------------------------------------
 !     The array KAO contains absorption coefs at the 16 chosen g-values 
@@ -61489,7 +61435,7 @@
 
       use parkind, only : im => kind_im, rb => kind_rb 
       use rrsw_kg29, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absh2oo, absco2o, rayl, layreffr
+                            absh2oo, absco2o, rayl
 
       implicit none
       save
@@ -61515,8 +61461,6 @@
            
 ! Rayleigh extinction coefficient at v = 2200 cm-1.
       rayl = 9.30e-11_rb
-
-      layreffr = 49
 
 !     ------------------------------------------------------------------
 !     The array KAO contains absorption coefs at the 16 chosen g-values 

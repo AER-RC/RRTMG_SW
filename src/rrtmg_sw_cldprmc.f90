@@ -7,7 +7,7 @@
 
 !  --------------------------------------------------------------------------
 ! |                                                                          |
-! |  Copyright 2002-2008, Atmospheric & Environmental Research, Inc. (AER).  |
+! |  Copyright 2002-2009, Atmospheric & Environmental Research, Inc. (AER).  |
 ! |  This software may be used, copied, or redistributed as long as it is    |
 ! |  not sold and this copyright notice is reproduced on each copy made.     |
 ! |  This model is provided as is without any express or implied warranties. |
@@ -161,6 +161,8 @@
 ! Note: This option uses Ebert and Curry approach for all particle sizes similar to
 ! CAM3 implementation, though this is somewhat unjustified for large ice particles
                   elseif (iceflag .eq. 1) then
+                     if (radice .lt. 13.0_rb .or. radice .gt. 130._rb) stop &
+                        'ICE RADIUS OUT OF BOUNDS'
                      ib = ngb(ig)
                      if (wavenum2(ib) .gt. 1.43e04_rb) then
                         icx = 1
@@ -249,8 +251,8 @@
 
                   elseif (liqflag .eq. 1) then
                      radliq = relqmc(lay)
-                     if (radliq .lt. 1.5_rb .or. radliq .gt. 60._rb) stop &
-                        'liquid effective radius out of bounds'
+                     if (radliq .lt. 2.5_rb .or. radliq .gt. 60._rb) stop &
+                        'LIQUID EFFECTIVE RADIUS OUT OF BOUNDS'
                      index = int(radliq - 1.5_rb)
                      if (index .eq. 0) index = 1
                      if (index .eq. 58) index = 57
