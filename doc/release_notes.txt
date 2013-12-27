@@ -9,6 +9,36 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+December 27, 2013:
+
+	Release_3_9
+
+        Replaced Hu & Stamnes look up tables of extinction coefficients, 
+        single scattering albedos and asymmetry parameters for LIQFLAG=1
+        cloud option to remove small discontinuities in the original tables.
+        New coefficients were derived using Mie scattering calculations with
+        finer spectral resolution based on the original Hu & Stamnes method.
+        The impact on fluxes is of order 0.5 Wm-2 or less in profiles with
+        liquid cloud. Also added bug fix related to initialization of aerosol
+        optical properties for the ECMWF aerosol option (iaer=6). 
+
+        Publicly released on AER RT web site in December 2013.
+
+        - Look up tables of extinction coeffients, single scattering albedos,
+          and asymmetry parameters were regenerated and replaced for the 
+          Hu & Stamnes (LIQFLAG=1) cloud option. The new tables were derived
+          using Mie calculations at finer resolution than the original method.
+          The updated tables are consistent with those used in the version of
+          this model applied to the CIRC (Continual Intercomparision of 
+          Radiation Codes) project. 
+        - A correction was applied to the ECMWF aerosol input option (iaer=6)
+          to fix the initialization and specification of the aerosol optical
+          properties for this method.
+        - Instances of the 'float' intrinsic function in the code were replaced
+          with the 'real' function in several source modules for consistency
+          with the specified real kind type used in the code.  
+
+
 May 22, 2009:
 
 	Release_3_8

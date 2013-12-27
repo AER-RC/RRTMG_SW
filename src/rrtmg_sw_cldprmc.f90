@@ -195,7 +195,7 @@
                      factor = (radice - 2._rb)/3._rb
                      index = int(factor)
                      if (index .eq. 43) index = 42
-                     fint = factor - float(index)
+                     fint = factor - real(index,kind=rb)
                      ib = ngb(ig)
                      extcoice(ig) = extice2(index,ib) + fint * &
                                    (extice2(index+1,ib) -  extice2(index,ib))
@@ -218,7 +218,7 @@
                      factor = (radice - 2._rb)/3._rb
                      index = int(factor)
                      if (index .eq. 46) index = 45
-                     fint = factor - float(index)
+                     fint = factor - real(index,kind=rb)
                      ib = ngb(ig)
                      extcoice(ig) = extice3(index,ib) + fint * &
                                    (extice3(index+1,ib) - extice3(index,ib))
@@ -256,7 +256,7 @@
                      index = int(radliq - 1.5_rb)
                      if (index .eq. 0) index = 1
                      if (index .eq. 58) index = 57
-                     fint = radliq - 1.5_rb - float(index)
+                     fint = radliq - 1.5_rb - real(index,kind=rb)
                      ib = ngb(ig)
                      extcoliq(ig) = extliq1(index,ib) + fint * &
                                    (extliq1(index+1,ib) - extliq1(index,ib))

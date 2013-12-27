@@ -17,7 +17,7 @@ KGSRC = dat
 ################################
 
 PLATFORM = linux_pgi
-VERSION = v3.8
+VERSION = v3.9
 
 ##############################################################
 # Set location of netCDF libraries
@@ -378,8 +378,8 @@ $(CDOTO)/$(CEXT).o : $(CPATH)/$(CEXT).f
 	$(FC) $(FCOPTS) -c $(CPATH)/$(CEXT).f
 	\mv $(CEXT).o $(CDOTO)
 
-$(CDOTO)/$(CUTL).o : $(CPATH)/$(CUTL).f
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CUTL).f
+$(CDOTO)/$(CUTL).o : $(CPATH)/$(CUTL).f90
+	$(FC) $(FCOPTS) -c $(CPATH)/$(CUTL).f90
 	\mv $(CUTL).o $(CDOTO)
 
 ###########################################

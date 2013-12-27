@@ -76,7 +76,7 @@
 !------------------------------------------------------------------
 
       subroutine rrtmg_sw &
-            (ncol    ,nlay    ,icld    , &
+            (ncol    ,nlay    ,icld    ,iaer    , &
              play    ,plev    ,tlay    ,tlev    ,tsfc    , &
              h2ovmr  ,o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr, &
              asdir   ,asdif   ,aldir   ,aldif   , &
@@ -189,6 +189,11 @@
                                                       !    1: Random
                                                       !    2: Maximum/random
                                                       !    3: Maximum
+      integer(kind=im), intent(inout) :: iaer         ! Aerosol option flag
+                                                      !    0: No aerosol
+                                                      !    6: ECMWF method
+                                                      !    10:Input aerosol optical 
+                                                      !       properties
 
       real(kind=rb), intent(in) :: play(:,:)          ! Layer pressures (hPa, mb)
                                                       !    Dimensions: (ncol,nlay)
@@ -296,7 +301,6 @@
       integer(kind=im) :: iend                ! ending band of calculation
       integer(kind=im) :: icpr                ! cldprop/cldprmc use flag
       integer(kind=im) :: iout                ! output option flag
-      integer(kind=im) :: iaer                ! aerosol option flag
       integer(kind=im) :: idelm               ! delta-m scaling flag
                                               ! [0 = direct and diffuse fluxes are unscaled]
                                               ! [1 = direct and diffuse fluxes are scaled]
@@ -472,7 +476,7 @@
 !           input aerosol optical depth at 0.55 microns for each aerosol type (ecaer)
 ! iaer = 10, input total aerosol optical depth, single scattering albedo 
 !            and asymmetry parameter (tauaer, ssaaer, asmaer) directly
-      iaer = 0
+      if (iaer.ne.0.and.iaer.ne.6.and.iaer.ne.10) iaer = 0
 
 ! Set idelm to select between delta-M scaled or unscaled output direct and diffuse fluxes
 ! NOTE: total downward fluxes are always delta scaled
@@ -606,7 +610,7 @@
                do ib = 1, nbndsw
                   ztaua(i,ib) = 0._rb
                   zasya(i,ib) = 0._rb
-                  zomga(i,ib) = 1._rb
+                  zomga(i,ib) = 0._rb
                   do ia = 1, naerec
                      ztaua(i,ib) = ztaua(i,ib) + rsrtaua(ib,ia) * ecaer(iplon,i,ia)
                      zomga(i,ib) = zomga(i,ib) + rsrtaua(ib,ia) * ecaer(iplon,i,ia) * &
@@ -614,11 +618,17 @@
                      zasya(i,ib) = zasya(i,ib) + rsrtaua(ib,ia) * ecaer(iplon,i,ia) * &
                                    rsrpiza(ib,ia) * rsrasya(ib,ia)
                   enddo
-                  if (zomga(i,ib) /= 0._rb) then
-                     zasya(i,ib) = zasya(i,ib) / zomga(i,ib)
-                  endif
-                  if (ztaua(i,ib) /= 0._rb) then
-                     zomga(i,ib) = zomga(i,ib) / ztaua(i,ib)
+                  if (ztaua(i,ib) == 0._rb) then
+                     ztaua(i,ib) = 0._rb
+                     zasya(i,ib) = 0._rb
+                     zomga(i,ib) = 1._rb
+                  else
+                     if (zomga(i,ib) /= 0._rb) then
+                        zasya(i,ib) = zasya(i,ib) / zomga(i,ib)
+                     endif
+                     if (ztaua(i,ib) /= 0._rb) then
+                        zomga(i,ib) = zomga(i,ib) / ztaua(i,ib)
+                     endif
                   endif
                enddo
             enddo
