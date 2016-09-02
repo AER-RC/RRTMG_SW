@@ -9,6 +9,25 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+September 2, 2016:
+
+	Release_3_91
+
+        All source code modules were modified to replace the original copyright
+        statement with a new BSD 3-clause software license (at the request
+        of ECMWF).  Additional minor changes include:
+        - Changed declaration of variable cinp in subroutine readprof in file
+        rrtmg_sw.1col.f90 from implicit real to character*3. 
+        - Fixed integer kind type problem in file rrtmg_sw_read_nc.f90 by 
+        replacing all numeral "1" arguments to nf90_get_var to "1_im" to 
+        prevent errors on some compilers. 
+        - Fixed integer kind type problem in file mcica_random_numbers.f90 by 
+        replacing several numeral "1" arguments to the function "mod" with "1_im" 
+        at lines 199 and 220 to prevent errors on some compilers. 
+
+        Internal release only.
+
+
 December 27, 2013:
 
 	Release_3_9

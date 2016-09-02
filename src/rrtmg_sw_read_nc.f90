@@ -3,6 +3,34 @@
 !     revision:  $Revision$
 !     created:   $Date$
 
+!----------------------------------------------------------------------------
+! Copyright (c) 2002-2016, Atmospheric & Environmental Research, Inc. (AER)
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!  * Redistributions of source code must retain the above copyright
+!    notice, this list of conditions and the following disclaimer.
+!  * Redistributions in binary form must reproduce the above copyright
+!    notice, this list of conditions and the following disclaimer in the
+!    documentation and/or other materials provided with the distribution.
+!  * Neither the name of Atmospheric & Environmental Research, Inc., nor
+!    the names of its contributors may be used to endorse or promote products
+!    derived from this software without specific prior written permission.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC., 
+! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
+! THE POSSIBILITY OF SUCH DAMAGE.
+!                        (http://www.rtweb.aer.com/)                        
+!----------------------------------------------------------------------------
 !=============================================================================== 
 ! rrtmg_read_nc.f90
 !
@@ -34,31 +62,31 @@ subroutine sw_kgb16
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, ncrayl, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,1_im,1_im,1_im/))
 	 
 	status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
 	status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,Tdiff,plower,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
 	
 	status(8)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
 	status(9)  = nf90_get_var(ncid, varID, kbo, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,Tdiff,pupper,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
 	
 	status(10) = nf90_inq_varid(ncid,"H2OSelfAbsorptionCoefficients",varID)
-	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1,1/))
+	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tself,numGPoints,1_im,1_im/))
 	
 	status(12) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsLowerAtmos",varID)
-	status(13) = nf90_get_var(ncid, varID, forrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeignlower,numGPoints,1,1/))
+	status(13) = nf90_get_var(ncid, varID, forrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tforeignlower,numGPoints,1_im,1_im/))
 													 
 	status(14) = nf90_close(ncid)
 	
@@ -90,35 +118,35 @@ subroutine sw_kgb17
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionUpperAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,keyupper,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keyupper,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, ncrayl, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,1_im,1_im,1_im/))
 		
 	status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
 	status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,Tdiff,plower,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
 	
 	status(8)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
 	status(9)  = nf90_get_var(ncid, varID, kbo, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/keyupper,Tdiff,pupper,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/keyupper,Tdiff,pupper,numGPoints,1_im,1_im/))
 	
 	status(10) = nf90_inq_varid(ncid,"H2OSelfAbsorptionCoefficients",varID)
-	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1,1/))
+	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tself,numGPoints,1_im,1_im/))
 	
 	status(12) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsLowerAtmos",varID)
-	status(13) = nf90_get_var(ncid, varID, forrefo(1:3,:), start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeignlower,numGPoints,1,1/))
+	status(13) = nf90_get_var(ncid, varID, forrefo(1:3,:), start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tforeignlower,numGPoints,1_im,1_im/))
 													 
 	status(14) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsUpperAtmos",varID)
-	status(15) = nf90_get_var(ncid, varID, forrefo(4,:), start = (/2,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,numGPoints,1,1/))	
+	status(15) = nf90_get_var(ncid, varID, forrefo(4,:), start = (/2_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,numGPoints,1_im,1_im/))	
 	
 	status(14) = nf90_close(ncid)
 	
@@ -150,31 +178,31 @@ subroutine sw_kgb18
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,keylower,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, ncrayl, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,1_im,1_im,1_im/))
 		
 	status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
 	status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,Tdiff,plower,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
 	
 	status(8)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
 	status(9)  = nf90_get_var(ncid, varID, kbo, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,Tdiff,pupper,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
 	
 	status(10) = nf90_inq_varid(ncid,"H2OSelfAbsorptionCoefficients",varID)
-	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1,1/))
+	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tself,numGPoints,1_im,1_im/))
 	
 	status(12) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsLowerAtmos",varID)
-	status(13) = nf90_get_var(ncid, varID, forrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeignlower,numGPoints,1,1/))
+	status(13) = nf90_get_var(ncid, varID, forrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tforeignlower,numGPoints,1_im,1_im/))
 	
 	status(14) = nf90_close(ncid)
 	
@@ -206,31 +234,31 @@ subroutine sw_kgb19
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,keylower,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, ncrayl, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,1_im,1_im,1_im/))
 		
 	status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
 	status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,Tdiff,plower,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
 	
 	status(8)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
 	status(9)  = nf90_get_var(ncid, varID, kbo, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,Tdiff,pupper,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
 	
 	status(10) = nf90_inq_varid(ncid,"H2OSelfAbsorptionCoefficients",varID)
-	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1,1/))
+	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tself,numGPoints,1_im,1_im/))
 	
 	status(12) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsLowerAtmos",varID)
-	status(13) = nf90_get_var(ncid, varID, forrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeignlower,numGPoints,1,1/))
+	status(13) = nf90_get_var(ncid, varID, forrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tforeignlower,numGPoints,1_im,1_im/))
 	
 	status(14) = nf90_close(ncid)
 	
@@ -263,42 +291,42 @@ subroutine sw_kgb20
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, ncrayl, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,1_im,1_im,1_im/))
 		
 	status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
 	status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,Tdiff,plower,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,Tdiff,plower,numGPoints,1_im,1_im/))
 	
 	status(8)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
 	status(9)  = nf90_get_var(ncid, varID, kbo, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,Tdiff,pupper,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
 	
 	status(10) = nf90_inq_varid(ncid,"H2OSelfAbsorptionCoefficients",varID)
-	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1,1/))
+	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tself,numGPoints,1_im,1_im/))
 	
 	status(12) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsLowerAtmos",varID)
-	status(13) = nf90_get_var(ncid, varID, forrefo(1:3,:), start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeignlower,numGPoints,1,1/))
+	status(13) = nf90_get_var(ncid, varID, forrefo(1:3,:), start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tforeignlower,numGPoints,1_im,1_im/))
 													 
 	status(14) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsUpperAtmos",varID)
-	status(15) = nf90_get_var(ncid, varID, forrefo(4,:), start = (/2,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,numGPoints,1,1/))												 
+	status(15) = nf90_get_var(ncid, varID, forrefo(4,:), start = (/2_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,numGPoints,1_im,1_im/))												 
 													 
 	!Get absorber index for CH4
 	call getAbsorberIndex('CH4',ab)
 	status(16)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
 	status(17)  = nf90_get_var(ncid, varID, absch4o, &
-                      start = (/1,1,1,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1,1,numGPoints,1,1,1/))
+                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
+                      count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 																				 
 	status(16) = nf90_close(ncid)
 	
@@ -330,35 +358,35 @@ subroutine sw_kgb21
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,keylower,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, ncrayl, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,1_im,1_im,1_im/))
 		
 	status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
 	status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,Tdiff,plower,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
 	
 	status(8)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
 	status(9)  = nf90_get_var(ncid, varID, kbo, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/keyupper,Tdiff,pupper,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/keyupper,Tdiff,pupper,numGPoints,1_im,1_im/))
 	
 	status(10) = nf90_inq_varid(ncid,"H2OSelfAbsorptionCoefficients",varID)
-	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1,1/))
+	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tself,numGPoints,1_im,1_im/))
 	
 	status(12) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsLowerAtmos",varID)
-	status(13) = nf90_get_var(ncid, varID, forrefo(1:3,:), start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeignlower,numGPoints,1,1/))
+	status(13) = nf90_get_var(ncid, varID, forrefo(1:3,:), start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tforeignlower,numGPoints,1_im,1_im/))
 													 
 	status(14) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsUpperAtmos",varID)
-	status(15) = nf90_get_var(ncid, varID, forrefo(4,:), start = (/2,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,numGPoints,1,1/))			
+	status(15) = nf90_get_var(ncid, varID, forrefo(4,:), start = (/2_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,numGPoints,1_im,1_im/))			
 													 
 	status(14) = nf90_close(ncid)
 	
@@ -390,31 +418,31 @@ subroutine sw_kgb22
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,keylower,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, ncrayl, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,1_im,1_im,1_im/))
 		
 	status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
 	status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,Tdiff,plower,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
 	
 	status(8)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
 	status(9)  = nf90_get_var(ncid, varID, kbo, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,Tdiff,pupper,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
 	
 	status(10) = nf90_inq_varid(ncid,"H2OSelfAbsorptionCoefficients",varID)
-	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1,1/))
+	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tself,numGPoints,1_im,1_im/))
 	
 	status(12) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsLowerAtmos",varID)
-	status(13) = nf90_get_var(ncid, varID, forrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeignlower,numGPoints,1,1/))
+	status(13) = nf90_get_var(ncid, varID, forrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tforeignlower,numGPoints,1_im,1_im/))
 	
 	status(14) = nf90_close(ncid)
 	
@@ -444,26 +472,26 @@ subroutine sw_kgb23
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, raylo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
 	 
 	status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
 	status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,Tdiff,plower,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,Tdiff,plower,numGPoints,1_im,1_im/))
 	
 	status(8)  = nf90_inq_varid(ncid,"H2OSelfAbsorptionCoefficients",varID)
-	status(9)  = nf90_get_var(ncid, varID, selfrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1,1/))
+	status(9)  = nf90_get_var(ncid, varID, selfrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tself,numGPoints,1_im,1_im/))
 	
 	status(10) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsLowerAtmos",varID)
-	status(11) = nf90_get_var(ncid, varID, forrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeignlower,numGPoints,1,1/))
+	status(11) = nf90_get_var(ncid, varID, forrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tforeignlower,numGPoints,1_im,1_im/))
 	
 	status(12) = nf90_close(ncid)
 	
@@ -493,47 +521,47 @@ subroutine sw_kgb24
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,keylower,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, raylao, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,keylower,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
 	 
 	status(6)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsUpperAtmos",varID)
 	status(7)  = nf90_get_var(ncid, varID, raylbo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
 		
 	status(8)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
 	status(9)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,Tdiff,plower,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
 	
 	status(10) = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
 	status(11) = nf90_get_var(ncid, varID, kbo, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,Tdiff,pupper,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
 	
 	status(12) = nf90_inq_varid(ncid,"H2OSelfAbsorptionCoefficients",varID)
-	status(13) = nf90_get_var(ncid, varID, selfrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1,1/))
+	status(13) = nf90_get_var(ncid, varID, selfrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tself,numGPoints,1_im,1_im/))
 	
 	status(14) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsLowerAtmos",varID)
-	status(15) = nf90_get_var(ncid, varID, forrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeignlower,numGPoints,1,1/))
+	status(15) = nf90_get_var(ncid, varID, forrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tforeignlower,numGPoints,1_im,1_im/))
 	
 	!Get absorber index for O3
 	call getAbsorberIndex('O3',ab)
 	status(16) = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
 	status(17) = nf90_get_var(ncid, varID, abso3ao, &
-                     start = (/1,1,1,ab,bandNumber,gPointSetNumber/), &
-                     count = (/1,1,numGPoints,1,1,1/))
+                     start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 	status(18) = nf90_inq_varid(ncid,"AbsorptionCoefficientsUpperAtmos",varID)
 	status(19) = nf90_get_var(ncid, varID, abso3bo, &
-                     start = (/1,1,1,ab,bandNumber,gPointSetNumber/), &
-                     count = (/1,1,numGPoints,1,1,1/))
+                     start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 											
 	status(20) = nf90_close(ncid)
 	
@@ -562,29 +590,29 @@ subroutine sw_kgb25
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, raylo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
 	 
 	status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
 	status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,Tdiff,plower,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,Tdiff,plower,numGPoints,1_im,1_im/))
 	
 	!Get absorber index for O3
 	call getAbsorberIndex('O3',ab)
 	status(8)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
 	status(9)  = nf90_get_var(ncid, varID, abso3ao, &
-                     start = (/1,1,1,ab,bandNumber,gPointSetNumber/), &
-                     count = (/1,1,numGPoints,1,1,1/))
+                     start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 	status(10) = nf90_inq_varid(ncid,"AbsorptionCoefficientsUpperAtmos",varID)
 	status(11) = nf90_get_var(ncid, varID, abso3bo, &
-                     start = (/1,1,1,ab,bandNumber,gPointSetNumber/), &
-                     count = (/1,1,numGPoints,1,1,1/))
+                     start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 											
 	status(12) = nf90_close(ncid)
 	
@@ -612,13 +640,13 @@ subroutine sw_kgb26
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, raylo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
 	 
 	status(6)  = nf90_close(ncid)
 	
@@ -646,23 +674,23 @@ subroutine sw_kgb27
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, raylo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
 		
 	status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
 	status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,Tdiff,plower,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,Tdiff,plower,numGPoints,1_im,1_im/))
 	
 	status(8)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
 	status(9)  = nf90_get_var(ncid, varID, kbo, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,Tdiff,pupper,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
 	
 	status(10) = nf90_close(ncid)
 	
@@ -692,23 +720,23 @@ subroutine sw_kgb28
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionUpperAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,keyupper,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keyupper,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, ncrayl, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,1_im,1_im,1_im/))
 		
 	status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
 	status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/keylower,Tdiff,plower,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/keylower,Tdiff,plower,numGPoints,1_im,1_im/))
 	
 	status(8)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
 	status(9)  = nf90_get_var(ncid, varID, kbo, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/keyupper,Tdiff,pupper,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/keyupper,Tdiff,pupper,numGPoints,1_im,1_im/))
 				
 	status(10) = nf90_close(ncid)
 	
@@ -742,49 +770,49 @@ subroutine sw_kgb29
 	
 	status(2)  = nf90_inq_varid(ncid,"SolarSourceFunctionLowerAtmos",varID)
 	status(3)  = nf90_get_var(ncid, varID, sfluxrefo, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/numGPoints,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
 	
 	status(4)  = nf90_inq_varid(ncid,"RayleighExtinctionCoefficientsLowerAtmos",varID)
 	status(5)  = nf90_get_var(ncid, varID, ncrayl, &
-                     start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,1,1,1/))
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,1_im,1_im,1_im/))
 		
 	status(6)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsLowerAtmos",varID)
 	status(7)  = nf90_get_var(ncid, varID, kao, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,Tdiff,plower,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,Tdiff,plower,numGPoints,1_im,1_im/))
 	
 	status(8)  = nf90_inq_varid(ncid,"KeySpeciesAbsorptionCoefficientsUpperAtmos",varID)
 	status(9)  = nf90_get_var(ncid, varID, kbo, &
-                     start = (/1,1,1,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,Tdiff,pupper,numGPoints,1,1/))
+                     start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
 	
 	status(10) = nf90_inq_varid(ncid,"H2OSelfAbsorptionCoefficients",varID)
-	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tself,numGPoints,1,1/))
+	status(11) = nf90_get_var(ncid, varID, selfrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tself,numGPoints,1_im,1_im/))
 	
 	status(12) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsLowerAtmos",varID)
-	status(13) = nf90_get_var(ncid, varID, forrefo(1:3,:), start = (/1,1,bandNumber,gPointSetNumber/), &
-                     count = (/Tforeignlower,numGPoints,1,1/))
+	status(13) = nf90_get_var(ncid, varID, forrefo(1:3,:), start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/Tforeignlower,numGPoints,1_im,1_im/))
 													 
 	status(14) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsUpperAtmos",varID)
-	status(15) = nf90_get_var(ncid, varID, forrefo(4,:), start = (/2,1,bandNumber,gPointSetNumber/), &
-                     count = (/1,numGPoints,1,1/))	
+	status(15) = nf90_get_var(ncid, varID, forrefo(4,:), start = (/2_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/1_im,numGPoints,1_im,1_im/))	
 	
 	!Get absorber index for H2O
 	call getAbsorberIndex('H2O',ab)
 	status(16)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
 	status(17)  = nf90_get_var(ncid, varID, absh2oo, &
-                      start = (/1,1,1,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1,1,numGPoints,1,1,1/))
+                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
+                      count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 							
 	!Get absorber index for CO2
 	call getAbsorberIndex('CO2',ab)
 	status(18)  = nf90_inq_varid(ncid,"AbsorptionCoefficientsLowerAtmos",varID)
 	status(19)  = nf90_get_var(ncid, varID, absco2o, &
-                      start = (/1,1,1,ab,bandNumber,gPointSetNumber/), &
-                      count = (/1,1,numGPoints,1,1,1/))
+                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
+                      count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 	
 	status(18) = nf90_close(ncid)
 	

@@ -17,7 +17,7 @@ KGSRC = dat
 ################################
 
 PLATFORM = sgi
-VERSION = v3.9
+VERSION = v3.91
 
 ##############################################################
 # Set location of netCDF libraries
