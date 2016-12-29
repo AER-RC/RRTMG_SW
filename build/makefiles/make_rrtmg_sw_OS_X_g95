@@ -17,7 +17,7 @@ KGSRC = nc
 ################################
 
 PLATFORM = OS_X_g95
-VERSION = v3.91
+VERSION = v4.0
 
 ##############################################################
 # Set location of netCDF libraries

@@ -55,6 +55,8 @@
              pavel, tavel, pz, tz, tbound, palbd, palbp, &
              pclfr, ptauc, pasyc, pomgc, ptaucorig, &
              ptaua, pasya, pomga, prmu0, coldry, wkl, adjflux, &
+             isolvar, svar_f, svar_s, svar_i, &
+             svar_f_bnd, svar_s_bnd, svar_i_bnd, &
              laytrop, layswtch, laylow, jp, jt, jt1, &
              co2mult, colch4, colco2, colh2o, colmol, coln2o, colo2, colo3, &
              fac00, fac01, fac10, fac11, &
@@ -134,6 +136,14 @@
                                                                !   Dimensions: (nlayers)
       real(kind=rb), intent(in) :: adjflux(:)                  ! Earth/Sun distance adjustment
                                                                !   Dimensions: (jpband)
+! Solar variability
+      integer(kind=im), intent(in) :: isolvar                  ! Flag for solar variability method
+      real(kind=rb), intent(in) :: svar_f                      ! Solar variability facular multiplier
+      real(kind=rb), intent(in) :: svar_s                      ! Solar variability sunspot multiplier
+      real(kind=rb), intent(in) :: svar_i                      ! Solar variability baseline irradiance multiplier
+      real(kind=rb), intent(in) :: svar_f_bnd(jpband)          ! Solar variability facular multiplier (by band)
+      real(kind=rb), intent(in) :: svar_s_bnd(jpband)          ! Solar variability sunspot multiplier (by band)
+      real(kind=rb), intent(in) :: svar_i_bnd(jpband)          ! Solar variability baseline irradiance multiplier (by band)
 
       real(kind=rb), intent(in) :: palbd(:)                    ! surface albedo (diffuse)
                                                                !   Dimensions: (nbndsw)
@@ -260,6 +270,7 @@
 !      real(kind=rb) :: zsflxzen(16)
       real(kind=rb) :: ztaug(nlayers,ngptsw), ztaur(nlayers,ngptsw)
       real(kind=rb) :: zsflxzen(ngptsw)
+      real(kind=rb) :: ssi(ngptsw), tsi
 
 ! Arrays from rrtmg_sw_vrtqdr routine
 
@@ -307,11 +318,13 @@
                      laytrop, jp, jt, jt1, &
                      fac00, fac01, fac10, fac11, &
                      selffac, selffrac, indself, forfac, forfrac, indfor, &
-                     zsflxzen, ztaug, ztaur)
-
+                     isolvar, svar_f, svar_s, svar_i, &
+                     svar_f_bnd, svar_s_bnd, svar_i_bnd, &
+                     ssi, zsflxzen, ztaug, ztaur)
 
 ! Top of shortwave spectral band loop, jb = 16 -> 29; ibm = 1 -> 14
 
+      tsi = 0.0_rb
       do jb = ib1, ib2
          ibm = jb-15
          igt = ngc(ibm)
@@ -331,8 +344,17 @@
             iw = iw+1
 
 ! Apply adjustments for correct Earth/Sun distance and zenith angle to incoming solar flux
-            zincflx(iw) = adjflux(jb) * zsflxzen(iw) * prmu0
-!             zincflux = zincflux + adjflux(jb) * zsflxzen(iw) * prmu0           ! inactive
+! No solar variability and no solar cycle
+            if (isolvar .lt. 0) then 
+               zincflx(iw) = adjflux(jb) * zsflxzen(iw) * prmu0
+!               zincflux = zincflux + adjflux(jb) * zsflxzen(iw) * prmu0           ! inactive
+            endif
+! Solar variability with averaged or specified solar cycle
+            if (isolvar .ge. 0) then 
+               zincflx(iw) = adjflux(jb) * ssi(iw) * prmu0
+            endif
+!            tsi = tsi + ssi(iw)
+            tsi = tsi + zincflx(iw)
 
 ! Compute layer reflectances and transmittances for direct and diffuse sources, 
 ! first clear then cloudy

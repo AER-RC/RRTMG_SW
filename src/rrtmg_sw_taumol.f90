@@ -52,7 +52,9 @@
                            laytrop, jp, jt, jt1, &
                            fac00, fac01, fac10, fac11, &
                            selffac, selffrac, indself, forfac, forfrac, indfor, &
-                           sfluxzen, taug, taur)
+                           isolvar, svar_f, svar_s, svar_i, &
+                           svar_f_bnd, svar_s_bnd, svar_i_bnd, &
+                           ssi, sfluxzen, taug, taur)
 !----------------------------------------------------------------------------
 
 ! ******************************************************************************
@@ -225,7 +227,18 @@
                        fac00(:), fac01(:), &             !   Dimensions: (nlayers)
                        fac10(:), fac11(:) 
 
+! Solar variability
+      integer(kind=im), intent(in) :: isolvar            ! Flag for solar variability method
+      real(kind=rb), intent(in) :: svar_f                ! Solar variability facular multiplier
+      real(kind=rb), intent(in) :: svar_s                ! Solar variability sunspot multiplier
+      real(kind=rb), intent(in) :: svar_i                ! Solar variability baseline irradiance multiplier
+      real(kind=rb), intent(in) :: svar_f_bnd(:)         ! Solar variability facular multiplier (by band)
+      real(kind=rb), intent(in) :: svar_s_bnd(:)         ! Solar variability sunspot multiplier (by band)
+      real(kind=rb), intent(in) :: svar_i_bnd(:)         ! Solar variability baseline irradiance multiplier (by band)
+
 ! ----- Output -----
+      real(kind=rb), intent(out) :: ssi(:)               ! spectral solar intensity with solar variability
+                                                         !   Dimensions: (ngptsw)
       real(kind=rb), intent(out) :: sfluxzen(:)          ! solar source function
                                                          !   Dimensions: (ngptsw)
       real(kind=rb), intent(out) :: taug(:,:)            ! gaseous optical depth 
@@ -270,7 +283,9 @@
 
       use parrrsw, only : ng16
       use rrsw_kg16, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -350,7 +365,17 @@
                  fac01(lay) * absb(ind1  ,ig) + &
                  fac11(lay) * absb(ind1+1,ig)) 
 !            ssa(lay,ig) = tauray/taug(lay,ig)
-            if (lay .eq. laysolfr) sfluxzen(ig) = sfluxref(ig) 
+            if (lay .eq. laysolfr) sfluxzen(ig) = sfluxref(ig)
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ig) = sfluxref(ig) 
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ig) = svar_f_bnd(ngb(ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ig)) * irradnce(ig)
             taur(lay,ig) = tauray  
          enddo
       enddo
@@ -369,7 +394,9 @@
 
       use parrrsw, only : ng17, ngs16
       use rrsw_kg17, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -474,6 +501,23 @@
 !            ssa(lay,ngs16+ig) = tauray/taug(lay,ngs16+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs16+ig) = sfluxref(ig,js) &
                + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs16+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs16+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs16+ig) = svar_f_bnd(ngb(ngs16+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs16+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs16+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs16+ig) = tauray
          enddo
       enddo
@@ -492,7 +536,9 @@
 
       use parrrsw, only : ng18, ngs17
       use rrsw_kg18, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -556,6 +602,23 @@
 !            ssa(lay,ngs17+ig) = tauray/taug(lay,ngs17+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs17+ig) = sfluxref(ig,js) &
                + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs17+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs17+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs17+ig) = svar_f_bnd(ngb(ngs17+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs17+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs17+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs17+ig) = tauray
          enddo
       enddo
@@ -591,7 +654,9 @@
 
       use parrrsw, only : ng19, ngs18
       use rrsw_kg19, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -655,6 +720,23 @@
 !            ssa(lay,ngs18+ig) = tauray/taug(lay,ngs18+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs18+ig) = sfluxref(ig,js) &
                + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs18+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs18+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs18+ig) = svar_f_bnd(ngb(ngs18+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs18+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs18+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs18+ig) = tauray   
          enddo
       enddo
@@ -690,7 +772,9 @@
 
       use parrrsw, only : ng20, ngs19
       use rrsw_kg20, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, absch4, rayl
+                            sfluxref, absch4, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
       implicit none
 
@@ -735,8 +819,18 @@
                  (forref(indf+1,ig) - forref(indf,ig)))) &
                  + colch4(lay) * absch4(ig)
 !            ssa(lay,ngs19+ig) = tauray/taug(lay,ngs19+ig)
-            taur(lay,ngs19+ig) = tauray 
             if (lay .eq. laysolfr) sfluxzen(ngs19+ig) = sfluxref(ig) 
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs19+ig) = sfluxref(ig) 
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs19+ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs19+ig) = svar_f_bnd(ngb(ngs19+ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ngs19+ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ngs19+ig)) * irradnce(ig)
+            taur(lay,ngs19+ig) = tauray 
          enddo
       enddo
 
@@ -776,7 +870,9 @@
 
       use parrrsw, only : ng21, ngs20
       use rrsw_kg21, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -840,6 +936,23 @@
 !            ssa(lay,ngs20+ig) = tauray/taug(lay,ngs20+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs20+ig) = sfluxref(ig,js) &
                + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs20+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs20+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs20+ig) = svar_f_bnd(ngb(ngs20+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs20+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs20+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs20+ig) = tauray
          enddo
       enddo
@@ -898,7 +1011,9 @@
 
       use parrrsw, only : ng22, ngs21
       use rrsw_kg22, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, rayl
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -970,6 +1085,23 @@
 !            ssa(lay,ngs21+ig) = tauray/taug(lay,ngs21+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs21+ig) = sfluxref(ig,js) &
                 + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs21+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs21+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs21+ig) = svar_f_bnd(ngb(ngs21+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs21+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs21+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs21+ig) = tauray
          enddo
       enddo
@@ -1007,7 +1139,9 @@
 
       use parrrsw, only : ng23, ngs22
       use rrsw_kg23, only : absa, ka, forref, selfref, &
-                            sfluxref, rayl
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -1053,6 +1187,16 @@
                  (forref(indf+1,ig) - forref(indf,ig)))) 
 !            ssa(lay,ngs22+ig) = tauray/taug(lay,ngs22+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs22+ig) = sfluxref(ig) 
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs22+ig) = sfluxref(ig) 
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs22+ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs22+ig) = svar_f_bnd(ngb(ngs22+ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ngs22+ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ngs22+ig)) * irradnce(ig)
             taur(lay,ngs22+ig) = tauray
          enddo
       enddo
@@ -1081,7 +1225,9 @@
 
       use parrrsw, only : ng24, ngs23
       use rrsw_kg24, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, abso3a, abso3b, rayla, raylb
+                            sfluxref, abso3a, abso3b, rayla, raylb, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -1147,6 +1293,23 @@
 !            ssa(lay,ngs23+ig) = tauray/taug(lay,ngs23+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs23+ig) = sfluxref(ig,js) &
                + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs23+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs23+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs23+ig) = svar_f_bnd(ngb(ngs23+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs23+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs23+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs23+ig) = tauray
          enddo
       enddo
@@ -1183,7 +1346,9 @@
 
       use parrrsw, only : ng25, ngs24
       use rrsw_kg25, only : absa, ka, &
-                            sfluxref, abso3a, abso3b, rayl
+                            sfluxref, abso3a, abso3b, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -1219,6 +1384,16 @@
                  colo3(lay) * abso3a(ig) 
 !            ssa(lay,ngs24+ig) = tauray/taug(lay,ngs24+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs24+ig) = sfluxref(ig) 
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs24+ig) = sfluxref(ig) 
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs24+ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs24+ig) = svar_f_bnd(ngb(ngs24+ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ngs24+ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ngs24+ig)) * irradnce(ig)
             taur(lay,ngs24+ig) = tauray
          enddo
       enddo
@@ -1246,7 +1421,9 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng26, ngs25
-      use rrsw_kg26, only : sfluxref, rayl
+      use rrsw_kg26, only : sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -1269,6 +1446,16 @@
 !            taug(lay,ngs25+ig) = colmol(lay) * rayl(ig)
 !            ssa(lay,ngs25+ig) = 1.0_rb
             if (lay .eq. laysolfr) sfluxzen(ngs25+ig) = sfluxref(ig) 
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs25+ig) = sfluxref(ig) 
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs25+ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs25+ig) = svar_f_bnd(ngb(ngs25+ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ngs25+ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ngs25+ig)) * irradnce(ig)
             taug(lay,ngs25+ig) = 0._rb
             taur(lay,ngs25+ig) = colmol(lay) * rayl(ig) 
          enddo
@@ -1297,7 +1484,9 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng27, ngs26
-      use rrsw_kg27, only : absa, ka, absb, kb, sfluxref, rayl
+      use rrsw_kg27, only : absa, ka, absb, kb, sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -1359,6 +1548,16 @@
                  fac11(lay) * absb(ind1+1,ig))
 !            ssa(lay,ngs26+ig) = tauray/taug(lay,ngs26+ig)
             if (lay.eq.laysolfr) sfluxzen(ngs26+ig) = scalekur * sfluxref(ig) 
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs26+ig) = scalekur * sfluxref(ig) 
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs26+ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs26+ig) = svar_f_bnd(ngb(ngs26+ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ngs26+ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ngs26+ig)) * irradnce(ig)
             taur(lay,ngs26+ig) = tauray
          enddo
       enddo
@@ -1376,7 +1575,9 @@
 ! ------- Modules -------
 
       use parrrsw, only : ng28, ngs27
-      use rrsw_kg28, only : absa, ka, absb, kb, sfluxref, rayl
+      use rrsw_kg28, only : absa, ka, absb, kb, sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -1467,6 +1668,23 @@
 !            ssa(lay,ngs27+ig) = tauray/taug(lay,ngs27+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs27+ig) = sfluxref(ig,js) &
                + fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs27+ig) = sfluxref(ig,js) + &
+                         fs * (sfluxref(ig,js+1) - sfluxref(ig,js))
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs27+ig) = svar_f * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs27+ig) = svar_f_bnd(ngb(ngs27+ig)) * (facbrght(ig,js) + &
+                         fs * (facbrght(ig,js+1) - facbrght(ig,js))) + &
+                         svar_s_bnd(ngb(ngs27+ig)) * (snsptdrk(ig,js) + &
+                         fs * (snsptdrk(ig,js+1) - snsptdrk(ig,js))) + &
+                         svar_i_bnd(ngb(ngs27+ig)) * (irradnce(ig,js) + &
+                         fs * (irradnce(ig,js+1) - irradnce(ig,js)))
             taur(lay,ngs27+ig) = tauray
          enddo
       enddo
@@ -1485,7 +1703,9 @@
 
       use parrrsw, only : ng29, ngs28
       use rrsw_kg29, only : absa, ka, absb, kb, forref, selfref, &
-                            sfluxref, absh2o, absco2, rayl
+                            sfluxref, absh2o, absco2, rayl, &
+                            irradnce, facbrght, snsptdrk
+      use rrsw_wvn, only : ngb
 
 ! ------- Declarations -------
 
@@ -1548,6 +1768,16 @@
                  + colh2o(lay) * absh2o(ig) 
 !            ssa(lay,ngs28+ig) = tauray/taug(lay,ngs28+ig)
             if (lay .eq. laysolfr) sfluxzen(ngs28+ig) = sfluxref(ig) 
+            if (lay .eq. laysolfr .and. isolvar .lt. 0) &
+               sfluxzen(ngs28+ig) = sfluxref(ig) 
+            if (lay .eq. laysolfr .and. isolvar .ge. 0 .and. isolvar .le. 2) &
+               ssi(ngs28+ig) = svar_f * facbrght(ig) + &
+                         svar_s * snsptdrk(ig) + &
+                         svar_i * irradnce(ig)
+            if (lay .eq. laysolfr .and. isolvar .eq. 3) &
+               ssi(ngs28+ig) = svar_f_bnd(ngb(ngs28+ig)) * facbrght(ig) + &
+                         svar_s_bnd(ngb(ngs28+ig)) * snsptdrk(ig) + &
+                         svar_i_bnd(ngb(ngs28+ig)) * irradnce(ig)
             taur(lay,ngs28+ig) = tauray
          enddo
       enddo

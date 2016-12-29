@@ -161,6 +161,9 @@
 !-- Modified to output direct and diffuse fluxes either with or without
 !   delta scaling based on setting of idelm flag. 
 !     Dec 2008: M. J. Iacono, AER, Inc.
+!-- Revised to add new solar variability options based on the
+!   NRLSSI2 solar model
+!     Dec 2016: M. J. Iacono, AER
 
 ! --------- Modules ---------
 
@@ -396,6 +399,52 @@
       real(kind=rb) :: fnetsum(0:mxlay)       ! net shortwave flux (w/m2)
       real(kind=rb) :: htrsum(0:mxlay)        ! shortwave heating rate (k/day)
 
+! Solar variability
+      integer(kind=im) :: isolvar             ! Flag for solar variability method
+                                              !   -1 = (when SCON .eq. 0.0): No solar variability
+                                              !        and no solar cycle (Kurucz solar irradiance
+                                              !        of 1368.22 Wm-2 only);
+                                              !        (when SCON .ne. 0.0): Kurucz solar irradiance
+                                              !        scaled to SCON and solar variability defined
+                                              !        (optional) by setting non-zero scale factors
+                                              !        for each band in SOLVAR
+                                              !    0 = (when SCON .eq. 0.0): No solar variability 
+                                              !        and no solar cycle (NRLSSI2 solar constant of 
+                                              !        1360.85 Wm-2 for the 100-50000 cm-1 spectral 
+                                              !        range only), with facular and sunspot effects 
+                                              !        fixed to the mean of Solar Cycles 13-24;
+                                              !        (when SCON .ne. 0.0): No solar variability 
+                                              !        and no solar cycle (NRLSSI2 solar constant of 
+                                              !        1360.85 Wm-2 for the 100-50000 cm-1 spectral 
+                                              !        range only), is scaled to SCON
+                                              !    1 = Solar variability (using NRLSSI2  solar
+                                              !        model) with solar cycle contribution
+                                              !        determined by fraction of solar cycle
+                                              !        with facular and sunspot variations
+                                              !        fixed to their mean variations over the
+                                              !        average of Solar Cycles 13-24;
+                                              !        two amplitude scale factors allow
+                                              !        facular and sunspot adjustments from
+                                              !        mean solar cycle as defined by solvar 
+                                              !    2 = Solar variability (using NRLSSI2 solar
+                                              !        model) over solar cycle determined by 
+                                              !        direct specification of Mg (facular)
+                                              !        and SB (sunspot) indices provided
+                                              !        in solvar (scon = 0.0 only)
+                                              !    3 = (when SCON .eq. 0.0): No solar variability
+                                              !        and no solar cycle (NRLSSI2 solar irradiance
+                                              !        of 1360.85 Wm-2 only);
+                                              !        (when SCON .ne. 0.0): NRLSSI2 solar irradiance
+                                              !        scaled to SCON and solar variability defined
+                                              !        (optional) by setting non-zero scale factors
+                                              !        for each band in SOLVAR
+      real(kind=rb) :: svar_f                 ! Solar variability facular multiplier
+      real(kind=rb) :: svar_s                 ! Solar variability sunspot multiplier
+      real(kind=rb) :: svar_i                 ! Solar variability baseline irradiance multiplier
+      real(kind=rb) :: svar_f_bnd(jpband)     ! Solar variability facular multiplier (by band)
+      real(kind=rb) :: svar_s_bnd(jpband)     ! Solar variability sunspot multiplier (by band)
+      real(kind=rb) :: svar_i_bnd(jpband)     ! Solar variability baseline irradiance multiplier (by band)
+
 
 ! Initializations
 
@@ -498,7 +547,10 @@
                        pavel, tavel, pz, tz, tbound, semiss, zenith, adjflux, &
                        coldry, wkl, inflag, iceflag, liqflag, &
                        cldfrac, tauc, ssac, asmc, fsfc, ciwp, clwp, rei, rel, &
-                       tauaer, ssaaer, asmaer)
+                       tauaer, ssaaer, asmaer, &
+! solar variability I/O
+                       isolvar,svar_f,svar_s,svar_i, &
+                       svar_f_bnd, svar_s_bnd, svar_i_bnd)
 
          istart = jpb1                 ! jpb1 = 16
          iend = jpb2                   ! jpb2 = 29
@@ -701,6 +753,8 @@
                     pavel, tavel, pz, tz, tbound, albdif, albdir, &
                     cldfrac, ztauc, zasyc, zomgc, ztaucorig, &
                     ztaua, zasya, zomga, cossza, coldry, wkl, adjflux, &	 
+                    isolvar, svar_f, svar_s, svar_i, &
+                    svar_f_bnd, svar_s_bnd, svar_i_bnd, &
                     laytrop, layswtch, laylow, jp, jt, jt1, &
                     co2mult, colch4, colco2, colh2o, colmol, coln2o, colo2, colo3, &
                     fac00, fac01, fac10, fac11, &
@@ -713,6 +767,8 @@
                     pavel, tavel, pz, tz, tbound, albdif, albdir, &
                     zcldfmc, ztaucmc, zasycmc, zomgcmc, ztaormc, &
                     ztaua, zasya, zomga, cossza, coldry, wkl, adjflux, &	 
+                    isolvar, svar_f, svar_s, svar_i, &
+                    svar_f_bnd, svar_s_bnd, svar_i_bnd, &
                     laytrop, layswtch, laylow, jp, jt, jt1, &
                     co2mult, colch4, colco2, colh2o, colmol, coln2o, colo2, colo3, &
                     fac00, fac01, fac10, fac11, &
@@ -966,12 +1022,16 @@
            zenith_out, adjflux_out, &
            coldry_out, wkl_out, inflag_out, iceflag_out,liqflag_out, &
            cldfrac_out, tauc, ssac, asmc, fsfc, ciwp, clwp, rei, rel, &
-           tauaer_out, ssaaer_out, asmaer_out)
+           tauaer_out, ssaaer_out, asmaer_out, &
+! solar variability I/O
+           isolvar,svar_f_out,svar_s_out,svar_i_out, &
+           svar_f_bnd_out, svar_s_bnd_out, svar_i_bnd_out)
 !************************************************************************
 
 ! -------- Modules --------
 
       use parkind, only : im => kind_im, rb => kind_rb
+      use parrrsw, only: rrsw_scon
       use rrsw_con, only: pi,planck,boltz,clight,avogad,alosmt,gascon, &
                           radcn1,radcn2
       use rrsw_wvn, only: wavenum1, wavenum2, delwave
@@ -1065,11 +1125,156 @@
       real(kind=rb), intent(out) :: tauaer_out(mxlay,jpbands)   ! aerosol optical depth
       real(kind=rb), intent(out) :: ssaaer_out(mxlay,jpbands)   ! aerosol single scattering albedo
       real(kind=rb), intent(out) :: asmaer_out(mxlay,jpbands)   ! aerosol asymmetry parameter
-                                                                 !   first momemnt of input phase function
+                                                                !   first momemnt of input phase function
+! Solar variability
+      integer(kind=im) :: isolvar                     ! Flag for solar variability method
+                                                      !   -1 = (when SCON .eq. 0.0): No solar variability
+                                                      !        and no solar cycle (Kurucz solar irradiance
+                                                      !        of 1368.22 Wm-2 only);
+                                                      !        (when SCON .ne. 0.0): Kurucz solar irradiance
+                                                      !        scaled to SCON and solar variability defined
+                                                      !        (optional) by setting non-zero scale factors
+                                                      !        for each band in SOLVAR
+                                                      !    0 = (when SCON .eq. 0.0): No solar variability 
+                                                      !        and no solar cycle (NRLSSI2 solar constant of 
+                                                      !        1360.85 Wm-2 for the 100-50000 cm-1 spectral 
+                                                      !        range only), with facular and sunspot effects 
+                                                      !        fixed to the mean of Solar Cycles 13-24;
+                                                      !        (when SCON .ne. 0.0): No solar variability 
+                                                      !        and no solar cycle (NRLSSI2 solar constant of 
+                                                      !        1360.85 Wm-2 for the 100-50000 cm-1 spectral 
+                                                      !        range only), is scaled to SCON
+                                                      !    1 = Solar variability (using NRLSSI2  solar
+                                                      !        model) with solar cycle contribution
+                                                      !        determined by fraction of solar cycle
+                                                      !        with facular and sunspot variations
+                                                      !        fixed to their mean variations over the
+                                                      !        average of Solar Cycles 13-24;
+                                                      !        two amplitude scale factors allow
+                                                      !        facular and sunspot adjustments from
+                                                      !        mean solar cycle as defined by solvar 
+                                                      !    2 = Solar variability (using NRLSSI2 solar
+                                                      !        model) over solar cycle determined by 
+                                                      !        direct specification of Mg (facular)
+                                                      !        and SB (sunspot) indices provided
+                                                      !        in solvar (scon = 0.0 only)
+                                                      !    3 = (when SCON .eq. 0.0): No solar variability
+                                                      !        and no solar cycle (NRLSSI2 solar irradiance
+                                                      !        of 1360.85 Wm-2 only);
+                                                      !        (when SCON .ne. 0.0): NRLSSI2 solar irradiance
+                                                      !        scaled to SCON and solar variability defined
+                                                      !        (optional) by setting non-zero scale factors
+                                                      !        for each band in SOLVAR
+      real(kind=rb), intent(out) :: svar_f_out                 ! Solar variability facular multiplier
+      real(kind=rb), intent(out) :: svar_s_out                 ! Solar variability sunspot multiplier
+      real(kind=rb), intent(out) :: svar_i_out                 ! Solar variability baseline irradiance multiplier
+      real(kind=rb), intent(out) :: svar_f_bnd_out(jpbands)    ! Solar variability facular multiplier (by band)
+      real(kind=rb), intent(out) :: svar_s_bnd_out(jpbands)    ! Solar variability sunspot multiplier (by band)
+      real(kind=rb), intent(out) :: svar_i_bnd_out(jpbands)    ! Solar variability baseline irradiance multiplier (by band)
+
 !
 ! Local
       integer(kind=im) :: juldat                               ! day of year
       real(kind=rb) :: fice(mxlay)                             ! cloud ice fraction
+
+! Local - solar variability
+      real(kind=rb) :: scon                             ! solar constant (Wm-2)
+      real(kind=rb) :: svar_f                           ! Solar variability facular multiplier
+      real(kind=rb) :: svar_s                           ! Solar variability sunspot multiplier
+      real(kind=rb) :: svar_i                           ! Solar variability baseline irradiance multiplier
+      real(kind=rb) :: svar_f_bnd(jpbands)              ! Solar variability facular multiplier (by band)
+      real(kind=rb) :: svar_s_bnd(jpbands)              ! Solar variability sunspot multiplier (by band)
+      real(kind=rb) :: svar_i_bnd(jpbands)              ! Solar variability baseline irradiance multiplier (by band)
+      real(kind=rb) :: bndsolvar(nbndsw)                ! Band scale factors for modeling spectral 
+                                                        ! variation of solar cycle for each shortwave band;
+                                                        ! for Kurucz solar constant (isolvar=-1), or
+                                                        ! averaged NRLSSI2 model solar cycle (isolvar=3)
+                                                        !    Dimensions: (nbndsw=14)
+      real(kind=rb) :: indsolvar(2)                     ! Mg and SB index amplitude scale factors (isolvar=1), or
+                                                        ! Mg and SB indices as defined in the NRLSSI2 model (isolvar=2)
+                                                        !    Dimensions: (2)
+      real(kind=rb) :: solcycfrac                       ! Fraction of averaged solar cycle (0-1)
+                                                        !    at current time (isolvar=1)
+      real(kind=rb) :: wgt                              ! Weighting factor for amplitude scale factor adjustment
+      real(kind=rb) :: svar_f_0, svar_s_0               ! Solar variability indices for current fractional
+                                                        !  position in typical solar cycle, interpolated
+                                                        !  from lookup table of values over solar cycle
+      real(kind=rb) :: svar_cprim                       ! Solar variability intermediate value
+      real(kind=rb) :: svar_r                           ! Solar variability intermediate value
+      integer(kind=im) :: sfid                          ! Solar variability solar cycle fraction index
+      real(kind=rb) :: tmp_f_0, tmp_s_0                 ! Solar variability temporary quantities
+      real(kind=rb) :: fraclo, frachi, intfrac          ! Solar variability interpolation factors
+
+! Mean quiet sun, facular brightening, and sunspot dimming coefficient terms (NRLSSI2, 100-50000 cm-1), 
+! spectrally integrated (from hi-res values after mapping to g-point space)
+      real(kind=rb), parameter :: Iint = 1360.37_rb     ! Solar quiet sun irradiance term, integrated
+      real(kind=rb), parameter :: Fint = 0.996047_rb    ! Solar facular brightening term (index-offset), integrated
+      real(kind=rb), parameter :: Sint = -0.511590_rb   ! Solar sunspot dimming term (index-offset), integrated
+      real(kind=rb), parameter :: Foffset = 0.14959542_rb    ! Solar facular offset
+      real(kind=rb), parameter :: Soffset = 0.00066696_rb    ! Solar sunspot offset
+
+! Mg and SB indices for average solar cycle integrated over solar cycle
+      real(kind=rb), parameter :: svar_f_avg = 0.1568113_rb  ! Solar variability NRLSSI2 Mg "Bremen" index 
+                                                             !  time-averaged over Solar Cycles 13-24
+                                                             !  and averaged over solar cycle
+      real(kind=rb), parameter :: svar_s_avg = 909.21910_rb  ! Solar variability NRLSSI2 SB "SPOT67" index 
+                                                             !  time-averaged over Solar Cycles 13-24
+                                                             !  and averaged over solar cycle
+      integer(kind=im), parameter :: nsolfrac = 132     ! Number of elements in solar arrays (12 months
+                                                             !  per year over 11-year solar cycle)
+      real(kind=rb) :: nsfm1_inv                        ! Inverse of (nsolfrac-1)
+
+! Mg and SB index look-up tables for average solar cycle as a function of solar cycle
+      real(kind=rb) :: mgavgcyc(nsolfrac)               ! Facular index from NRLSSI2 Mg "Bremen" index 
+                                                        !  time-averaged over Solar Cycles 13-24
+      real(kind=rb) :: sbavgcyc(nsolfrac)               ! Sunspot index from NRLSSI2 SB "SPOT67" index 
+                                                        !  time-averaged over Solar Cycles 13-24
+      mgavgcyc(:) = (/ &
+        &   0.150737_rb,  0.150733_rb,  0.150718_rb,  0.150725_rb,  0.150762_rb,  0.150828_rb, &
+        &   0.150918_rb,  0.151017_rb,  0.151113_rb,  0.151201_rb,  0.151292_rb,  0.151403_rb, &
+        &   0.151557_rb,  0.151766_rb,  0.152023_rb,  0.152322_rb,  0.152646_rb,  0.152969_rb, &
+        &   0.153277_rb,  0.153579_rb,  0.153899_rb,  0.154252_rb,  0.154651_rb,  0.155104_rb, &
+        &   0.155608_rb,  0.156144_rb,  0.156681_rb,  0.157178_rb,  0.157605_rb,  0.157971_rb, &
+        &   0.158320_rb,  0.158702_rb,  0.159133_rb,  0.159583_rb,  0.160018_rb,  0.160408_rb, &
+        &   0.160725_rb,  0.160960_rb,  0.161131_rb,  0.161280_rb,  0.161454_rb,  0.161701_rb, &
+        &   0.162034_rb,  0.162411_rb,  0.162801_rb,  0.163186_rb,  0.163545_rb,  0.163844_rb, &
+        &   0.164029_rb,  0.164054_rb,  0.163910_rb,  0.163621_rb,  0.163239_rb,  0.162842_rb, &
+        &   0.162525_rb,  0.162344_rb,  0.162275_rb,  0.162288_rb,  0.162369_rb,  0.162500_rb, &
+        &   0.162671_rb,  0.162878_rb,  0.163091_rb,  0.163251_rb,  0.163320_rb,  0.163287_rb, &
+        &   0.163153_rb,  0.162927_rb,  0.162630_rb,  0.162328_rb,  0.162083_rb,  0.161906_rb, &
+        &   0.161766_rb,  0.161622_rb,  0.161458_rb,  0.161266_rb,  0.161014_rb,  0.160666_rb, &
+        &   0.160213_rb,  0.159690_rb,  0.159190_rb,  0.158831_rb,  0.158664_rb,  0.158634_rb, &
+        &   0.158605_rb,  0.158460_rb,  0.158152_rb,  0.157691_rb,  0.157152_rb,  0.156631_rb, &
+        &   0.156180_rb,  0.155827_rb,  0.155575_rb,  0.155406_rb,  0.155280_rb,  0.155145_rb, &
+        &   0.154972_rb,  0.154762_rb,  0.154554_rb,  0.154388_rb,  0.154267_rb,  0.154152_rb, &
+        &   0.154002_rb,  0.153800_rb,  0.153567_rb,  0.153348_rb,  0.153175_rb,  0.153044_rb, &
+        &   0.152923_rb,  0.152793_rb,  0.152652_rb,  0.152510_rb,  0.152384_rb,  0.152282_rb, &
+        &   0.152194_rb,  0.152099_rb,  0.151980_rb,  0.151844_rb,  0.151706_rb,  0.151585_rb, &
+        &   0.151496_rb,  0.151437_rb,  0.151390_rb,  0.151347_rb,  0.151295_rb,  0.151220_rb, &
+        &   0.151115_rb,  0.150993_rb,  0.150883_rb,  0.150802_rb,  0.150752_rb,  0.150737_rb/)
+      sbavgcyc(:) = (/ &
+        &    50.3550_rb,   52.0179_rb,   59.2231_rb,   66.3702_rb,   71.7545_rb,   76.8671_rb, &
+        &    83.4723_rb,   91.1574_rb,   98.4915_rb,  105.3173_rb,  115.1791_rb,  130.9432_rb, &
+        &   155.0483_rb,  186.5379_rb,  221.5456_rb,  256.9212_rb,  291.5276_rb,  325.2953_rb, &
+        &   356.4789_rb,  387.2470_rb,  422.8557_rb,  466.1698_rb,  521.5139_rb,  593.2833_rb, &
+        &   676.6234_rb,  763.6930_rb,  849.1200_rb,  928.4259_rb,  994.9705_rb, 1044.2605_rb, &
+        &  1087.5703_rb, 1145.0623_rb, 1224.3491_rb, 1320.6497_rb, 1413.0979_rb, 1472.1591_rb, &
+        &  1485.7531_rb, 1464.1610_rb, 1439.1617_rb, 1446.2449_rb, 1496.4323_rb, 1577.8394_rb, &
+        &  1669.5933_rb, 1753.0408_rb, 1821.9296_rb, 1873.2789_rb, 1906.5240_rb, 1920.4482_rb, &
+        &  1904.6881_rb, 1861.8397_rb, 1802.7661_rb, 1734.0215_rb, 1665.0562_rb, 1608.8999_rb, &
+        &  1584.8208_rb, 1594.0162_rb, 1616.1486_rb, 1646.6031_rb, 1687.1962_rb, 1736.4778_rb, &
+        &  1787.2419_rb, 1824.9084_rb, 1835.5236_rb, 1810.2161_rb, 1768.6124_rb, 1745.1085_rb, &
+        &  1748.7762_rb, 1756.1239_rb, 1738.9929_rb, 1700.0656_rb, 1658.2209_rb, 1629.2925_rb, &
+        &  1620.9709_rb, 1622.5157_rb, 1623.4703_rb, 1612.3083_rb, 1577.3031_rb, 1516.7953_rb, &
+        &  1430.0403_rb, 1331.5112_rb, 1255.5171_rb, 1226.7653_rb, 1241.4419_rb, 1264.6549_rb, &
+        &  1255.5559_rb, 1203.0286_rb, 1120.2747_rb, 1025.5101_rb,  935.4602_rb,  855.0434_rb, &
+        &   781.0189_rb,  718.0328_rb,  678.5850_rb,  670.4219_rb,  684.1906_rb,  697.0376_rb, &
+        &   694.8083_rb,  674.1456_rb,  638.8199_rb,  602.3454_rb,  577.6292_rb,  565.6213_rb, &
+        &   553.7846_rb,  531.7452_rb,  503.9732_rb,  476.9708_rb,  452.4296_rb,  426.2826_rb, &
+        &   394.6636_rb,  360.1086_rb,  324.9731_rb,  297.2957_rb,  286.1536_rb,  287.4195_rb, &
+        &   288.9029_rb,  282.7594_rb,  267.7211_rb,  246.6594_rb,  224.7318_rb,  209.2318_rb, &
+        &   204.5217_rb,  204.1653_rb,  200.0440_rb,  191.0689_rb,  175.7699_rb,  153.9869_rb, &
+        &   128.4389_rb,  103.8445_rb,   85.6083_rb,   73.6264_rb,   64.4393_rb,   50.3550_rb/)
 
 ! Initializations
 
@@ -1136,8 +1341,45 @@
          stop
       endif
 
-      read (ird,9020) juldat, sza, isolvar, solvar(ib1:ib2)
+      read (ird,9020) juldat, sza, isolvar, scon, solcycfrac, solvar(ib1:ib2)
 
+      indsolvar(:) = 1.0_rb
+      bndsolvar(:) = 1.0_rb
+
+      if (isolvar.eq.1) then 
+         indsolvar(1) = solvar(16)
+         indsolvar(2) = solvar(17)
+! Adjust amplitude scaling to be 1.0 at solar min (solcycfrac=0.0229),
+! to be the requested indsolvar at solar max (solcycfrac=0.3817), and
+! to vary between those values at other solcycfrac. 
+         if (indsolvar(1).ne.1.0_rb.or.indsolvar(2).ne.1.0_rb) then 
+            if (solcycfrac.ge.0.0_rb.and.solcycfrac.lt.0.0229_rb) then
+               wgt = (solcycfrac+1.0_rb-0.3817_rb)/(1.0229_rb-0.3817_rb)
+               indsolvar(1) = indsolvar(1) + wgt * (1.0_rb-indsolvar(1))
+               indsolvar(2) = indsolvar(2) + wgt * (1.0_rb-indsolvar(2))
+            endif
+            if (solcycfrac.ge.0.0229_rb.and.solcycfrac.le.0.3817_rb) then
+               wgt = (solcycfrac-0.0229_rb)/(0.3817_rb-0.0229_rb)
+               indsolvar(1) = 1.0_rb + wgt * (indsolvar(1)-1.0_rb)
+               indsolvar(2) = 1.0_rb + wgt * (indsolvar(2)-1.0_rb)
+            endif
+            if (solcycfrac.gt.0.3817_rb.and.solcycfrac.le.1.0_rb) then
+               wgt = (solcycfrac-0.3817_rb)/(1.0229_rb-0.3817_rb)
+               indsolvar(1) = indsolvar(1) + wgt * (1.0_rb-indsolvar(1))
+               indsolvar(2) = indsolvar(2) + wgt * (1.0_rb-indsolvar(2))
+            endif
+         endif
+      endif
+         
+      if (isolvar.eq.2) then 
+         indsolvar(1) = solvar(17)
+         indsolvar(2) = solvar(18)
+      endif
+
+      if (isolvar.eq.-1 .or. isolvar.eq.3) then 
+         bndsolvar(:) = solvar(ib1:ib2)
+      endif
+         
       zenith = cos(sza * pi / 180._rb)
       if (juldat .eq. 0) then
          adjflux_jd = 1._rb
@@ -1152,21 +1394,189 @@
       if (iaer .eq. 10) call readaer
 
 
-      if (isolvar .eq. 0) then
+! Apply selected solar variability option based on ISOLVAR and input 
+! solar constant.
+! For scon = 0, use internally defined solar constant, which is
+! 1368.22 Wm-2 (for ISOLVAR=-1) and 1360.85 Wm-2 (for ISOLVAR=0,3;
+! options ISOLVAR=1,2 model solar cycle variations from 1360.85 Wm-2)
+!
+! SCON = 0 
+! Use internal TSI value 
+      if (scon .eq. 0.0_rb) then 
+
+!   No solar cycle and no solar variability (Kurucz solar irradiance)
+!   Apply constant scaling by band if first element of bndsolvar specified
+         if (isolvar .eq. -1) then
+            solvar(ib1:ib2) = 1.0_rb
+            if (bndsolvar(1).gt.0.0_rb) solvar(ib1:ib2) = bndsolvar(:)
+         endif 
+
+!   Mean solar cycle with no solar variability (NRLSSI2 model solar irradiance)
+!   Quiet sun, facular, and sunspot terms averaged over the mean solar cycle 
+!   (defined as average of Solar Cycles 13-24).
+         if (isolvar .eq. 0) then
+            svar_f = 1.0_rb
+            svar_s = 1.0_rb
+            svar_i = 1.0_rb
+         endif 
+
+!   Mean solar cycle with solar variability (NRLSSI2 model)
+!   Facular and sunspot terms interpolated from LUTs to input solar cycle 
+!   fraction for mean solar cycle. Scalings defined below to convert from 
+!   averaged Mg and SB terms to Mg and SB terms interpolated here.
+!   (Includes optional facular and sunspot amplitude scale factors)
+         if (isolvar .eq. 1) then
+!   Interpolate svar_f_0 and svar_s_0 from lookup tables using provided solar cycle fraction
+            if (solcycfrac .le. 0.0_rb) then
+               tmp_f_0 = mgavgcyc(1)
+               tmp_s_0 = sbavgcyc(1)
+            elseif (solcycfrac .ge. 1.0_rb) then
+               tmp_f_0 = mgavgcyc(nsolfrac)
+               tmp_s_0 = sbavgcyc(nsolfrac)
+            else
+               sfid = floor(solcycfrac * (nsolfrac-1)) + 1
+               nsfm1_inv = 1.0_rb / (nsolfrac-1)
+               fraclo = (sfid-1) * nsfm1_inv
+               frachi = sfid * nsfm1_inv
+               intfrac = (solcycfrac - fraclo) / (frachi - fraclo)
+               tmp_f_0 = mgavgcyc(sfid) + intfrac * (mgavgcyc(sfid+1) - mgavgcyc(sfid))
+               tmp_s_0 = sbavgcyc(sfid) + intfrac * (sbavgcyc(sfid+1) - sbavgcyc(sfid))
+            endif
+            svar_f_0 = tmp_f_0
+            svar_s_0 = tmp_s_0
+            svar_f = indsolvar(1) * (svar_f_0 - Foffset) / (svar_f_avg - Foffset)
+            svar_s = indsolvar(2) * (svar_s_0 - Soffset) / (svar_s_avg - Soffset)
+            svar_i = 1.0_rb
+         endif 
+
+!   Specific solar cycle with solar variability (NRLSSI2 model)
+!   Facular and sunspot index terms input directly to model specific 
+!   solar cycle.  Scalings defined below to convert from averaged
+!   Mg and SB terms to specified Mg and SB terms. 
+         if (isolvar .eq. 2) then
+            svar_f = (indsolvar(1) - Foffset) / (svar_f_avg - Foffset)
+            svar_s = (indsolvar(2) - Soffset) / (svar_s_avg - Soffset)
+            svar_i = 1.0_rb
+         endif 
+
+!   Mean solar cycle with no solar variability (NRLSSI2 model)
+!   Averaged facular, sunspot and quiet sun terms from mean solar cycle 
+!   (derived as average of Solar Cycles 13-24). This information is built
+!   into coefficient terms specified by g-point elsewhere. Separate
+!   scaling by spectral band is applied as defined by bndsolvar. 
+         if (isolvar .eq. 3) then
+            solvar(ib1:ib2) = bndsolvar(:)
+            do ib = ib1,ib2
+               svar_f_bnd(ib) = solvar(ib)
+               svar_s_bnd(ib) = solvar(ib)
+               svar_i_bnd(ib) = solvar(ib)
+            enddo
+         endif 
+
+      endif
+
+! SCON > 0 
+! Scale from internal TSI to externally specified TSI value (scon)
+      if (scon .gt. 0.0_rb) then 
+
+!   No solar cycle and no solar variability (Kurucz solar irradiance)
+!   Scale from internal solar constant to requested solar constant.
+!   Apply optional constant scaling by band if first element of bndsolvar > 0.0
+         if (isolvar .eq. -1) then
+            if (bndsolvar(1).eq.0.0_rb) solvar(ib1:ib2) = scon / rrsw_scon 
+            if (bndsolvar(1).gt.0.0_rb) solvar(ib1:ib2) = bndsolvar(:) * scon / rrsw_scon 
+         endif 
+
+!   Mean solar cycle with no solar variability (NRLSSI2 model solar irradiance)
+!   Quiet sun, facular, and sunspot terms averaged over the mean solar cycle 
+!   (defined as average of Solar Cycles 13-24).
+!   Scale internal solar constant to requested solar constant (scon). 
+!!   Fint is provided as the product of (svar_f_avg-Foffset) and Fint, 
+!!   Sint is provided as the product of (svar_s_avg-Soffset) and Sint
+         if (isolvar .eq. 0) then
+            svar_cprim = Fint + Sint + Iint
+            svar_r = scon / svar_cprim
+            svar_f = svar_r
+            svar_s = svar_r
+            svar_i = svar_r
+         endif 
+
+!   Mean solar cycle with solar variability (NRLSSI2 model)
+!   Facular and sunspot terms interpolated from LUTs to input solar cycle 
+!   fraction for mean solar cycle. Scalings defined below to convert from 
+!   averaged Mg and SB terms to Mg and SB terms interpolated here.
+!   Scale internal solar constant to requested solar constant. 
+!   (Includes optional facular and sunspot amplitude scale factors)
+         if (isolvar .eq. 1) then
+!   Interpolate svar_f_0 and svar_s_0 from lookup tables using provided solar cycle fraction
+            if (solcycfrac .le. 0.0_rb) then
+               tmp_f_0 = mgavgcyc(1)
+               tmp_s_0 = sbavgcyc(1)
+            elseif (solcycfrac .ge. 1.0_rb) then
+               tmp_f_0 = mgavgcyc(nsolfrac)
+               tmp_s_0 = sbavgcyc(nsolfrac)
+            else
+               sfid = floor(solcycfrac * (nsolfrac-1)) + 1
+               nsfm1_inv = 1.0_rb / (nsolfrac-1)
+               fraclo = (sfid-1) * nsfm1_inv
+               frachi = sfid * nsfm1_inv
+               intfrac = (solcycfrac - fraclo) / (frachi - fraclo)
+               tmp_f_0 = mgavgcyc(sfid) + intfrac * (mgavgcyc(sfid+1) - mgavgcyc(sfid))
+               tmp_s_0 = sbavgcyc(sfid) + intfrac * (sbavgcyc(sfid+1) - sbavgcyc(sfid))
+            endif
+            svar_f_0 = tmp_f_0
+            svar_s_0 = tmp_s_0
+!   Define Cprime 
+!            svar_cprim = indsolvar(1) * Fint + indsolvar(2) * Sint + Iint
+!   Fint is provided as the product of (svar_f_avg-Foffset) and Fint, 
+!   Sint is provided as the product of (svar_s_avg-Soffset) and Sint
+            svar_i = (scon - (indsolvar(1) * Fint + indsolvar(2) * Sint)) / Iint
+            svar_f = indsolvar(1) * (svar_f_0 - Foffset) / (svar_f_avg - Foffset)
+            svar_s = indsolvar(2) * (svar_s_0 - Soffset) / (svar_s_avg - Soffset)
+         endif 
+
+!   Specific solar cycle with solar variability (NRLSSI2 model)
+!   (Not available for SCON > 0)
+!         if (isolvar .eq. 2) then
+!            scon = 0.0_rb
+!            svar_f = (indsolvar(1) - Foffset) / (svar_f_avg - Foffset)
+!            svar_s = (indsolvar(2) - Soffset) / (svar_s_avg - Soffset)
+!            svar_i = 1.0_rb
+!         endif 
+
+!   Mean solar cycle with no solar variability (NRLSSI2 model)
+!   Averaged facular, sunspot and quiet sun terms from mean solar cycle 
+!   (derived as average of Solar Cycles 13-24). This information is built
+!   into coefficient terms specified by g-point elsewhere. Separate
+!   scaling by spectral band is applied as defined by bndsolvar. 
+!   Scale internal solar constant (svar_cprim) to requested solar constant (scon)
+!   Fint is provided as the product of (svar_f_avg-Foffset) and Fint, 
+!   Sint is provided as the product of (svar_s_avg-Soffset) and Sint
+         if (isolvar .eq. 3) then
+            svar_cprim = Fint + Sint + Iint
+            if (bndsolvar(1).eq.0.0_rb) solvar(ib1:ib2) = scon / svar_cprim
+            if (bndsolvar(1).gt.0.0_rb) solvar(ib1:ib2) = bndsolvar(:) * scon / svar_cprim
+            do ib = ib1,ib2
+               svar_f_bnd(ib) = solvar(ib)
+               svar_s_bnd(ib) = solvar(ib)
+               svar_i_bnd(ib) = solvar(ib)
+            enddo
+         endif 
+
+      endif
+
+! Combine Earth-Sun adjustment (adjflux_jd) and solar constant scaling (solvar)
+! by band when no solar variability and no solar cycle requested
+      if (isolvar .lt. 0) then
+         do ib = ib1,ib2
+            adjflux(ib) = adjflux_jd * solvar(ib)
+         enddo
+      endif
+! Define Earth-Sun adjustment (adjflux_jd) by band for other solar options
+      if (isolvar .ge. 0) then
          do ib = ib1,ib2
             adjflux(ib) = adjflux_jd
          enddo
-      elseif (isolvar .eq. 1) then
-         do ib=ib1,ib2
-            adjflux(ib) = adjflux_jd * solvar(ib1)
-         enddo
-      elseif (isolvar .eq. 2) then
-         do ib=ib1,ib2
-            adjflux(ib) = adjflux_jd * solvar(ib)
-         enddo
-      else
-         print *, 'ISOLVAR = ', isolvar, ' NOT A VALID INPUT VALUE'
-         stop
       endif
 
       read (ird,9012) iemis, ireflect, semiss(ib1:ib2)
@@ -1334,6 +1744,16 @@
         semiss_out(nb) = semiss(nb)
         adjflux_out(nb) = adjflux(nb)
       enddo
+
+! Solar variability
+      svar_f_out = svar_f
+      svar_s_out = svar_s
+      svar_i_out = svar_i
+      do nb = ib1,ib2
+        svar_f_bnd_out(nb) = svar_f_bnd(nb)
+        svar_s_bnd_out(nb) = svar_s_bnd(nb)
+        svar_i_bnd_out(nb) = svar_i_bnd(nb)
+      enddo
       
       goto 9000
 
@@ -1347,7 +1767,7 @@
  9011 format (18x,i2,29x,i1,32x,i1,1x,i1,2x,i3,3x,i1,i1,3x,i1,i1)
  9012 format (11x,i1,2x,i1,14f5.3)
  9013 format (1x,i1,i3,i5)                                     
- 9020 format (12x, i3, 3x, f7.4, 4x, i1, 14f7.5)
+ 9020 format (12x, i3, 3x, f7.4, 3x, i2, f10.4, f10.5, 14f10.5)
  9300 format (i5)
  9301 format (1x,i1)
 

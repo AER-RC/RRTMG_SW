@@ -501,7 +501,7 @@
 !  data for each band, which are defined for 16 g-points and 14 spectral
 !  bands. The data are combined with appropriate weighting following the
 !  g-point mapping arrays specified in RRTMG_SW_INIT.  Solar source 
-!  function data in array SFLUXREF are combined without weighting.  All
+!  Function data in array SFLUXREF are combined without weighting.  All
 !  g-point reduced data are put into new arrays for use in RRTMG_SW.
 !
 !  band 16:  2600-3250 cm-1 (low key- h2o,ch4; high key - ch4)
@@ -509,11 +509,13 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg16, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref
+                            irradnceo, facbrghto, snsptdrko, &
+                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
-      real(kind=rb) :: sumk, sumf
+      real(kind=rb) :: sumk, sumf, sumsv1, sumsv2, sumsv3
 
 
       do jn = 1,9
@@ -521,7 +523,7 @@
             do jp = 1,13
                iprsm = 0
                do igc = 1,ngc(1)
-                  sumk = 0.
+                  sumk = 0._rb
                   do ipr = 1, ngn(igc)
                      iprsm = iprsm + 1
                      sumk = sumk + kao(jn,jt,jp,iprsm)*rwgt(iprsm)
@@ -536,7 +538,7 @@
          do jp = 13,59
             iprsm = 0
             do igc = 1,ngc(1)
-               sumk = 0.
+               sumk = 0._rb
                do ipr = 1, ngn(igc)
                   iprsm = iprsm + 1
                   sumk = sumk + kbo(jt,jp,iprsm)*rwgt(iprsm)
@@ -549,7 +551,7 @@
       do jt = 1,10
          iprsm = 0
          do igc = 1,ngc(1)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(igc)
                iprsm = iprsm + 1
                sumk = sumk + selfrefo(jt,iprsm)*rwgt(iprsm)
@@ -561,7 +563,7 @@
       do jt = 1,3
          iprsm = 0
          do igc = 1,ngc(1)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(igc)
                iprsm = iprsm + 1
                sumk = sumk + forrefo(jt,iprsm)*rwgt(iprsm)
@@ -572,12 +574,21 @@
 
       iprsm = 0
       do igc = 1,ngc(1)
-         sumf = 0.
+         sumf = 0._rb
+         sumsv1 = 0._rb
+         sumsv2 = 0._rb
+         sumsv3 = 0._rb
          do ipr = 1, ngn(igc)
             iprsm = iprsm + 1
             sumf = sumf + sfluxrefo(iprsm)
+            sumsv1 = sumsv1 + irradnceo(iprsm)
+            sumsv2 = sumsv2 + facbrghto(iprsm)
+            sumsv3 = sumsv3 + snsptdrko(iprsm)
          enddo
          sfluxref(igc) = sumf
+         irradnce(igc) = sumsv1
+         facbrght(igc) = sumsv2
+         snsptdrk(igc) = sumsv3
       enddo
 
       end subroutine cmbgb16s
@@ -590,11 +601,13 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg17, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref
+                            irradnceo, facbrghto, snsptdrko, &
+                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
-      real(kind=rb) :: sumk, sumf
+      real(kind=rb) :: sumk, sumf, sumsv1, sumsv2, sumsv3
 
 
       do jn = 1,9
@@ -602,7 +615,7 @@
             do jp = 1,13
                iprsm = 0
                do igc = 1,ngc(2)
-                  sumk = 0.
+                  sumk = 0._rb
                   do ipr = 1, ngn(ngs(1)+igc)
                      iprsm = iprsm + 1
                      sumk = sumk + kao(jn,jt,jp,iprsm)*rwgt(iprsm+16)
@@ -618,7 +631,7 @@
             do jp = 13,59
                iprsm = 0
                do igc = 1,ngc(2)
-                  sumk = 0.
+                  sumk = 0._rb
                   do ipr = 1, ngn(ngs(1)+igc)
                      iprsm = iprsm + 1
                      sumk = sumk + kbo(jn,jt,jp,iprsm)*rwgt(iprsm+16)
@@ -632,7 +645,7 @@
       do jt = 1,10
          iprsm = 0
          do igc = 1,ngc(2)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(1)+igc)
                iprsm = iprsm + 1
                sumk = sumk + selfrefo(jt,iprsm)*rwgt(iprsm+16)
@@ -644,7 +657,7 @@
       do jt = 1,4
          iprsm = 0
          do igc = 1,ngc(2)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(1)+igc)
                iprsm = iprsm + 1
                sumk = sumk + forrefo(jt,iprsm)*rwgt(iprsm+16)
@@ -656,12 +669,21 @@
       do jp = 1,5
          iprsm = 0
          do igc = 1,ngc(2)
-            sumf = 0.
+            sumf = 0._rb
+            sumsv1 = 0._rb
+            sumsv2 = 0._rb
+            sumsv3 = 0._rb
             do ipr = 1, ngn(ngs(1)+igc)
                iprsm = iprsm + 1
                sumf = sumf + sfluxrefo(iprsm,jp)
+               sumsv1 = sumsv1 + irradnceo(iprsm,jp)
+               sumsv2 = sumsv2 + facbrghto(iprsm,jp)
+               sumsv3 = sumsv3 + snsptdrko(iprsm,jp)
             enddo
             sfluxref(igc,jp) = sumf
+            irradnce(igc,jp) = sumsv1
+            facbrght(igc,jp) = sumsv2
+            snsptdrk(igc,jp) = sumsv3
          enddo
       enddo
 
@@ -675,11 +697,13 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg18, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref
+                            irradnceo, facbrghto, snsptdrko, &
+                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
-      real(kind=rb) :: sumk, sumf
+      real(kind=rb) :: sumk, sumf, sumsv1, sumsv2, sumsv3
 
 
       do jn = 1,9
@@ -687,7 +711,7 @@
             do jp = 1,13
                iprsm = 0
                do igc = 1,ngc(3)
-                  sumk = 0.
+                  sumk = 0._rb
                   do ipr = 1, ngn(ngs(2)+igc)
                      iprsm = iprsm + 1
                      sumk = sumk + kao(jn,jt,jp,iprsm)*rwgt(iprsm+32)
@@ -702,7 +726,7 @@
          do jp = 13,59
             iprsm = 0
             do igc = 1,ngc(3)
-               sumk = 0.
+               sumk = 0._rb
                do ipr = 1, ngn(ngs(2)+igc)
                   iprsm = iprsm + 1
                   sumk = sumk + kbo(jt,jp,iprsm)*rwgt(iprsm+32)
@@ -715,7 +739,7 @@
       do jt = 1,10
          iprsm = 0
          do igc = 1,ngc(3)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(2)+igc)
                iprsm = iprsm + 1
                sumk = sumk + selfrefo(jt,iprsm)*rwgt(iprsm+32)
@@ -727,7 +751,7 @@
       do jt = 1,3
          iprsm = 0
          do igc = 1,ngc(3)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(2)+igc)
                iprsm = iprsm + 1
                sumk = sumk + forrefo(jt,iprsm)*rwgt(iprsm+32)
@@ -739,12 +763,21 @@
       do jp = 1,9
          iprsm = 0
          do igc = 1,ngc(3)
-            sumf = 0.
+            sumf = 0._rb
+            sumsv1 = 0._rb
+            sumsv2 = 0._rb
+            sumsv3 = 0._rb
             do ipr = 1, ngn(ngs(2)+igc)
                iprsm = iprsm + 1
                sumf = sumf + sfluxrefo(iprsm,jp)
+               sumsv1 = sumsv1 + irradnceo(iprsm,jp)
+               sumsv2 = sumsv2 + facbrghto(iprsm,jp)
+               sumsv3 = sumsv3 + snsptdrko(iprsm,jp)
             enddo
             sfluxref(igc,jp) = sumf
+            irradnce(igc,jp) = sumsv1
+            facbrght(igc,jp) = sumsv2
+            snsptdrk(igc,jp) = sumsv3
          enddo
       enddo
 
@@ -758,11 +791,13 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg19, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref
+                            irradnceo, facbrghto, snsptdrko, &
+                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
-      real(kind=rb) :: sumk, sumf
+      real(kind=rb) :: sumk, sumf, sumsv1, sumsv2, sumsv3
 
 
       do jn = 1,9
@@ -770,7 +805,7 @@
             do jp = 1,13
                iprsm = 0
                do igc = 1,ngc(4)
-                  sumk = 0.
+                  sumk = 0._rb
                   do ipr = 1, ngn(ngs(3)+igc)
                      iprsm = iprsm + 1
                      sumk = sumk + kao(jn,jt,jp,iprsm)*rwgt(iprsm+48)
@@ -785,7 +820,7 @@
          do jp = 13,59
             iprsm = 0
             do igc = 1,ngc(4)
-               sumk = 0.
+               sumk = 0._rb
                do ipr = 1, ngn(ngs(3)+igc)
                   iprsm = iprsm + 1
                   sumk = sumk + kbo(jt,jp,iprsm)*rwgt(iprsm+48)
@@ -798,7 +833,7 @@
       do jt = 1,10
          iprsm = 0
          do igc = 1,ngc(4)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(3)+igc)
                iprsm = iprsm + 1
                sumk = sumk + selfrefo(jt,iprsm)*rwgt(iprsm+48)
@@ -810,7 +845,7 @@
       do jt = 1,3
          iprsm = 0
          do igc = 1,ngc(4)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(3)+igc)
                iprsm = iprsm + 1
                sumk = sumk + forrefo(jt,iprsm)*rwgt(iprsm+48)
@@ -822,12 +857,21 @@
       do jp = 1,9
          iprsm = 0
          do igc = 1,ngc(4)
-            sumf = 0.
+            sumf = 0._rb
+            sumsv1 = 0._rb
+            sumsv2 = 0._rb
+            sumsv3 = 0._rb
             do ipr = 1, ngn(ngs(3)+igc)
                iprsm = iprsm + 1
                sumf = sumf + sfluxrefo(iprsm,jp)
+               sumsv1 = sumsv1 + irradnceo(iprsm,jp)
+               sumsv2 = sumsv2 + facbrghto(iprsm,jp)
+               sumsv3 = sumsv3 + snsptdrko(iprsm,jp)
             enddo
             sfluxref(igc,jp) = sumf
+            irradnce(igc,jp) = sumsv1
+            facbrght(igc,jp) = sumsv2
+            snsptdrk(igc,jp) = sumsv3
          enddo
       enddo
 
@@ -841,18 +885,20 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg20, only : kao, kbo, selfrefo, forrefo, sfluxrefo, absch4o, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref, absch4
+                            irradnceo, facbrghto, snsptdrko, &
+                            absa, ka, absb, kb, selfref, forref, sfluxref, absch4, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
-      real(kind=rb) :: sumk, sumf1, sumf2
+      real(kind=rb) :: sumk, sumf1, sumf2, sumsv1, sumsv2, sumsv3
 
 
       do jt = 1,5
          do jp = 1,13
             iprsm = 0
             do igc = 1,ngc(5)
-               sumk = 0.
+               sumk = 0._rb
                do ipr = 1, ngn(ngs(4)+igc)
                   iprsm = iprsm + 1
                   sumk = sumk + kao(jt,jp,iprsm)*rwgt(iprsm+64)
@@ -863,7 +909,7 @@
          do jp = 13,59
             iprsm = 0
             do igc = 1,ngc(5)
-               sumk = 0.
+               sumk = 0._rb
                do ipr = 1, ngn(ngs(4)+igc)
                   iprsm = iprsm + 1
                   sumk = sumk + kbo(jt,jp,iprsm)*rwgt(iprsm+64)
@@ -876,7 +922,7 @@
       do jt = 1,10
          iprsm = 0
          do igc = 1,ngc(5)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(4)+igc)
                iprsm = iprsm + 1
                sumk = sumk + selfrefo(jt,iprsm)*rwgt(iprsm+64)
@@ -888,7 +934,7 @@
       do jt = 1,4
          iprsm = 0
          do igc = 1,ngc(5)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(4)+igc)
                iprsm = iprsm + 1
                sumk = sumk + forrefo(jt,iprsm)*rwgt(iprsm+64)
@@ -899,15 +945,24 @@
 
       iprsm = 0
       do igc = 1,ngc(5)
-         sumf1 = 0.
-         sumf2 = 0.
+         sumf1 = 0._rb
+         sumf2 = 0._rb
+         sumsv1 = 0._rb
+         sumsv2 = 0._rb
+         sumsv3 = 0._rb
          do ipr = 1, ngn(ngs(4)+igc)
             iprsm = iprsm + 1
             sumf1 = sumf1 + sfluxrefo(iprsm)
             sumf2 = sumf2 + absch4o(iprsm)*rwgt(iprsm+64)
+            sumsv1 = sumsv1 + irradnceo(iprsm)
+            sumsv2 = sumsv2 + facbrghto(iprsm)
+            sumsv3 = sumsv3 + snsptdrko(iprsm)
          enddo
          sfluxref(igc) = sumf1
          absch4(igc) = sumf2
+         irradnce(igc) = sumsv1
+         facbrght(igc) = sumsv2
+         snsptdrk(igc) = sumsv3
       enddo
 
       end subroutine cmbgb20
@@ -920,11 +975,13 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg21, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref
+                            irradnceo, facbrghto, snsptdrko, &
+                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
-      real(kind=rb) :: sumk, sumf
+      real(kind=rb) :: sumk, sumf, sumsv1, sumsv2, sumsv3
 
 
       do jn = 1,9
@@ -932,7 +989,7 @@
             do jp = 1,13
                iprsm = 0
                do igc = 1,ngc(6)
-                  sumk = 0.
+                  sumk = 0._rb
                   do ipr = 1, ngn(ngs(5)+igc)
                      iprsm = iprsm + 1
                      sumk = sumk + kao(jn,jt,jp,iprsm)*rwgt(iprsm+80)
@@ -948,7 +1005,7 @@
             do jp = 13,59
                iprsm = 0
                do igc = 1,ngc(6)
-                  sumk = 0.
+                  sumk = 0._rb
                   do ipr = 1, ngn(ngs(5)+igc)
                      iprsm = iprsm + 1
                      sumk = sumk + kbo(jn,jt,jp,iprsm)*rwgt(iprsm+80)
@@ -962,7 +1019,7 @@
       do jt = 1,10
          iprsm = 0
          do igc = 1,ngc(6)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(5)+igc)
                iprsm = iprsm + 1
                sumk = sumk + selfrefo(jt,iprsm)*rwgt(iprsm+80)
@@ -974,7 +1031,7 @@
       do jt = 1,4
          iprsm = 0
          do igc = 1,ngc(6)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(5)+igc)
                iprsm = iprsm + 1
                sumk = sumk + forrefo(jt,iprsm)*rwgt(iprsm+80)
@@ -986,12 +1043,21 @@
       do jp = 1,9
          iprsm = 0
          do igc = 1,ngc(6)
-            sumf = 0.
+            sumf = 0._rb
+            sumsv1 = 0._rb
+            sumsv2 = 0._rb
+            sumsv3 = 0._rb
             do ipr = 1, ngn(ngs(5)+igc)
                iprsm = iprsm + 1
                sumf = sumf + sfluxrefo(iprsm,jp)
+               sumsv1 = sumsv1 + irradnceo(iprsm,jp)
+               sumsv2 = sumsv2 + facbrghto(iprsm,jp)
+               sumsv3 = sumsv3 + snsptdrko(iprsm,jp)
             enddo
             sfluxref(igc,jp) = sumf
+            irradnce(igc,jp) = sumsv1
+            facbrght(igc,jp) = sumsv2
+            snsptdrk(igc,jp) = sumsv3
          enddo
       enddo
 
@@ -1005,11 +1071,13 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg22, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
-                            absa, ka, absb, kb, selfref, forref, sfluxref
+                            irradnceo, facbrghto, snsptdrko, &
+                            absa, ka, absb, kb, selfref, forref, sfluxref, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
-      real(kind=rb) :: sumk, sumf
+      real(kind=rb) :: sumk, sumf, sumsv1, sumsv2, sumsv3
 
 
       do jn = 1,9
@@ -1017,7 +1085,7 @@
             do jp = 1,13
                iprsm = 0
                do igc = 1,ngc(7)
-                  sumk = 0.
+                  sumk = 0._rb
                   do ipr = 1, ngn(ngs(6)+igc)
                      iprsm = iprsm + 1
                      sumk = sumk + kao(jn,jt,jp,iprsm)*rwgt(iprsm+96)
@@ -1032,7 +1100,7 @@
          do jp = 13,59
             iprsm = 0
             do igc = 1,ngc(7)
-               sumk = 0.
+               sumk = 0._rb
                do ipr = 1, ngn(ngs(6)+igc)
                   iprsm = iprsm + 1
                   sumk = sumk + kbo(jt,jp,iprsm)*rwgt(iprsm+96)
@@ -1045,7 +1113,7 @@
       do jt = 1,10
          iprsm = 0
          do igc = 1,ngc(7)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(6)+igc)
                iprsm = iprsm + 1
                sumk = sumk + selfrefo(jt,iprsm)*rwgt(iprsm+96)
@@ -1057,7 +1125,7 @@
       do jt = 1,3
          iprsm = 0
          do igc = 1,ngc(7)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(6)+igc)
                iprsm = iprsm + 1
                sumk = sumk + forrefo(jt,iprsm)*rwgt(iprsm+96)
@@ -1069,12 +1137,21 @@
       do jp = 1,9
          iprsm = 0
          do igc = 1,ngc(7)
-            sumf = 0.
+            sumf = 0._rb
+            sumsv1 = 0._rb
+            sumsv2 = 0._rb
+            sumsv3 = 0._rb
             do ipr = 1, ngn(ngs(6)+igc)
                iprsm = iprsm + 1
                sumf = sumf + sfluxrefo(iprsm,jp)
+               sumsv1 = sumsv1 + irradnceo(iprsm,jp)
+               sumsv2 = sumsv2 + facbrghto(iprsm,jp)
+               sumsv3 = sumsv3 + snsptdrko(iprsm,jp)
             enddo
             sfluxref(igc,jp) = sumf
+            irradnce(igc,jp) = sumsv1
+            facbrght(igc,jp) = sumsv2
+            snsptdrk(igc,jp) = sumsv3
          enddo
       enddo
 
@@ -1088,18 +1165,20 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg23, only : kao, selfrefo, forrefo, sfluxrefo, raylo, &
-                            absa, ka, selfref, forref, sfluxref, rayl
+                            irradnceo, facbrghto, snsptdrko, &
+                            absa, ka, selfref, forref, sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
-      real(kind=rb) :: sumk, sumf1, sumf2
+      real(kind=rb) :: sumk, sumf1, sumf2, sumsv1, sumsv2, sumsv3
 
 
       do jt = 1,5
          do jp = 1,13
             iprsm = 0
             do igc = 1,ngc(8)
-               sumk = 0.
+               sumk = 0._rb
                do ipr = 1, ngn(ngs(7)+igc)
                   iprsm = iprsm + 1
                   sumk = sumk + kao(jt,jp,iprsm)*rwgt(iprsm+112)
@@ -1112,7 +1191,7 @@
       do jt = 1,10
          iprsm = 0
          do igc = 1,ngc(8)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(7)+igc)
                iprsm = iprsm + 1
                sumk = sumk + selfrefo(jt,iprsm)*rwgt(iprsm+112)
@@ -1124,7 +1203,7 @@
       do jt = 1,3
          iprsm = 0
          do igc = 1,ngc(8)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(7)+igc)
                iprsm = iprsm + 1
                sumk = sumk + forrefo(jt,iprsm)*rwgt(iprsm+112)
@@ -1135,15 +1214,24 @@
 
       iprsm = 0
       do igc = 1,ngc(8)
-         sumf1 = 0.
-         sumf2 = 0.
+         sumf1 = 0._rb
+         sumf2 = 0._rb
+         sumsv1 = 0._rb
+         sumsv2 = 0._rb
+         sumsv3 = 0._rb
          do ipr = 1, ngn(ngs(7)+igc)
             iprsm = iprsm + 1
             sumf1 = sumf1 + sfluxrefo(iprsm)
             sumf2 = sumf2 + raylo(iprsm)*rwgt(iprsm+112)
+            sumsv1 = sumsv1 + irradnceo(iprsm)
+            sumsv2 = sumsv2 + facbrghto(iprsm)
+            sumsv3 = sumsv3 + snsptdrko(iprsm)
          enddo
          sfluxref(igc) = sumf1
          rayl(igc) = sumf2
+         irradnce(igc) = sumsv1
+         facbrght(igc) = sumsv2
+         snsptdrk(igc) = sumsv3
       enddo
 
       end subroutine cmbgb23
@@ -1157,12 +1245,14 @@
 
       use rrsw_kg24, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             abso3ao, abso3bo, raylao, raylbo, &
+                            irradnceo, facbrghto, snsptdrko, &
                             absa, ka, absb, kb, selfref, forref, sfluxref, &
-                            abso3a, abso3b, rayla, raylb
+                            abso3a, abso3b, rayla, raylb, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
-      real(kind=rb) :: sumk, sumf1, sumf2, sumf3
+      real(kind=rb) :: sumk, sumf1, sumf2, sumf3, sumsv1, sumsv2, sumsv3
 
 
       do jn = 1,9
@@ -1170,7 +1260,7 @@
             do jp = 1,13
                iprsm = 0
                do igc = 1,ngc(9)
-                  sumk = 0.
+                  sumk = 0._rb
                   do ipr = 1, ngn(ngs(8)+igc)
                      iprsm = iprsm + 1
                      sumk = sumk + kao(jn,jt,jp,iprsm)*rwgt(iprsm+128)
@@ -1185,7 +1275,7 @@
          do jp = 13,59
             iprsm = 0
             do igc = 1,ngc(9)
-               sumk = 0.
+               sumk = 0._rb
                do ipr = 1, ngn(ngs(8)+igc)
                   iprsm = iprsm + 1
                   sumk = sumk + kbo(jt,jp,iprsm)*rwgt(iprsm+128)
@@ -1198,7 +1288,7 @@
       do jt = 1,10
          iprsm = 0
          do igc = 1,ngc(9)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(8)+igc)
                iprsm = iprsm + 1
                sumk = sumk + selfrefo(jt,iprsm)*rwgt(iprsm+128)
@@ -1210,7 +1300,7 @@
       do jt = 1,3
          iprsm = 0
          do igc = 1,ngc(9)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(8)+igc)
                iprsm = iprsm + 1
                sumk = sumk + forrefo(jt,iprsm)*rwgt(iprsm+128)
@@ -1221,9 +1311,9 @@
 
       iprsm = 0
       do igc = 1,ngc(9)
-         sumf1 = 0.
-         sumf2 = 0.
-         sumf3 = 0.
+         sumf1 = 0._rb
+         sumf2 = 0._rb
+         sumf3 = 0._rb
          do ipr = 1, ngn(ngs(8)+igc)
             iprsm = iprsm + 1
             sumf1 = sumf1 + raylbo(iprsm)*rwgt(iprsm+128)
@@ -1238,15 +1328,24 @@
       do jp = 1,9
          iprsm = 0
          do igc = 1,ngc(9)
-            sumf1 = 0.
-            sumf2 = 0.
+            sumf1 = 0._rb
+            sumf2 = 0._rb
+            sumsv1 = 0._rb
+            sumsv2 = 0._rb
+            sumsv3 = 0._rb
             do ipr = 1, ngn(ngs(8)+igc)
                iprsm = iprsm + 1
                sumf1 = sumf1 + sfluxrefo(iprsm,jp)
                sumf2 = sumf2 + raylao(iprsm,jp)*rwgt(iprsm+128)
+               sumsv1 = sumsv1 + irradnceo(iprsm,jp)
+               sumsv2 = sumsv2 + facbrghto(iprsm,jp)
+               sumsv3 = sumsv3 + snsptdrko(iprsm,jp)
             enddo
             sfluxref(igc,jp) = sumf1
             rayla(igc,jp) = sumf2
+            irradnce(igc,jp) = sumsv1
+            facbrght(igc,jp) = sumsv2
+            snsptdrk(igc,jp) = sumsv3
          enddo
       enddo
 
@@ -1261,19 +1360,21 @@
 
       use rrsw_kg25, only : kao, sfluxrefo, &
                             abso3ao, abso3bo, raylo, &
+                            irradnceo, facbrghto, snsptdrko, &
                             absa, ka, sfluxref, &
-                            abso3a, abso3b, rayl
+                            abso3a, abso3b, rayl, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
-      real(kind=rb) :: sumk, sumf1, sumf2, sumf3, sumf4
+      real(kind=rb) :: sumk, sumf1, sumf2, sumf3, sumf4, sumsv1, sumsv2, sumsv3
 
 
       do jt = 1,5
          do jp = 1,13
             iprsm = 0
             do igc = 1,ngc(10)
-               sumk = 0.
+               sumk = 0._rb
                do ipr = 1, ngn(ngs(9)+igc)
                   iprsm = iprsm + 1
                   sumk = sumk + kao(jt,jp,iprsm)*rwgt(iprsm+144)
@@ -1285,21 +1386,30 @@
 
       iprsm = 0
       do igc = 1,ngc(10)
-         sumf1 = 0.
-         sumf2 = 0.
-         sumf3 = 0.
-         sumf4 = 0.
+         sumf1 = 0._rb
+         sumf2 = 0._rb
+         sumf3 = 0._rb
+         sumf4 = 0._rb
+         sumsv1 = 0._rb
+         sumsv2 = 0._rb
+         sumsv3 = 0._rb
          do ipr = 1, ngn(ngs(9)+igc)
             iprsm = iprsm + 1
             sumf1 = sumf1 + sfluxrefo(iprsm)
             sumf2 = sumf2 + abso3ao(iprsm)*rwgt(iprsm+144)
             sumf3 = sumf3 + abso3bo(iprsm)*rwgt(iprsm+144)
             sumf4 = sumf4 + raylo(iprsm)*rwgt(iprsm+144)
+            sumsv1 = sumsv1 + irradnceo(iprsm)
+            sumsv2 = sumsv2 + facbrghto(iprsm)
+            sumsv3 = sumsv3 + snsptdrko(iprsm)
          enddo
          sfluxref(igc) = sumf1
          abso3a(igc) = sumf2
          abso3b(igc) = sumf3
          rayl(igc) = sumf4
+         irradnce(igc) = sumsv1
+         facbrght(igc) = sumsv2
+         snsptdrk(igc) = sumsv3
       enddo
 
       end subroutine cmbgb25
@@ -1312,24 +1422,35 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg26, only : sfluxrefo, raylo, &
-                            sfluxref, rayl
+                            irradnceo, facbrghto, snsptdrko, &
+                            sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: igc, ipr, iprsm
-      real(kind=rb) :: sumf1, sumf2
+      real(kind=rb) :: sumf1, sumf2, sumsv1, sumsv2, sumsv3
 
 
       iprsm = 0
       do igc = 1,ngc(11)
-         sumf1 = 0.
-         sumf2 = 0.
+         sumf1 = 0._rb
+         sumf2 = 0._rb
+         sumsv1 = 0._rb
+         sumsv2 = 0._rb
+         sumsv3 = 0._rb
          do ipr = 1, ngn(ngs(10)+igc)
             iprsm = iprsm + 1
             sumf1 = sumf1 + raylo(iprsm)*rwgt(iprsm+160)
             sumf2 = sumf2 + sfluxrefo(iprsm)
+            sumsv1 = sumsv1 + irradnceo(iprsm)
+            sumsv2 = sumsv2 + facbrghto(iprsm)
+            sumsv3 = sumsv3 + snsptdrko(iprsm)
          enddo
          rayl(igc) = sumf1
          sfluxref(igc) = sumf2
+         irradnce(igc) = sumsv1
+         facbrght(igc) = sumsv2
+         snsptdrk(igc) = sumsv3
       enddo
 
       end subroutine cmbgb26
@@ -1342,18 +1463,20 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg27, only : kao, kbo, sfluxrefo, raylo, &
-                            absa, ka, absb, kb, sfluxref, rayl
+                            irradnceo, facbrghto, snsptdrko, &
+                            absa, ka, absb, kb, sfluxref, rayl, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
-      real(kind=rb) :: sumk, sumf1, sumf2
+      real(kind=rb) :: sumk, sumf1, sumf2, sumsv1, sumsv2, sumsv3
 
 
       do jt = 1,5
          do jp = 1,13
             iprsm = 0
             do igc = 1,ngc(12)
-               sumk = 0.
+               sumk = 0._rb
                do ipr = 1, ngn(ngs(11)+igc)
                   iprsm = iprsm + 1
                   sumk = sumk + kao(jt,jp,iprsm)*rwgt(iprsm+176)
@@ -1364,7 +1487,7 @@
          do jp = 13,59
             iprsm = 0
             do igc = 1,ngc(12)
-               sumk = 0.
+               sumk = 0._rb
                do ipr = 1, ngn(ngs(11)+igc)
                   iprsm = iprsm + 1
                   sumk = sumk + kbo(jt,jp,iprsm)*rwgt(iprsm+176)
@@ -1376,15 +1499,24 @@
 
       iprsm = 0
       do igc = 1,ngc(12)
-         sumf1 = 0.
-         sumf2 = 0.
+         sumf1 = 0._rb
+         sumf2 = 0._rb
+         sumsv1 = 0._rb
+         sumsv2 = 0._rb
+         sumsv3 = 0._rb
          do ipr = 1, ngn(ngs(11)+igc)
             iprsm = iprsm + 1
             sumf1 = sumf1 + sfluxrefo(iprsm)
             sumf2 = sumf2 + raylo(iprsm)*rwgt(iprsm+176)
+            sumsv1 = sumsv1 + irradnceo(iprsm)
+            sumsv2 = sumsv2 + facbrghto(iprsm)
+            sumsv3 = sumsv3 + snsptdrko(iprsm)
          enddo
          sfluxref(igc) = sumf1
          rayl(igc) = sumf2
+         irradnce(igc) = sumsv1
+         facbrght(igc) = sumsv2
+         snsptdrk(igc) = sumsv3
       enddo
 
       end subroutine cmbgb27
@@ -1397,11 +1529,13 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg28, only : kao, kbo, sfluxrefo, &
-                            absa, ka, absb, kb, sfluxref
+                            irradnceo, facbrghto, snsptdrko, &
+                            absa, ka, absb, kb, sfluxref, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: jn, jt, jp, igc, ipr, iprsm
-      real(kind=rb) :: sumk, sumf
+      real(kind=rb) :: sumk, sumf, sumsv1, sumsv2, sumsv3
 
 
       do jn = 1,9
@@ -1409,7 +1543,7 @@
             do jp = 1,13
                iprsm = 0
                do igc = 1,ngc(13)
-                  sumk = 0.
+                  sumk = 0._rb
                   do ipr = 1, ngn(ngs(12)+igc)
                      iprsm = iprsm + 1
                      sumk = sumk + kao(jn,jt,jp,iprsm)*rwgt(iprsm+192)
@@ -1425,7 +1559,7 @@
             do jp = 13,59
                iprsm = 0
                do igc = 1,ngc(13)
-                  sumk = 0.
+                  sumk = 0._rb
                   do ipr = 1, ngn(ngs(12)+igc)
                      iprsm = iprsm + 1
                      sumk = sumk + kbo(jn,jt,jp,iprsm)*rwgt(iprsm+192)
@@ -1439,12 +1573,21 @@
       do jp = 1,5
          iprsm = 0
          do igc = 1,ngc(13)
-            sumf = 0.
+            sumf = 0._rb
+            sumsv1 = 0._rb
+            sumsv2 = 0._rb
+            sumsv3 = 0._rb
             do ipr = 1, ngn(ngs(12)+igc)
                iprsm = iprsm + 1
                sumf = sumf + sfluxrefo(iprsm,jp)
+               sumsv1 = sumsv1 + irradnceo(iprsm,jp)
+               sumsv2 = sumsv2 + facbrghto(iprsm,jp)
+               sumsv3 = sumsv3 + snsptdrko(iprsm,jp)
             enddo
             sfluxref(igc,jp) = sumf
+            irradnce(igc,jp) = sumsv1
+            facbrght(igc,jp) = sumsv2
+            snsptdrk(igc,jp) = sumsv3
          enddo
       enddo
 
@@ -1458,20 +1601,22 @@
 !-----------------------------------------------------------------------
 
       use rrsw_kg29, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
+                            irradnceo, facbrghto, snsptdrko, &
                             absh2oo, absco2o, &
                             absa, ka, absb, kb, selfref, forref, sfluxref, &
-                            absh2o, absco2
+                            absh2o, absco2, &
+                            irradnce, facbrght, snsptdrk
 
 ! ------- Local -------
       integer(kind=im) :: jt, jp, igc, ipr, iprsm
-      real(kind=rb) :: sumk, sumf1, sumf2, sumf3
+      real(kind=rb) :: sumk, sumf1, sumf2, sumf3, sumsv1, sumsv2, sumsv3
 
 
       do jt = 1,5
          do jp = 1,13
             iprsm = 0
             do igc = 1,ngc(14)
-               sumk = 0.
+               sumk = 0._rb
                do ipr = 1, ngn(ngs(13)+igc)
                   iprsm = iprsm + 1
                   sumk = sumk + kao(jt,jp,iprsm)*rwgt(iprsm+208)
@@ -1482,7 +1627,7 @@
          do jp = 13,59
             iprsm = 0
             do igc = 1,ngc(14)
-               sumk = 0.
+               sumk = 0._rb
                do ipr = 1, ngn(ngs(13)+igc)
                   iprsm = iprsm + 1
                   sumk = sumk + kbo(jt,jp,iprsm)*rwgt(iprsm+208)
@@ -1495,7 +1640,7 @@
       do jt = 1,10
          iprsm = 0
          do igc = 1,ngc(14)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(13)+igc)
                iprsm = iprsm + 1
                sumk = sumk + selfrefo(jt,iprsm)*rwgt(iprsm+208)
@@ -1507,7 +1652,7 @@
       do jt = 1,4
          iprsm = 0
          do igc = 1,ngc(14)
-            sumk = 0.
+            sumk = 0._rb
             do ipr = 1, ngn(ngs(13)+igc)
                iprsm = iprsm + 1
                sumk = sumk + forrefo(jt,iprsm)*rwgt(iprsm+208)
@@ -1518,18 +1663,27 @@
 
       iprsm = 0
       do igc = 1,ngc(14)
-         sumf1 = 0.
-         sumf2 = 0.
-         sumf3 = 0.
+         sumf1 = 0._rb
+         sumf2 = 0._rb
+         sumf3 = 0._rb
+         sumsv1 = 0._rb
+         sumsv2 = 0._rb
+         sumsv3 = 0._rb
          do ipr = 1, ngn(ngs(13)+igc)
             iprsm = iprsm + 1
             sumf1 = sumf1 + sfluxrefo(iprsm)
             sumf2 = sumf2 + absco2o(iprsm)*rwgt(iprsm+208)
             sumf3 = sumf3 + absh2oo(iprsm)*rwgt(iprsm+208)
+            sumsv1 = sumsv1 + irradnceo(iprsm)
+            sumsv2 = sumsv2 + facbrghto(iprsm)
+            sumsv3 = sumsv3 + snsptdrko(iprsm)
          enddo
          sfluxref(igc) = sumf1
          absco2(igc) = sumf2
          absh2o(igc) = sumf3
+         irradnce(igc) = sumsv1
+         facbrght(igc) = sumsv2
+         snsptdrk(igc) = sumsv3
       enddo
 
       end subroutine cmbgb29

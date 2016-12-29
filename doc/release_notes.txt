@@ -9,6 +9,28 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+December 29, 2016:
+
+	Release_4_0
+
+        Added new solar variability options based on Lean NRLSSI2 model. 
+        Solar variability method is selected with input flag isolvar and
+        options include using the internal solar constant consistent with
+        the Lean model (1360.85 Wm-2) with no solar cycle variability,
+        applying the mean of Solar Cycles 13-24 to represent averaged
+        facular brightening and sunspot blocking effects over time, or 
+        supplying specific facular and sunspot indices to represent
+        solar variability over specific solar cycles over time. Options
+        that use the averaged solar cycle can be scaled to a different
+        solar constant. Additional capability is provided to adjust the 
+        amplitude of the averaged solar cycle or to scale the solar
+        constant by spectral band. The extraterrestrial solar irradiance
+        specification that was used in RRTMG_SW_v3.91 and earlier remains
+        an available option. 
+
+        Publicly released on AER RT web site in December 2016.
+
+
 September 2, 2016:
 
 	Release_3_91

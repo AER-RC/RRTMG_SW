@@ -17,7 +17,7 @@ KGSRC = dat
 ################################
 
 PLATFORM = aix
-VERSION = v3.91
+VERSION = v4.0
 
 ##############################################################
 # Set location of netCDF libraries

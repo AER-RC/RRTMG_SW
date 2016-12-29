@@ -4,15 +4,34 @@
 !     created:   $Date$
 !------------------------------------------------------------------------
 !
-!  --------------------------------------------------------------------------
-! |                                                                          |
-! |  Copyright 2002-2007, Atmospheric & Environmental Research, Inc. (AER).  |
-! |  This software may be used, copied, or redistributed as long as it is    |
-! |  not sold and this copyright notice is reproduced on each copy made.     |
-! |  This model is provided as is without any express or implied warranties. |
-! |                       (http://www.rtweb.aer.com/)                        |
-! |                                                                          |
-!  --------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! Copyright (c) 2002-2016, Atmospheric & Environmental Research, Inc. (AER)
+! All rights reserved.
+!
+! Redistribution and use in source and binary forms, with or without
+! modification, are permitted provided that the following conditions are met:
+!  * Redistributions of source code must retain the above copyright
+!    notice, this list of conditions and the following disclaimer.
+!  * Redistributions in binary form must reproduce the above copyright
+!    notice, this list of conditions and the following disclaimer in the
+!    documentation and/or other materials provided with the distribution.
+!  * Neither the name of Atmospheric & Environmental Research, Inc., nor
+!    the names of its contributors may be used to endorse or promote products
+!    derived from this software without specific prior written permission.
+!
+! THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+! AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+! IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+! ARE DISCLAIMED. IN NO EVENT SHALL ATMOSPHERIC & ENVIRONMENTAL RESEARCH, INC., 
+! BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+! CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+! SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+! INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+! CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+! ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
+! THE POSSIBILITY OF SUCH DAMAGE.
+!                        (http://www.rtweb.aer.com/)                        
+!----------------------------------------------------------------------------
 
 
 
@@ -71,7 +90,7 @@
                   = 0  DISORT     (unavailable)
                   = 1  two-stream (default)
 
-          ISTRM   flag for number of streams used in DISORT  (ISCAT must be equal to 0)
+          ISTRM   flag for number of streams used in DISORT  (when ISCAT equal to 0)
                   = 0  - 4 streams  (unavailable)
                   = 1  - 8 streams  (unavailable)
                   = 2  - 16 streams (unavailable)
@@ -129,33 +148,89 @@
 
  RECORD 1.2.1  
 
-           JULDAT,      SZA, ISOLVAR, (SOLVAR(IB),IB=16,29)
+           JULDAT,      SZA, ISOLVAR,   SCON, SOLCYCFRAC, (SOLVAR(IB),IB=16,29)
 
-            13-15,    19-25,     30, 31 - 121
+            13-15,    19-25,   29-30,  31-40,      41-50,   51-190
 
-        12X,   I3, 3X, F7.4, 4X, I1, 14F5.3
+        12X,   I3, 3X, F7.4,  3X, I2,  F10.4,      F10.5,  14F10.5
 
 	
         JULDAT       Julian day associated with calculation (1-365/366 starting January 1).
-	             Used to calculate Earth distance from sun. A value of 0 (default) indicates no scaling
-	             of solar source function using earth-sun distance.
+	             Used to calculate Earth distance from sun. A value of 0 (default) indicates 
+	             no scaling of solar source function using earth-sun distance.
 
-        SZA          Solar zenith angle in degrees (0 deg is overhead).
+        SZA          Solar zenith angle in degrees (0 degrees is overhead).
 
-        ISOLVAR      Solar variability option
+        ISOLVAR      Solar variability option [-1,0,1,2,3]
 
-		     = 0 each band uses standard solar source function, corresponding
-                         to present day conditions.
+		     =-1 (when SCON .EQ. 0.0): no solar variability; each band uses the Kurucz 
+                         extraterrestrial solar irradiance, corresponding to a spectrally integrated 
+                         solar constant of 1368.22 Wm-2 (method used in rrtmg_sw_v3.91 and earlier)
+                     =-1 (when SCON .NE. 0.0): solar variability active; baseline solar irradiance
+                         of 1368.22 Wm-2 is scaled to SCON, solar variability is determined (optional)
+                         by non-zero scale factors for each band defined by SOLVAR
 
-		     = 1 scale solar source function, each band will have the same
-                         scale factor applied, (equal to SOLVAR(16))
+		     = 0 (when SCON .EQ. 0.0): no solar variability; each band uses the solar constant 
+                         from the NRLSSI2 model of 1360.85 Wm-2 (for the spectral range 100-50000 cm-1) 
+                         with quiet sun, facular and sunspot contributions fixed to the mean of 
+                         Solar Cycles 13-24 and averaged over the mean solar cycle
+		     = 0 (when SCON .NE. 0.0): no solar variability; baseline solar irradiance of
+                         1360.85 Wm-2 (for the spectral range 100-50000 cm-1) is scaled to SCON
 
-		     = 2 scale solar source function, each band has different scale
-	 	         factors (for band IB, equal to SOLVAR(IB))
+		     = 1 solar variability active; solar cycle contribution determined by input of
+                         SOLCYCFRAC, a fraction representing the phase of the solar cycle, with 
+                         facular brightening and sunspot blocking effects varying in time with this
+                         fraction through their mean variations over the average of Solar Cycles 13-24
+                         (corresponding to a solar constant of 1360.85 Wm-2); two amplitude scale 
+                         factors provided in SOLVAR allow independent adjustment of facular and sunspot 
+                         effects from their mean solar cycle amplitudes
 
-	SOLVAR       the solar source function scale factor for each band.  If 
-	             ISOLVAR = 1, only the first value of SOLVAR (SOLVAR(16)) is 
-                     considered.  If ISOLVAR = 2, values must be provided for all bands.
+		     = 2 solar variability active; solar cycle contribution determined by direct
+	 	         specification of Mg (facular) and SB (sunspot) indices consistent with the
+                         NRLSSI2 solar model; these are provided in SOLVAR and are used to model the 
+                         solar variability at a specific time for a specific solar cycle 
+                         (SCON = 0.0 only; solar constant depends on Mg and SB indices provided)
+
+		     = 3 (when SCON .EQ. 0.0): no solar variability; each band uses the NRLSSI2
+                         extraterrestrial solar irradiance, corresponding to a spectrally integrated 
+                         solar constant of 1360.85 Wm-2 with quiet sun, facular and sunspot
+                         contributions averaged over the mean of Solar Cycles 13-24
+                     = 3 (when SCON .NE. 0.0): solar variability active; baseline solar irradiance
+                         of 1360.85 Wm-2 is scaled to SCON, solar variability is determined (optional)
+                         by non-zero scale factors for each band defined by SOLVAR and applied to SCON
+
+        SCON         For ISOLVAR = -1 or 0:
+                         Total solar irradiance (if SCON > 0, internal solar irradiance is scaled 
+                         to this value)
+                     For ISOLVAR = 1:
+                         Solar constant; integral of total solar irradiance averaged over solar cycle
+                         (if SCON > 0, internal solar irradiance is scaled to this value)
+                     For ISOLVAR = 2:
+                         SCON must be 0.0, since total solar irradiance is defined by the Mg and SB
+                         indices provided in SOLVAR
+                     For ISOLVAR = 3:
+                         Total solar irradiance before individual band scale factors are applied
+                         (if SCON > 0 internal solar irradiance is scaled to this value)
+                     Set SCON = 0.0 to use internal solar irradiance, which depends on ISOLVAR
+
+        SOLCYCFRAC   Solar cycle fraction (0-1); fraction of the way through the mean 11-year
+                     cycle with 0 and 1 defined as the minimum phase of the solar cycle
+                     (ISOLVAR=1 only)
+
+	SOLVAR       Solar variability scaling factors or indices (ISOLVAR=-1,1,2,3 only)
+	             For ISOLVAR = 1:
+                       SOLVAR(1)    Facular (Mg) index amplitude scale factor
+                       SOLVAR(2)    Sunspot (SB) index amplitude scale factor
+
+	             For ISOLVAR = 2:
+                       SOLVAR(1)    Facular (Mg) index as defined in the NRLSSI2 model;
+                                    used for modeling specific solar activity
+                       SOLVAR(2)    Sunspot (SB) index as defined in the NRLSSI2 model; 
+                                    used for modeling specific solar activity
+
+	             For ISOLVAR = -1 or 3:
+                       SOLVAR(1:14) Band scale factors for modeling spectral variation of 
+                                    averaged solar cycle in each shortwave band
 
  
  RECORD 1.4  
