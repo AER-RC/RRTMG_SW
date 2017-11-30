@@ -17,7 +17,7 @@ KGSRC = dat
 ################################
 
 PLATFORM = sgi
-VERSION = v4.0
+VERSION = v4.01
 
 ##############################################################
 # Set location of netCDF libraries
@@ -57,6 +57,7 @@ OUTPUT = rrtmg_sw_$(VERSION)_$(PLATFORM)
 
 MPATH = ../modules
 CPATH = ../src
+CPATH_UTL = ../aer_rt_utils
 CDOTO = $(PLATFORM)_$(FC)_dbl.obj
 
 MPRK = parkind
@@ -378,8 +379,8 @@ $(CDOTO)/$(CEXT).o : $(CPATH)/$(CEXT).f
 	$(FC) $(FCOPTS) -c $(CPATH)/$(CEXT).f
 	\mv $(CEXT).o $(CDOTO)
 
-$(CDOTO)/$(CUTL).o : $(CPATH)/$(CUTL).f90
-	$(FC) $(FCOPTS) -c $(CPATH)/$(CUTL).f90
+$(CDOTO)/$(CUTL).o : $(CPATH_UTL)/$(CUTL).f90
+	$(FC) $(FCOPTS) -c $(CPATH_UTL)/$(CUTL).f90
 	\mv $(CUTL).o $(CDOTO)
 
 ###########################################

@@ -9,6 +9,24 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+November 30, 2017:
+
+        Release_4_01
+
+        Removed the "/src/src_link" script that previously linked to the RRTM
+        versions of rrtatm.f and extra.f. Current versions of those files
+        as of this release have been added to this repository in the /src 
+        directory. The values of MXLAY (603) and MXMOL (39) were also updated to 
+        correspond with those now used in rrtatm.f.
+        Removed the "/src/util_link" script that previously linked to the
+        utility files and relocated these to a new /aer_rt_utils folder that
+        is tied to ~/RD/AER_RT_UTILS/trunk in the svn repository as an external.
+        All provided makefiles have been updated to get the utility files from
+        the new directory.   
+
+        Internal release only. 
+
+
 December 29, 2016:
 
 	Release_4_0

@@ -1046,14 +1046,14 @@
       implicit integer(i-n), real(a-h,o-z)
 
 ! ------- Parameters -------
-      parameter (mxlay = 203)
+      parameter (mxlay = 603)
       parameter (nbndsw = 14)
       parameter (jpbands = 29)
       parameter (ib1 = 16, ib2 = 29)
       parameter (mg = 16)
       parameter (mxstr = 16)
       parameter (mcmu = 32)
-      parameter (mxmol = 38)
+      parameter (mxmol = 39)
       parameter (maxinpx = 35)
       parameter (maxxsec = 4)
 
@@ -1785,7 +1785,7 @@
       implicit integer(i-n), real(a-h,o-z)
 
 ! ------- Parameters ------- 
-      parameter (mxlay = 203, jpbands = 29)
+      parameter (mxlay = 603, jpbands = 29)
       parameter (ib1 = 16, ib2 = 29)
       parameter (mg = 16)
       parameter (mxstr = 16)
@@ -1866,7 +1866,7 @@
       implicit integer(i-n), real(a-h,o-z)
 
 ! ------- Parameters -------
-      parameter (mxlay = 203, jpbands = 29)
+      parameter (mxlay = 603, jpbands = 29)
       parameter (ib1 = 16, ib2 = 29)
       parameter (mg = 16)
       parameter (mxstr = 16)
