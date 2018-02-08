@@ -190,6 +190,8 @@
                          NRLSSI2 solar model; these are provided in SOLVAR and are used to model the 
                          solar variability at a specific time for a specific solar cycle 
                          (SCON = 0.0 only; solar constant depends on Mg and SB indices provided)
+                         Further information on setting the Mg and SB indices for this option can 
+                         be found at the NRLSSI model github site: https://github.com/lasp/nrlssi.
 
 		     = 3 (when SCON .EQ. 0.0): no solar variability; each band uses the NRLSSI2
                          extraterrestrial solar irradiance, corresponding to a spectrally integrated 
@@ -214,8 +216,12 @@
                      Set SCON = 0.0 to use internal solar irradiance, which depends on ISOLVAR
 
         SOLCYCFRAC   Solar cycle fraction (0-1); fraction of the way through the mean 11-year
-                     cycle with 0 and 1 defined as the minimum phase of the solar cycle
-                     (ISOLVAR=1 only)
+                     cycle with 0.0 defined as the first day of year 1 and 1.0 defined as the
+                     last day of year 11 (ISOLVAR=1 only). Note that for the combined effect of
+                     the solar constant of 1360.85, and the mean facular brightening and sunspot 
+                     dimming components (without scaling), the minimum total solar irradiance of
+                     1360.49 occurs at SOLCYCFRAC = 0.0265, and the maximum total solar irradiance 
+                     of 1361.34 occurs at SOLCYCFRAC = 0.3826. 
 
 	SOLVAR       Solar variability scaling factors or indices (ISOLVAR=-1,1,2,3 only)
 	             For ISOLVAR = 1:
@@ -224,9 +230,9 @@
 
 	             For ISOLVAR = 2:
                        SOLVAR(1)    Facular (Mg) index as defined in the NRLSSI2 model;
-                                    used for modeling specific solar activity
+                                    used for modeling time-specific solar activity
                        SOLVAR(2)    Sunspot (SB) index as defined in the NRLSSI2 model; 
-                                    used for modeling specific solar activity
+                                    used for modeling time-specific solar activity
 
 	             For ISOLVAR = -1 or 3:
                        SOLVAR(1:14) Band scale factors for modeling spectral variation of 

@@ -9,6 +9,30 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+February 9, 2018:
+
+        Release_4_02
+
+        Added several fixes to the solar variability capability added in v4.0.
+        - The tables of facular and sunspot indices for the mean 11-year solar 
+        cycle were extended from 132 to 134 points to cover the full period 
+        from the first day of year 1 to the last day of year 11. The previous
+        set of 132 points (now surrounded by two new end points) represent the
+        middle date of the 12 months of the 11 year cycle (132 months). To use
+        these indices for the mean solar cycle (isolvar=1), the user provides
+        a fraction (solcycfrac) representing the position of the current time
+        within the 11-year cycle from 0.0 (first day of year 1) to 1.0 (last
+        day of year 11). 
+        - In the subroutine version of the code, the optional capability to 
+        scale the mean solar cycle was corrected to be limited to input 
+        option isolvar=1.
+        - In the column version of the code, the input of the time-specific
+        facular and sunspot indices through variable solvar was corrected 
+        for input option isolvar=2.
+
+        Publicly released on AER RT web site in February 2018.
+
+
 November 30, 2017:
 
         Release_4_01
