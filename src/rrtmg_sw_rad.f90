@@ -1150,7 +1150,10 @@
                                                              !  2 end points represent the first day of the 
                                                              !  first month of year 1 and the last day of
                                                              !  the last month of year 11
-      real(kind=rb) :: nsfm1_inv                             ! Inverse of (nsolfrac-1)
+      real(kind=rb) :: intrvl_len                            !  Fractional interval length of mgavgcyc
+                                                             !  and sbavgcyc
+      real(kind=rb) :: intrvl_len_hf                         !  Fractional half interval length of mgavgcyc
+                                                             !  and sbavgcyc
 
 ! Mg and SB index look-up tables for average solar cycle as a function of solar cycle
       real(kind=rb) :: mgavgcyc(nsolfrac)               ! Facular index from NRLSSI2 Mg "Bremen" index 
@@ -1307,13 +1310,29 @@
                tmp_a_0 = mgavgcyc(nsolfrac)
                tmp_b_0 = sbavgcyc(nsolfrac)
             else
-               sfid = floor(solcycfrac * (nsolfrac-1)) + 1
-               nsfm1_inv = 1.0_rb / (nsolfrac-1)
-               fraclo = (sfid-1) * nsfm1_inv
-               frachi = sfid * nsfm1_inv
+               intrvl_len = 1.0_rb / (nsolfrac-2)
+               intrvl_len_hf = 0.5_rb * intrvl_len
+!   Initial half interval (1)
+               if (solcycfrac .le. intrvl_len_hf) then 
+                  sfid = 1
+                  fraclo = 0.0_rb
+                  frachi = intrvl_len_hf
+               endif
+!   Main whole intervals (131)
+               if (solcycfrac .gt. intrvl_len_hf .and. solcycfrac .le. 1.0_rb-intrvl_len_hf) then 
+                  sfid = floor(solcycfrac * (nsolfrac-2)) + 2
+                  fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
+                  frachi = fraclo + intrvl_len
+               endif
+!   Final half interval (1)
+               if (solcycfrac .gt. 1.0_rb-intrvl_len_hf) then 
+                  sfid = (nsolfrac-2) + 1
+                  fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
+                  frachi = 1.0_rb
+               endif
                intfrac = (solcycfrac - fraclo) / (frachi - fraclo)
-               tmp_a_0 = mgavgcyc(sfid) + intfrac * (mgavgcyc(sfid+1) - mgavgcyc(sfid))
-               tmp_b_0 = sbavgcyc(sfid) + intfrac * (sbavgcyc(sfid+1) - sbavgcyc(sfid))
+               tmp_f_0 = mgavgcyc(sfid) + intfrac * (mgavgcyc(sfid+1) - mgavgcyc(sfid))
+               tmp_s_0 = sbavgcyc(sfid) + intfrac * (sbavgcyc(sfid+1) - sbavgcyc(sfid))
             endif
             svar_f_0 = tmp_a_0
             svar_s_0 = tmp_b_0
@@ -1389,13 +1408,29 @@
                tmp_a_0 = mgavgcyc(nsolfrac)
                tmp_b_0 = sbavgcyc(nsolfrac)
             else
-               sfid = floor(solcycfrac * (nsolfrac-1)) + 1
-               nsfm1_inv = 1.0_rb / (nsolfrac-1)
-               fraclo = (sfid-1) * nsfm1_inv
-               frachi = sfid * nsfm1_inv
+               intrvl_len = 1.0_rb / (nsolfrac-2)
+               intrvl_len_hf = 0.5_rb * intrvl_len
+!   Initial half interval (1)
+               if (solcycfrac .le. intrvl_len_hf) then 
+                  sfid = 1
+                  fraclo = 0.0_rb
+                  frachi = intrvl_len_hf
+               endif
+!   Main whole intervals (131)
+               if (solcycfrac .gt. intrvl_len_hf .and. solcycfrac .le. 1.0_rb-intrvl_len_hf) then 
+                  sfid = floor(solcycfrac * (nsolfrac-2)) + 2
+                  fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
+                  frachi = fraclo + intrvl_len
+               endif
+!   Final half interval (1)
+               if (solcycfrac .gt. 1.0_rb-intrvl_len_hf) then 
+                  sfid = (nsolfrac-2) + 1
+                  fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
+                  frachi = 1.0_rb
+               endif
                intfrac = (solcycfrac - fraclo) / (frachi - fraclo)
-               tmp_a_0 = mgavgcyc(sfid) + intfrac * (mgavgcyc(sfid+1) - mgavgcyc(sfid))
-               tmp_b_0 = sbavgcyc(sfid) + intfrac * (sbavgcyc(sfid+1) - sbavgcyc(sfid))
+               tmp_f_0 = mgavgcyc(sfid) + intfrac * (mgavgcyc(sfid+1) - mgavgcyc(sfid))
+               tmp_s_0 = sbavgcyc(sfid) + intfrac * (sbavgcyc(sfid+1) - sbavgcyc(sfid))
             endif
             svar_f_0 = tmp_a_0
             svar_s_0 = tmp_b_0
