@@ -1319,15 +1319,15 @@
                   frachi = intrvl_len_hf
                endif
 !   Main whole intervals (131)
-               if (solcycfrac .gt. intrvl_len_hf .and. solcycfrac .le. 1.0_rb-intrvl_len_hf) then 
-                  sfid = floor(solcycfrac * (nsolfrac-2)) + 2
+               if (solcycfrac .gt. intrvl_len_hf .and. solcycfrac .lt. 1.0_rb-intrvl_len_hf) then 
+                  sfid = floor((solcycfrac-intrvl_len_hf) * (nsolfrac-2)) + 2
                   fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
                   frachi = fraclo + intrvl_len
                endif
 !   Final half interval (1)
-               if (solcycfrac .gt. 1.0_rb-intrvl_len_hf) then 
+               if (solcycfrac .ge. 1.0_rb-intrvl_len_hf) then 
                   sfid = (nsolfrac-2) + 1
-                  fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
+                  fraclo = 1.0_rb - intrvl_len_hf
                   frachi = 1.0_rb
                endif
                intfrac = (solcycfrac - fraclo) / (frachi - fraclo)
@@ -1417,15 +1417,15 @@
                   frachi = intrvl_len_hf
                endif
 !   Main whole intervals (131)
-               if (solcycfrac .gt. intrvl_len_hf .and. solcycfrac .le. 1.0_rb-intrvl_len_hf) then 
-                  sfid = floor(solcycfrac * (nsolfrac-2)) + 2
+               if (solcycfrac .gt. intrvl_len_hf .and. solcycfrac .lt. 1.0_rb-intrvl_len_hf) then 
+                  sfid = floor((solcycfrac-intrvl_len_hf) * (nsolfrac-2)) + 2
                   fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
                   frachi = fraclo + intrvl_len
                endif
 !   Final half interval (1)
-               if (solcycfrac .gt. 1.0_rb-intrvl_len_hf) then 
+               if (solcycfrac .ge. 1.0_rb-intrvl_len_hf) then 
                   sfid = (nsolfrac-2) + 1
-                  fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
+                  fraclo = 1.0_rb - intrvl_len_hf
                   frachi = 1.0_rb
                endif
                intfrac = (solcycfrac - fraclo) / (frachi - fraclo)
