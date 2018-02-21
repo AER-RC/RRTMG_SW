@@ -9,7 +9,7 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
-February 9, 2018:
+February 21, 2018:
 
         Release_4_02
 
@@ -29,6 +29,10 @@ February 9, 2018:
         - In the column version of the code, the input of the time-specific
         facular and sunspot indices through variable solvar was corrected 
         for input option isolvar=2.
+        - In the subroutine version of the code several instances of variables
+        tmp_a_0 and tmp_b_0 were corrected to tmp_f_0 and tmp_s_0. 
+        - In the subroutine version of the code the handling of optional 
+        input variables bndsolvar, indsolvar and solcycfrac was improved.
 
         Publicly released on AER RT web site in February 2018.
 

@@ -1086,6 +1086,11 @@
 !      real(kind=rb) :: earth_sun                        ! function for Earth/Sun distance adjustment
       real(kind=rb) :: solvar(jpband)                   ! solar constant scaling factor by band
                                                         !  Dimension(jpband=29)
+      real(kind=rb) :: indsolvar_scl(2)                 ! Adjusted facular and sunspot amplitude 
+                                                        ! scale factors (isolvar=1)
+      real(kind=rb) :: indsolvar_ndx(2)                 ! Facular and sunspot indices (isolvar=2)
+      real(kind=rb) :: solcycfr                         ! Local solar cycle fraction (default = 0.0
+                                                        ! unless solcycfrac is present)
 
       real(kind=rb), parameter ::  solcycfrac_min = 0.0189_rb    ! Solar cycle fraction at solar minimum
       real(kind=rb), parameter ::  solcycfrac_max = 0.3750_rb    ! Solar cycle fraction at solar maximum
@@ -1098,7 +1103,7 @@
       real(kind=rb) :: svar_cprim                       ! Solar variability intermediate value
       real(kind=rb) :: svar_r                           ! Solar variability intermediate value
       integer(kind=im) :: sfid                          ! Solar variability solar cycle fraction index
-      real(kind=rb) :: tmp_a_0, tmp_b_0                 ! Solar variability temporary quantities
+      real(kind=rb) :: tmp_f_0, tmp_s_0                 ! Solar variability temporary quantities
       real(kind=rb) :: fraclo, frachi, intfrac          ! Solar variability interpolation factors
 
 ! Mean quiet sun, facular brightening, and sunspot dimming coefficient terms (NRLSSI2, 100-50000 cm-1), 
@@ -1216,22 +1221,40 @@
 ! to be the requested indsolvar at solar maximum (solcycfrac_max=0.3750), and to vary between 
 ! those values at intervening values of solcycfrac. 
       if (isolvar .eq. 1) then 
-         if (indsolvar(1).ne.1.0_rb.or.indsolvar(2).ne.1.0_rb) then 
-            if (solcycfrac .ge. 0.0_rb .and. solcycfrac .lt. solcycfrac_min) then
-               wgt = (solcycfrac+1.0_rb-solcycfrac_max)/fracdiff_max2min
-               indsolvar(1) = indsolvar(1) + wgt * (1.0_rb-indsolvar(1))
-               indsolvar(2) = indsolvar(2) + wgt * (1.0_rb-indsolvar(2))
+! Check for presence of indsolvar and solcycfrac when isolvar = 1. 
+! Use a solar cycle fraction of 0.0 and no scaling by default unless both indsolvar and solcycfrac are present. 
+         solcycfr = 0.0_rb
+         indsolvar_scl(1:2) = 1.0_rb
+         if (present(indsolvar) .and. present(solcycfrac)) then 
+            solcycfr = solcycfrac
+            if (indsolvar(1).ne.1.0_rb.or.indsolvar(2).ne.1.0_rb) then 
+               if (solcycfrac .ge. 0.0_rb .and. solcycfrac .lt. solcycfrac_min) then
+                  wgt = (solcycfrac+1.0_rb-solcycfrac_max)/fracdiff_max2min
+                  indsolvar_scl(1) = indsolvar(1) + wgt * (1.0_rb-indsolvar(1))
+                  indsolvar_scl(2) = indsolvar(2) + wgt * (1.0_rb-indsolvar(2))
+               endif
+               if (solcycfrac .ge. solcycfrac_min .and. solcycfrac .le. solcycfrac_max) then
+                  wgt = (solcycfrac-solcycfrac_max)/fracdiff_min2max
+                  indsolvar_scl(1) = 1.0_rb + wgt * (indsolvar(1)-1.0_rb)
+                  indsolvar_scl(2) = 1.0_rb + wgt * (indsolvar(2)-1.0_rb)
+               endif
+               if (solcycfrac .gt. solcycfrac_max .and. solcycfrac .le. 1.0_rb) then
+                  wgt = (solcycfrac-solcycfrac_max)/fracdiff_max2min
+                  indsolvar_scl(1) = indsolvar(1) + wgt * (1.0_rb-indsolvar(1))
+                  indsolvar_scl(2) = indsolvar(2) + wgt * (1.0_rb-indsolvar(2))
+               endif
             endif
-            if (solcycfrac .ge. solcycfrac_min .and. solcycfrac .le. solcycfrac_max) then
-               wgt = (solcycfrac-solcycfrac_max)/fracdiff_min2max
-               indsolvar(1) = 1.0_rb + wgt * (indsolvar(1)-1.0_rb)
-               indsolvar(2) = 1.0_rb + wgt * (indsolvar(2)-1.0_rb)
-            endif
-            if (solcycfrac .gt. solcycfrac_max .and. solcycfrac .le. 1.0_rb) then
-               wgt = (solcycfrac-solcycfrac_max)/fracdiff_max2min
-               indsolvar(1) = indsolvar(1) + wgt * (1.0_rb-indsolvar(1))
-               indsolvar(2) = indsolvar(2) + wgt * (1.0_rb-indsolvar(2))
-            endif
+         endif
+      endif
+
+! Check for presence of indsolvar when isolvar = 2. 
+      if (isolvar .eq. 2) then 
+! Use mean solar cycle facular and sunspot indices by default unless indsolvar is present
+         indsolvar_ndx(1) = svar_f_avg
+         indsolvar_ndx(2) = svar_s_avg
+         if (present(indsolvar)) then 
+            indsolvar_ndx(1) = indsolvar(1)
+            indsolvar_ndx(2) = indsolvar(2)
          endif
       endif
 
@@ -1278,41 +1301,41 @@
 !   (Includes optional facular and sunspot amplitude scale factors)
          if (isolvar .eq. 1) then
 !   Interpolate svar_f_0 and svar_s_0 from lookup tables using provided solar cycle fraction
-            if (solcycfrac .le. 0.0_rb) then
-               tmp_a_0 = mgavgcyc(1)
-               tmp_b_0 = sbavgcyc(1)
-            elseif (solcycfrac .ge. 1.0_rb) then
-               tmp_a_0 = mgavgcyc(nsolfrac)
-               tmp_b_0 = sbavgcyc(nsolfrac)
+            if (solcycfr .le. 0.0_rb) then
+               tmp_f_0 = mgavgcyc(1)
+               tmp_s_0 = sbavgcyc(1)
+            elseif (solcycfr .ge. 1.0_rb) then
+               tmp_f_0 = mgavgcyc(nsolfrac)
+               tmp_s_0 = sbavgcyc(nsolfrac)
             else
                intrvl_len = 1.0_rb / (nsolfrac-2)
                intrvl_len_hf = 0.5_rb * intrvl_len
 !   Initial half interval (1)
-               if (solcycfrac .le. intrvl_len_hf) then 
+               if (solcycfr .le. intrvl_len_hf) then 
                   sfid = 1
                   fraclo = 0.0_rb
                   frachi = intrvl_len_hf
                endif
 !   Main whole intervals (131)
-               if (solcycfrac .gt. intrvl_len_hf .and. solcycfrac .lt. 1.0_rb-intrvl_len_hf) then 
-                  sfid = floor((solcycfrac-intrvl_len_hf) * (nsolfrac-2)) + 2
+               if (solcycfr .gt. intrvl_len_hf .and. solcycfr .lt. 1.0_rb-intrvl_len_hf) then 
+                  sfid = floor((solcycfr-intrvl_len_hf) * (nsolfrac-2)) + 2
                   fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
                   frachi = fraclo + intrvl_len
                endif
 !   Final half interval (1)
-               if (solcycfrac .ge. 1.0_rb-intrvl_len_hf) then 
+               if (solcycfr .ge. 1.0_rb-intrvl_len_hf) then 
                   sfid = (nsolfrac-2) + 1
                   fraclo = 1.0_rb - intrvl_len_hf
                   frachi = 1.0_rb
                endif
-               intfrac = (solcycfrac - fraclo) / (frachi - fraclo)
+               intfrac = (solcycfr - fraclo) / (frachi - fraclo)
                tmp_f_0 = mgavgcyc(sfid) + intfrac * (mgavgcyc(sfid+1) - mgavgcyc(sfid))
                tmp_s_0 = sbavgcyc(sfid) + intfrac * (sbavgcyc(sfid+1) - sbavgcyc(sfid))
             endif
-            svar_f_0 = tmp_a_0
-            svar_s_0 = tmp_b_0
-            svar_f = indsolvar(1) * (svar_f_0 - Foffset) / (svar_f_avg - Foffset)
-            svar_s = indsolvar(2) * (svar_s_0 - Soffset) / (svar_s_avg - Soffset)
+            svar_f_0 = tmp_f_0
+            svar_s_0 = tmp_s_0
+            svar_f = indsolvar_scl(1) * (svar_f_0 - Foffset) / (svar_f_avg - Foffset)
+            svar_s = indsolvar_scl(2) * (svar_s_0 - Soffset) / (svar_s_avg - Soffset)
             svar_i = 1.0_rb
          endif 
 
@@ -1321,8 +1344,8 @@
 !   solar cycle.  Scalings defined below to convert from averaged
 !   Mg and SB terms to specified Mg and SB terms. 
          if (isolvar .eq. 2) then
-            svar_f = (indsolvar(1) - Foffset) / (svar_f_avg - Foffset)
-            svar_s = (indsolvar(2) - Soffset) / (svar_s_avg - Soffset)
+            svar_f = (indsolvar_ndx(1) - Foffset) / (svar_f_avg - Foffset)
+            svar_s = (indsolvar_ndx(2) - Soffset) / (svar_s_avg - Soffset)
             svar_i = 1.0_rb
          endif 
 
@@ -1332,7 +1355,8 @@
 !   into coefficient terms specified by g-point elsewhere. Separate
 !   scaling by spectral band is applied as defined by bndsolvar. 
          if (isolvar .eq. 3) then
-            solvar(jpb1:jpb2) = bndsolvar(:)
+            solvar(jpb1:jpb2) = 1.0_rb
+            if (present(bndsolvar)) solvar(jpb1:jpb2) = bndsolvar(:)
             do ib = jpb1,jpb2
                svar_f_bnd(ib) = solvar(ib)
                svar_s_bnd(ib) = solvar(ib)
@@ -1376,54 +1400,54 @@
 !   (Includes optional facular and sunspot amplitude scale factors)
          if (isolvar .eq. 1) then
 !   Interpolate svar_f_0 and svar_s_0 from lookup tables using provided solar cycle fraction
-            if (solcycfrac .le. 0.0_rb) then
-               tmp_a_0 = mgavgcyc(1)
-               tmp_b_0 = sbavgcyc(1)
-            elseif (solcycfrac .ge. 1.0_rb) then
-               tmp_a_0 = mgavgcyc(nsolfrac)
-               tmp_b_0 = sbavgcyc(nsolfrac)
+            if (solcycfr .le. 0.0_rb) then
+               tmp_f_0 = mgavgcyc(1)
+               tmp_s_0 = sbavgcyc(1)
+            elseif (solcycfr .ge. 1.0_rb) then
+               tmp_f_0 = mgavgcyc(nsolfrac)
+               tmp_s_0 = sbavgcyc(nsolfrac)
             else
                intrvl_len = 1.0_rb / (nsolfrac-2)
                intrvl_len_hf = 0.5_rb * intrvl_len
 !   Initial half interval (1)
-               if (solcycfrac .le. intrvl_len_hf) then 
+               if (solcycfr .le. intrvl_len_hf) then 
                   sfid = 1
                   fraclo = 0.0_rb
                   frachi = intrvl_len_hf
                endif
 !   Main whole intervals (131)
-               if (solcycfrac .gt. intrvl_len_hf .and. solcycfrac .lt. 1.0_rb-intrvl_len_hf) then 
-                  sfid = floor((solcycfrac-intrvl_len_hf) * (nsolfrac-2)) + 2
+               if (solcycfr .gt. intrvl_len_hf .and. solcycfr .lt. 1.0_rb-intrvl_len_hf) then 
+                  sfid = floor((solcycfr-intrvl_len_hf) * (nsolfrac-2)) + 2
                   fraclo = (sfid-2) * intrvl_len + intrvl_len_hf
                   frachi = fraclo + intrvl_len
                endif
 !   Final half interval (1)
-               if (solcycfrac .ge. 1.0_rb-intrvl_len_hf) then 
+               if (solcycfr .ge. 1.0_rb-intrvl_len_hf) then 
                   sfid = (nsolfrac-2) + 1
                   fraclo = 1.0_rb - intrvl_len_hf
                   frachi = 1.0_rb
                endif
-               intfrac = (solcycfrac - fraclo) / (frachi - fraclo)
+               intfrac = (solcycfr - fraclo) / (frachi - fraclo)
                tmp_f_0 = mgavgcyc(sfid) + intfrac * (mgavgcyc(sfid+1) - mgavgcyc(sfid))
                tmp_s_0 = sbavgcyc(sfid) + intfrac * (sbavgcyc(sfid+1) - sbavgcyc(sfid))
             endif
-            svar_f_0 = tmp_a_0
-            svar_s_0 = tmp_b_0
+            svar_f_0 = tmp_f_0
+            svar_s_0 = tmp_s_0
 !   Define Cprime 
 !            svar_cprim = indsolvar(1) * svar_f_avg * Fint + indsolvar(2) * svar_s_avg * Sint + Iint
 !   Fint is provided as the product of (svar_f_avg-Foffset) and Fint, 
 !   Sint is provided as the product of (svar_s_avg-Soffset) and Sint
-            svar_i = (scon - (indsolvar(1) * Fint + indsolvar(2) * Sint)) / Iint
-            svar_f = indsolvar(1) * (svar_f_0 - Foffset) / (svar_f_avg - Foffset)
-            svar_s = indsolvar(2) * (svar_s_0 - Soffset) / (svar_s_avg - Soffset)
+            svar_i = (scon - (indsolvar_scl(1) * Fint + indsolvar_scl(2) * Sint)) / Iint
+            svar_f = indsolvar_scl(1) * (svar_f_0 - Foffset) / (svar_f_avg - Foffset)
+            svar_s = indsolvar_scl(2) * (svar_s_0 - Soffset) / (svar_s_avg - Soffset)
          endif 
 
 !   Specific solar cycle with solar variability (NRLSSI2 model)
 !   (Not available for SCON > 0)
 !         if (isolvar .eq. 2) then
 !            scon = 0.0_rb
-!            svar_f = (indsolvar(1) - Foffset) / (svar_f_avg - Foffset)
-!            svar_s = (indsolvar(2) - Soffset) / (svar_s_avg - Soffset)
+!            svar_f = (indsolvar_ndx(1) - Foffset) / (svar_f_avg - Foffset)
+!            svar_s = (indsolvar_ndx(2) - Soffset) / (svar_s_avg - Soffset)
 !            svar_i = 1.0_rb
 !         endif 
 
