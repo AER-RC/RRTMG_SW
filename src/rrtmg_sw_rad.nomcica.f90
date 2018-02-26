@@ -1234,7 +1234,7 @@
                   indsolvar_scl(2) = indsolvar(2) + wgt * (1.0_rb-indsolvar(2))
                endif
                if (solcycfrac .ge. solcycfrac_min .and. solcycfrac .le. solcycfrac_max) then
-                  wgt = (solcycfrac-solcycfrac_max)/fracdiff_min2max
+                  wgt = (solcycfrac-solcycfrac_min)/fracdiff_min2max
                   indsolvar_scl(1) = 1.0_rb + wgt * (indsolvar(1)-1.0_rb)
                   indsolvar_scl(2) = 1.0_rb + wgt * (indsolvar(2)-1.0_rb)
                endif

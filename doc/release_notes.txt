@@ -9,7 +9,7 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
-February 21, 2018:
+February 26, 2018:
 
         Release_4_02
 
@@ -33,6 +33,10 @@ February 21, 2018:
         tmp_a_0 and tmp_b_0 were corrected to tmp_f_0 and tmp_s_0. 
         - In the subroutine version of the code the handling of optional 
         input variables bndsolvar, indsolvar and solcycfrac was improved.
+        - In the column and subroutine versions of the code, changed variable
+        solcycfrac_max to solcycfrac_min in the calculation of the interpolation 
+        weight in the section of code that adjusts the indsolvar scaling between
+        the solar cycle minimum and maximum. 
 
         Publicly released on AER RT web site in February 2018.
 
