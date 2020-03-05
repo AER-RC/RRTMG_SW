@@ -44,7 +44,8 @@
 
 !*******************************************************************************
 subroutine sw_kgb16
-	use rrsw_kg16, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no16
+	use rrsw_kg16, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no16, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
 	
@@ -88,7 +89,22 @@ subroutine sw_kgb16
 	status(13) = nf90_get_var(ncid, varID, forrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/Tforeignlower,numGPoints,1_im,1_im/))
 													 
-	status(14) = nf90_close(ncid)
+	status(14)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunUpperAtmos",varID)
+	status(15)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(16)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularUpperAtmos",varID)
+	status(17)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(18)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotUpperAtmos",varID)
+	status(19)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(20) = nf90_close(ncid)
 	
 	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 16 variables from file" 
 	
@@ -99,7 +115,8 @@ end subroutine sw_kgb16
 
 !*******************************************************************************
 subroutine sw_kgb17
-        use rrsw_kg17, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no17
+        use rrsw_kg17, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no17, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
     
@@ -145,10 +162,25 @@ subroutine sw_kgb17
                      count = (/Tforeignlower,numGPoints,1_im,1_im/))
 													 
 	status(14) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsUpperAtmos",varID)
-	status(15) = nf90_get_var(ncid, varID, forrefo(4,:), start = (/2_im,1_im,bandNumber,gPointSetNumber/), &
+	status(15) = nf90_get_var(ncid, varID, forrefo(4:4,:), start = (/2_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/1_im,numGPoints,1_im,1_im/))	
 	
-	status(14) = nf90_close(ncid)
+	status(16)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunUpperAtmos",varID)
+	status(17)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keyupper,1_im,1_im/))
+	
+	status(18)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularUpperAtmos",varID)
+	status(19)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keyupper,1_im,1_im/))
+	
+	status(20)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotUpperAtmos",varID)
+	status(21)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keyupper,1_im,1_im/))
+	
+	status(22) = nf90_close(ncid)
 	
 	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 17 variables from file"
 	
@@ -159,7 +191,8 @@ end subroutine sw_kgb17
 
 !*******************************************************************************
 subroutine sw_kgb18
-	use rrsw_kg18, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no18
+	use rrsw_kg18, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no18, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
 	
@@ -204,7 +237,22 @@ subroutine sw_kgb18
 	status(13) = nf90_get_var(ncid, varID, forrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/Tforeignlower,numGPoints,1_im,1_im/))
 	
-	status(14) = nf90_close(ncid)
+	status(14)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunLowerAtmos",varID)
+	status(15)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(16)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularLowerAtmos",varID)
+	status(17)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(18)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotLowerAtmos",varID)
+	status(19)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(20) = nf90_close(ncid)
 	
 	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 18 variables from file"
 	
@@ -215,7 +263,8 @@ end subroutine sw_kgb18
 
 !*******************************************************************************
 subroutine sw_kgb19
-        use rrsw_kg19, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no19
+        use rrsw_kg19, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no19, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
 	
@@ -260,7 +309,22 @@ subroutine sw_kgb19
 	status(13) = nf90_get_var(ncid, varID, forrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/Tforeignlower,numGPoints,1_im,1_im/))
 	
-	status(14) = nf90_close(ncid)
+	status(14)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunLowerAtmos",varID)
+	status(15)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(16)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularLowerAtmos",varID)
+	status(17)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(18)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotLowerAtmos",varID)
+	status(19)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(20) = nf90_close(ncid)
 	
 	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 19 variables from file"
 	
@@ -271,7 +335,8 @@ end subroutine sw_kgb19
 
 !*******************************************************************************
 subroutine sw_kgb20
-        use rrsw_kg20, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, absch4o, no20
+        use rrsw_kg20, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, absch4o, no20, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
 	
@@ -318,7 +383,7 @@ subroutine sw_kgb20
                      count = (/Tforeignlower,numGPoints,1_im,1_im/))
 													 
 	status(14) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsUpperAtmos",varID)
-	status(15) = nf90_get_var(ncid, varID, forrefo(4,:), start = (/2_im,1_im,bandNumber,gPointSetNumber/), &
+	status(15) = nf90_get_var(ncid, varID, forrefo(4:4,:), start = (/2_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/1_im,numGPoints,1_im,1_im/))												 
 													 
 	!Get absorber index for CH4
@@ -327,10 +392,25 @@ subroutine sw_kgb20
 	status(17)  = nf90_get_var(ncid, varID, absch4o, &
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
-																				 
-	status(16) = nf90_close(ncid)
+														
+	status(18)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunLowerAtmos",varID)
+	status(19)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
 	
-	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 20 variables from file"																		 
+	status(20)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularLowerAtmos",varID)
+	status(21)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(22)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotLowerAtmos",varID)
+	status(23)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(24) = nf90_close(ncid)
+	
+	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 20 variables from file"	
 	
 	rayl = ncrayl(1)
 	
@@ -339,7 +419,8 @@ end subroutine sw_kgb20
 
 !*******************************************************************************
 subroutine sw_kgb21
-        use rrsw_kg21, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no21
+        use rrsw_kg21, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no21, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
 	
@@ -385,10 +466,25 @@ subroutine sw_kgb21
                      count = (/Tforeignlower,numGPoints,1_im,1_im/))
 													 
 	status(14) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsUpperAtmos",varID)
-	status(15) = nf90_get_var(ncid, varID, forrefo(4,:), start = (/2_im,1_im,bandNumber,gPointSetNumber/), &
+	status(15) = nf90_get_var(ncid, varID, forrefo(4:4,:), start = (/2_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/1_im,numGPoints,1_im,1_im/))			
 													 
-	status(14) = nf90_close(ncid)
+	status(16)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunLowerAtmos",varID)
+	status(17)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(18)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularLowerAtmos",varID)
+	status(19)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(20)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotLowerAtmos",varID)
+	status(21)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(22) = nf90_close(ncid)
 	
 	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 21 variables from file"
 	
@@ -399,7 +495,8 @@ end subroutine sw_kgb21
 
 !*******************************************************************************
 subroutine sw_kgb22	
-        use rrsw_kg22, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no22
+        use rrsw_kg22, only: sfluxrefo, kao, kbo, selfrefo, forrefo, rayl, no22, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
 	
@@ -444,7 +541,22 @@ subroutine sw_kgb22
 	status(13) = nf90_get_var(ncid, varID, forrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/Tforeignlower,numGPoints,1_im,1_im/))
 	
-	status(14) = nf90_close(ncid)
+	status(14)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunLowerAtmos",varID)
+	status(15)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(16)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularLowerAtmos",varID)
+	status(17)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(18)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotLowerAtmos",varID)
+	status(19)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(20) = nf90_close(ncid)
 	
 	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 22 variables from file"
 	
@@ -455,7 +567,8 @@ end subroutine sw_kgb22
 
 !*******************************************************************************
 subroutine sw_kgb23		
-        use rrsw_kg23, only: sfluxrefo, kao, selfrefo, forrefo, raylo, no23
+        use rrsw_kg23, only: sfluxrefo, kao, selfrefo, forrefo, raylo, no23, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
 	
@@ -493,7 +606,22 @@ subroutine sw_kgb23
 	status(11) = nf90_get_var(ncid, varID, forrefo, start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/Tforeignlower,numGPoints,1_im,1_im/))
 	
-	status(12) = nf90_close(ncid)
+	status(12)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunLowerAtmos",varID)
+	status(13)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(14)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularLowerAtmos",varID)
+	status(15)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(16)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotLowerAtmos",varID)
+	status(17)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(18) = nf90_close(ncid)
 	
 	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 23 variables from file"
 	
@@ -503,7 +631,8 @@ end subroutine sw_kgb23
 !*******************************************************************************
 subroutine sw_kgb24	
         use rrsw_kg24, only: sfluxrefo, kao, kbo, selfrefo, forrefo, &
-						 raylao, raylbo, abso3ao, abso3bo, no24
+                             raylao, raylbo, abso3ao, abso3bo, no24, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
 	
@@ -563,7 +692,22 @@ subroutine sw_kgb24
                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                      count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 											
-	status(20) = nf90_close(ncid)
+	status(20)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunLowerAtmos",varID)
+	status(21)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(22)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularLowerAtmos",varID)
+	status(23)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(24)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotLowerAtmos",varID)
+	status(25)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keylower,1_im,1_im/))
+	
+	status(26) = nf90_close(ncid)
 	
 	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 24 variables from file"
 	
@@ -572,7 +716,8 @@ end subroutine sw_kgb24
 
 !*******************************************************************************
 subroutine sw_kgb25		
-        use rrsw_kg25, only: sfluxrefo, kao, raylo, abso3ao, abso3bo, no25
+        use rrsw_kg25, only: sfluxrefo, kao, raylo, abso3ao, abso3bo, no25, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
 	
@@ -614,7 +759,22 @@ subroutine sw_kgb25
                      start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                      count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 											
-	status(12) = nf90_close(ncid)
+	status(12)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunLowerAtmos",varID)
+	status(13)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(14)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularLowerAtmos",varID)
+	status(15)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(16)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotLowerAtmos",varID)
+	status(17)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(18) = nf90_close(ncid)
 	
 	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 25 variables from file"
 	
@@ -623,7 +783,8 @@ end subroutine sw_kgb25
 
 !*******************************************************************************
 subroutine sw_kgb26
-        use rrsw_kg26, only: sfluxrefo, raylo, no26
+        use rrsw_kg26, only: sfluxrefo, raylo, no26, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
 	
@@ -648,7 +809,22 @@ subroutine sw_kgb26
                      start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/numGPoints,1_im,1_im,1_im/))
 	 
-	status(6)  = nf90_close(ncid)
+	status(6)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunLowerAtmos",varID)
+	status(7)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(8)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularLowerAtmos",varID)
+	status(9)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(10)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotLowerAtmos",varID)
+	status(11)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(12)  = nf90_close(ncid)
 	
 	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 26 variables from file"										
 	
@@ -657,7 +833,8 @@ end subroutine sw_kgb26
 
 !*******************************************************************************
 subroutine sw_kgb27
-        use rrsw_kg27, only: sfluxrefo, kao, kbo, raylo, no27
+        use rrsw_kg27, only: sfluxrefo, kao, kbo, raylo, no27, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
 	
@@ -692,7 +869,22 @@ subroutine sw_kgb27
                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/1_im,Tdiff,pupper,numGPoints,1_im,1_im/))
 	
-	status(10) = nf90_close(ncid)
+	status(10)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunUpperAtmos",varID)
+	status(11)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(12)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularUpperAtmos",varID)
+	status(13)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(14)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotUpperAtmos",varID)
+	status(15)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(16) = nf90_close(ncid)
 	
 	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 27 variables from file"	
 	
@@ -701,7 +893,8 @@ end subroutine sw_kgb27
 
 !*******************************************************************************
 subroutine sw_kgb28		
-        use rrsw_kg28, only: sfluxrefo, kao, kbo, rayl, no28
+        use rrsw_kg28, only: sfluxrefo, kao, kbo, rayl, no28, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
 	
@@ -738,9 +931,24 @@ subroutine sw_kgb28
                      start = (/1_im,1_im,1_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/keyupper,Tdiff,pupper,numGPoints,1_im,1_im/))
 				
-	status(10) = nf90_close(ncid)
+	status(10)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunUpperAtmos",varID)
+	status(11)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keyupper,1_im,1_im/))
 	
-	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 28 variables from file"										
+	status(12)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularUpperAtmos",varID)
+	status(13)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keyupper,1_im,1_im/))
+	
+	status(14)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotUpperAtmos",varID)
+	status(15)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,keyupper,1_im,1_im/))
+	
+	status(16) = nf90_close(ncid)
+	
+	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 28 variables from file"	
 	
 	rayl = ncrayl(1)
 	
@@ -750,7 +958,8 @@ end subroutine sw_kgb28
 !*******************************************************************************
 subroutine sw_kgb29	
         use rrsw_kg29, only: sfluxrefo, kao, kbo, selfrefo, forrefo, &
-						 absh2oo, absco2o, rayl, no29
+                             absh2oo, absco2o, rayl, no29, &
+                             irradnceo, facbrghto, snsptdrko
 	use rrsw_ncpar
 	use netcdf
 	
@@ -797,7 +1006,7 @@ subroutine sw_kgb29
                      count = (/Tforeignlower,numGPoints,1_im,1_im/))
 													 
 	status(14) = nf90_inq_varid(ncid,"H2OForeignAbsorptionCoefficientsUpperAtmos",varID)
-	status(15) = nf90_get_var(ncid, varID, forrefo(4,:), start = (/2_im,1_im,bandNumber,gPointSetNumber/), &
+	status(15) = nf90_get_var(ncid, varID, forrefo(4:4,:), start = (/2_im,1_im,bandNumber,gPointSetNumber/), &
                      count = (/1_im,numGPoints,1_im,1_im/))	
 	
 	!Get absorber index for H2O
@@ -814,7 +1023,22 @@ subroutine sw_kgb29
                       start = (/1_im,1_im,1_im,ab,bandNumber,gPointSetNumber/), &
                       count = (/1_im,1_im,numGPoints,1_im,1_im,1_im/))
 	
-	status(18) = nf90_close(ncid)
+	status(20)  = nf90_inq_varid(ncid,"NRLSSI2SSFQuietSunUpperAtmos",varID)
+	status(21)  = nf90_get_var(ncid, varID, irradnceo, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(22)  = nf90_inq_varid(ncid,"NRLSSI2SSFFacularUpperAtmos",varID)
+	status(23)  = nf90_get_var(ncid, varID, facbrghto, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(24)  = nf90_inq_varid(ncid,"NRLSSI2SSFSunspotUpperAtmos",varID)
+	status(25)  = nf90_get_var(ncid, varID, snsptdrko, &
+                     start = (/1_im,1_im,bandNumber,gPointSetNumber/), &
+                     count = (/numGPoints,1_im,1_im,1_im/))
+	
+	status(26) = nf90_close(ncid)
 	
 	if(any(status(:) /= nf90_NoErr)) stop  "Error reading band 29 variables from file"	
 	

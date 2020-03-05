@@ -174,7 +174,7 @@
       use rrsw_con, only : heatfac, oneminus, pi
       use rrsw_wvn, only : wavenum1, wavenum2
       use rrsw_vsn
-      use mcica_subcol_gen_sw, only: mcica_subcol_sw
+      use mcica_subcol_gen_sw, only: get_alpha, mcica_subcol_sw
       use rrtmg_sw_cldprop, only: cldprop_sw
       use rrtmg_sw_cldprmc, only: cldprmc_sw
       use rrtmg_sw_init, only: rrtmg_sw_ini
@@ -226,6 +226,7 @@
 ! Atmosphere
       real(kind=rb) :: pavel(mxlay)           ! layer pressures (mb) 
       real(kind=rb) :: tavel(mxlay)           ! layer temperatures (K)
+      real(kind=rb) :: dz(mxlay)              ! layer thickness (m)
       real(kind=rb) :: pz(0:mxlay)            ! level (interface) pressures (hPa, mb)
       real(kind=rb) :: tz(0:mxlay)            ! level (interface) temperatures (K)
       real(kind=rb) :: tbound                 ! surface temperature (K)
@@ -354,6 +355,12 @@
       real(kind=rb) :: znicd(mxlay+1)         ! temporary clear sky near-IR downward shortwave flux (w/m2)
       real(kind=rb) :: znifddir(mxlay+1)      ! temporary near-IR downward direct shortwave flux (w/m2)
       real(kind=rb) :: znicddir(mxlay+1)      ! temporary clear sky near-IR downward direct shortwave flux (w/m2)
+
+      real(kind=rb) :: alpha(mxlay)           ! vertical cloud fraction correlation parameter
+      real(kind=rb) :: decorr_con             ! cloud fraction decorrelation length, constant (meters)
+      integer(kind=im) :: juldat              ! Julian date (day of year)
+      integer(kind=im) :: idcor               ! Decorrelation length type
+      real(kind=rb) :: lat                    ! latitude (degrees)
 
 ! Parameters
       real(kind=rb), parameter :: cpdair = 1.004e3_rb  ! Specific heat capacity of dry air
@@ -520,8 +527,10 @@
 !  (read by subroutine readprof from input file INPUT_RRTM):  
 ! icld = 0, clear only
 ! icld = 1, with clouds using random cloud overlap (McICA only)
-! icld = 2, with clouds using maximum/random cloud overlap (McICA only)
+! icld = 2, with clouds using maximum_random cloud overlap (McICA only)
 ! icld = 3, with clouds using maximum cloud overlap (McICA only)
+! icld = 4, with clouds using exponential cloud overlap (McICA only)
+! icld = 5, with clouds using exponential_random cloud overlap (McICA only)
 
 ! Call model and data initialization, compute lookup tables, perform
 ! reduction of g-points from 224 to 112 for input absorption
@@ -544,10 +553,11 @@
 
 ! Input atmospheric profile from INPUT_RRTM. 
         call readprof(ird, nlayers, iout, imca, icld, iaer, isccos, idelm, pdp, &
-                       pavel, tavel, pz, tz, tbound, semiss, zenith, adjflux, &
+                       pavel, tavel, pz, tz, tbound, dz, semiss, zenith, adjflux, &
                        coldry, wkl, inflag, iceflag, liqflag, &
                        cldfrac, tauc, ssac, asmc, fsfc, ciwp, clwp, rei, rel, &
                        tauaer, ssaaer, asmaer, &
+                       decorr_con, juldat, idcor, lat, &
 ! solar variability I/O
                        isolvar,svar_f,svar_s,svar_i, &
                        svar_f_bnd, svar_s_bnd, svar_i_bnd)
@@ -577,8 +587,14 @@
 ! is also requested for each spectral band).  
 
             if (imca.eq.1) then
+               alpha(:) = 0.0_rb
+               if (icld .eq. 4 .or. icld .eq. 5) then 
+                  call get_alpha(iplon, nlayers, icld, idcor, decorr_con, &
+                                 dz, lat, juldat, cldfrac, alpha)
+               endif
                call mcica_subcol_sw(iplon, nlayers, icld, ims, irng, pavel, &
                           cldfrac, ciwp, clwp, rei, rel, tauc, ssac, asmc, fsfc, &
+                          alpha, &
                           cldfmc, ciwpmc, clwpmc, reicmc, relqmc, taucmc, &
                           ssacmc, asmcmc, fsfcmc)
             endif
@@ -1018,11 +1034,12 @@
 !************************************************************************
       subroutine readprof(ird_in, nlayers_out, iout_out, imca, icld_out, &
            iaer_out, isccos_out, idelm_out, pdp, &
-           pavel_out, tavel_out, pz_out, tz_out, tbound_out, semiss_out, &
+           pavel_out, tavel_out, pz_out, tz_out, tbound_out, dz_out, semiss_out, &
            zenith_out, adjflux_out, &
            coldry_out, wkl_out, inflag_out, iceflag_out,liqflag_out, &
            cldfrac_out, tauc, ssac, asmc, fsfc, ciwp, clwp, rei, rel, &
            tauaer_out, ssaaer_out, asmaer_out, &
+           decorr_con_out, juldat_out, idcor_out, lat_out, &
 ! solar variability I/O
            isolvar,svar_f_out,svar_s_out,svar_i_out, &
            svar_f_bnd_out, svar_s_bnd_out, svar_i_bnd_out)
@@ -1099,6 +1116,7 @@
 
       real(kind=rb), intent(out) :: pavel_out(mxlay)         ! layer pressures (mb) 
       real(kind=rb), intent(out) :: tavel_out(mxlay)         ! layer temperatures (K)
+      real(kind=rb), intent(out) :: dz_out(mxlay)            ! layer thickness (m)
       real(kind=rb), intent(out) :: pz_out(0:mxlay)          ! level (interface) pressures (hPa, mb)
       real(kind=rb), intent(out) :: tz_out(0:mxlay)          ! level (interface) temperatures (K)
       real(kind=rb), intent(out) :: tbound_out               ! surface temperature (K)
@@ -1108,6 +1126,10 @@
       real(kind=rb), intent(out) :: semiss_out(jpbands)       ! surface emissivity
       real(kind=rb), intent(out) :: zenith_out               ! cos solar zenith angle
       real(kind=rb), intent(out) :: adjflux_out(jpbands)      ! adjustment for current Earth/Sun distance
+      real(kind=rb), intent(out) :: decorr_con_out        ! decorrelation length, constant
+      real(kind=rb), intent(out) :: lat_out               ! latitude 
+      integer(kind=im), intent(out) :: juldat_out         ! Julian date (day of year)
+      integer(kind=im), intent(out) :: idcor_out          ! Decorrelation length type
 
       integer(kind=im), intent(out) :: inflag_out              ! cloud property option flag
       integer(kind=im), intent(out) :: iceflag_out             ! ice cloud property flag
@@ -1176,6 +1198,13 @@
 ! Local
       integer(kind=im) :: juldat                               ! day of year
       real(kind=rb) :: fice(mxlay)                             ! cloud ice fraction
+
+! Local inputs for EXP or ER cloud overlap
+      integer(kind=im) :: idcor                           ! decorrelation length type 
+                                                          !  0 = constant
+                                                          !  1 = latitude and day of year dependent
+      real(kind=rb) :: decorr_con                         ! decorrelation length, constant (meters)
+      real(kind=rb) :: lat                                ! latitude (degrees)
 
 ! Local - solar variability
       real(kind=rb) :: scon                             ! solar constant (Wm-2)
@@ -1645,6 +1674,23 @@
           stop
       endif
      
+!  Read in extra records for EXP or ER cloud overlap
+      if (icld .eq. 4 .or. icld .eq. 5) then
+         read (ird,9014) idcor
+         if (idcor .eq. 0) then 
+            read (ird,9015) decorr_con
+         endif
+         if (idcor .eq. 1) then 
+            read (ird,9015) lat
+            if (iatm .eq. 1) lat = ref_lat
+         endif
+      endif
+
+! When juldat = 0 (1 AU) and latitude-varying decorrelation length selected, 
+! use juldat=94 (roughtly the date of 1 AU Earth-Sun distance in NH spring)
+! for decorrelation length calculation
+      if (juldat .eq. 0 .and. idcor .eq. 1) juldat = 94
+
       if (iatm .eq. 0) then
          read (ird,9013) iform,nlayers,nmol
          if (nmol.eq.0) nmol = 7                                    
@@ -1673,6 +1719,10 @@
                   (wx0(m,l),m=8,nxmol0)
             enddo
          endif
+! calculate approximate height of layer mid-points
+         do l = 1,nlayers
+            dz(l) = altz(l) - altz(l-1)
+         enddo
       else
          ipu = 7
          ipr = 66
@@ -1742,6 +1792,8 @@
       do l = 1, mxlay
          pavel_out(l) = pavel(l)
          tavel_out(l) = tavel(l)
+! convert layer height from km to m
+         dz_out(l) = dz(l) * 1000._rb
          pz_out(l) = pz(l)
          tz_out(l) = tz(l)
          pdp(l) = (pz(l-1) - pz(l))
@@ -1793,6 +1845,10 @@
         semiss_out(nb) = semiss(nb)
         adjflux_out(nb) = adjflux(nb)
       enddo
+      decorr_con_out = decorr_con
+      juldat_out = juldat
+      idcor_out = idcor
+      lat_out = lat
 
 ! Solar variability
       svar_f_out = svar_f
@@ -1816,6 +1872,8 @@
  9011 format (18x,i2,29x,i1,32x,i1,1x,i1,2x,i3,3x,i1,i1,3x,i1,i1)
  9012 format (11x,i1,2x,i1,14f5.3)
  9013 format (1x,i1,i3,i5)                                     
+ 9014 format (8x,i2)
+ 9015 format (f10.3)
  9020 format (12x, i3, 3x, f7.4, 3x, i2, f10.4, f10.5, 14f10.5)
  9300 format (i5)
  9301 format (1x,i1)

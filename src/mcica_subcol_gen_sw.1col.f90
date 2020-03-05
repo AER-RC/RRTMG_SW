@@ -55,7 +55,7 @@
       implicit none
 
 ! public interfaces/functions/subroutines
-      public mcica_subcol_sw, generate_stochastic_clouds
+      public get_alpha, mcica_subcol_sw, generate_stochastic_clouds
 
       contains
 
@@ -63,8 +63,113 @@
 ! Public subroutines
 !------------------------------------------------------------------
 
+      subroutine get_alpha(iplon, nlayers, icld, idcor, decorr_con, &
+                           dz, lat, juldat, cldfrac, alpha)
+
+! Subroutine alpha calculates the alpha parameter required for the 
+! exponential and exponential-random cloud overlap methods. Calling 
+! this subroutine is therefore only required when icld = 4 or 5.  
+!
+! This subroutine calculates the exponential transition, alpha, from 
+! maximum to random overlap required to define the fractional cloud
+! vertical correlations for the exponential or exponential-random
+! cloud overlap options. For exponential, the transition from maximum
+! to random with distance through model layers occurs without regard
+! to the configuration of clear and cloudy layers. For the exponential-
+! random method, each block of adjacent cloudy layers is treated with a
+! separate transition from maximum to random, and blocks of cloudy 
+! layers separated by one or more clear layers are correlated randomly. 
+
+! Inputs
+      integer(kind=im), intent(in) :: iplon           ! column/longitude dimension
+      integer(kind=im), intent(in) :: nlayers         ! number of model layers
+      integer(kind=im), intent(in) :: icld            ! clear/cloud, cloud overlap flag
+                                                      !  0 = clear
+                                                      !  1 = random
+                                                      !  2 = maximum-random
+                                                      !  3 = maximum
+                                                      !  4 = exponential
+                                                      !  5 = exponential-random
+      integer(kind=im), intent(in) :: idcor           ! decorrelation length method
+                                                      !  0 = constant
+                                                      !  1 = latitude-varying (Oreopolous et al, 2012)
+      integer(kind=im), intent(in) :: juldat          ! Julian day of year
+
+      real(kind=rb), intent(in) :: decorr_con         ! decorrelation length, constant (m) 
+
+      real(kind=rb), intent(in) :: dz(:)              ! layer thickness (m) 
+                                                      ! Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: lat                ! latitude (degrees)
+
+      real(kind=rb), intent(in) :: cldfrac(:)         ! layer cloud fraction
+                                                      ! Dimensions: (nlayers)
+! Outputs
+      real(kind=rb), intent(out) :: alpha(:)          ! vertical cloud fraction correlation parameter
+                                                      ! Dimensions: (nlayers)
+
+! Local
+      integer :: k
+      real(kind=rb) :: decorr_lat                     ! decorrelation length, latitude-varying (m)
+      real(kind=rb) :: decorr_len                     ! final decorrelation length (m)
+      real(kind=rb) :: decorr_inv                     ! 1. / decorr_len
+
+! Constants for latitude and day-of-year depenendent decorrelation length (Oreopolous et al., 2012)
+! when idcor = 1
+      real(kind=rb), parameter :: am1 = 1.4315
+      real(kind=rb), parameter :: am2 = 2.1219
+      real(kind=rb), parameter :: am4 = -25.584
+      real(kind=rb), parameter :: amr = 7.0
+      real(kind=rb) :: am3
+
+      real(kind=rb), parameter :: f_one = 1.0
+
+! If exponential or exponential-random cloud overlap is used, 
+! Derive latitude-varying decorrelation length if requested; 
+! otherwise use the provided constant decorrelation length, decorr_con
+      decorr_inv = f_one
+      if (icld .eq. 4 .or. icld .eq. 5) then
+         if (idcor .eq. 1) then 
+            if (juldat .gt. 181) then
+               am3 = -4._rb * amr / 365._rb * (juldat - 272) 
+            else
+               am3 = 4._rb * amr / 365._rb * (juldat - 91)
+            endif
+! latitude in degrees, decorr_lat in km
+            decorr_lat = am1 + am2 * exp( -(lat - am3)**2 / am4**2)
+            decorr_len = decorr_lat * 1.e3_rb
+         else
+            decorr_len = decorr_con
+         endif
+         if (decorr_len .ge. 0.0_rb) decorr_inv = f_one / decorr_len
+      endif
+
+! Atmosphere data defined from sfc to toa; define alpha from sfc to toa
+! Exponential cloud overlap
+      if (icld .eq. 4) then 
+         alpha(1) = 0.0_rb
+         do k = 2, nlayers
+            alpha(k) = exp( - 0.5_rb * (dz(k) + dz(k-1)) ) * decorr_inv
+         enddo
+      endif
+! Exponential-random cloud overlap
+      if (icld .eq. 5) then 
+         alpha(1) = 0.0_rb
+         do k = 2, nlayers
+            alpha(k) = exp( - 0.5_rb * (dz(k) + dz(k-1)) ) * decorr_inv
+      ! Decorrelate layers when a clear layer follows a cloudy layer to enforce
+      ! random correlation between non-adjacent blocks of cloudy layers
+            if (cldfrac(k) .eq. 0.0_rb .and. cldfrac(k-1) .gt. 0.0_rb) then
+               alpha(k) = 0.0_rb
+            endif
+         enddo
+      endif
+
+      end subroutine get_alpha
+
+!-------------------------------------------------------------------------------------------------
       subroutine mcica_subcol_sw(iplon, nlayers, icld, ims, irng, play, &
                        cldfrac, ciwp, clwp, rei, rel, tauc, ssac, asmc, fsfc, &
+                       alpha, &
                        cldfmc, ciwpmc, clwpmc, reicmc, relqmc, taucmc, &
                        ssacmc, asmcmc, fsfcmc)
 
@@ -100,6 +205,8 @@
       real(kind=rb), intent(in) :: rei(:)             ! cloud ice particle size
                                                       ! Dimensions: (nlayers)
       real(kind=rb), intent(in) :: rel(:)             ! cloud liquid particle size
+                                                      ! Dimensions: (nlayers)
+      real(kind=rb), intent(in) :: alpha(:)           ! vertical cloud fraction correlation parameter
                                                       ! Dimensions: (nlayers)
 
 ! Atmosphere/clouds - cldprmc [mcica]
@@ -138,7 +245,7 @@
 
 ! Return if clear sky; or stop if icld out of range
       if (icld.eq.0) return
-      if (icld.lt.0.or.icld.gt.3) then 
+      if (icld.lt.0.or.icld.gt.5) then 
          stop 'RRTMG_SW: INVALID ICLD'
       endif 
 
@@ -171,7 +278,8 @@
 
 !  Generate the stochastic subcolumns and their optical properties for the longwave;
       call generate_stochastic_clouds (nlayers, icld, irng, pmid, cldfrac, clwp, ciwp, &
-                               tauc, ssac, asmc, fsfc, cldfmc, clwpmc, ciwpmc, &
+                               alpha, tauc, ssac, asmc, fsfc, &
+                               cldfmc, clwpmc, ciwpmc, &
                                taucmc, ssacmc, asmcmc, fsfcmc, permuteseed)
 
       end subroutine mcica_subcol_sw
@@ -179,7 +287,8 @@
 
 !-------------------------------------------------------------------------------------------------
       subroutine generate_stochastic_clouds(nlayers, icld, irng, pmid, cld, clwp, ciwp, &
-                               tauc, ssac, asmc, fsfc, cld_stoch, clwp_stoch, ciwp_stoch, &
+                               alpha, tauc, ssac, asmc, fsfc, &
+                               cld_stoch, clwp_stoch, ciwp_stoch, &
                                tauc_stoch, ssac_stoch, asmc_stoch, fsfc_stoch, changeSeed) 
 !-------------------------------------------------------------------------------------------------
 
@@ -268,6 +377,8 @@
                                                       !    Dimensions: (nbndsw,nlayers)
       real(kind=rb), intent(in) :: fsfc(:,:)          ! in-cloud forward scattering fraction (non-delta scaled)
                                                       !    Dimensions: (nbndsw,nlayers)
+      real(kind=rb), intent(in) :: alpha(:)           ! vertical cloud fraction correlation parameter
+                                                      !    Dimensions: (nlayers)
 
       real(kind=rb), intent(out) :: cld_stoch(:,:)    ! subcolumn cloud fraction 
                                                       !    Dimensions: (ngptsw,nlayers)
@@ -298,11 +409,9 @@
 !      real(kind=rb) :: mean_fsfc_stoch(nlayers)      ! cloud forward scattering fraction
 
 ! Set overlap
-      integer(kind=im) :: overlap                     ! 1 = random overlap, 2 = maximum/random,
-                                                      ! 3 = maximum overlap, 
-!      real(kind=rb), parameter  :: Zo = 2500._rb     ! length scale (m) 
-!      real(kind=rb) :: zm(nlayers)                   ! Height of midpoints (above surface)
-!      real(kind=rb), dimension(nlayers) :: alpha=0.0_rb ! overlap parameter  
+      integer(kind=im) :: overlap                     ! 1 = random overlap, 2 = maximum_random,
+                                                      ! 3 = maximum overlap, 4 = exponential overlap
+                                                      ! 5 = exponential_random overlap
 
 ! Constants (min value for cloud fraction and cloud water and ice)
       real(kind=rb), parameter :: cldmin = 1.0e-20_rb ! min cloud fraction
@@ -385,7 +494,7 @@
          endif
 
       case(2) 
-! Maximum-Random overlap
+! Maximum_Random overlap
 ! i) pick  a random number for top layer.
 ! ii) walk down the column: 
 !    - if the layer above is cloudy, we use the same random number than in the layer above
@@ -437,43 +546,78 @@
              enddo
          endif
 
-!    case(4) - inactive
-!       ! Exponential overlap: weighting between maximum and random overlap increases with the distance. 
-!       ! The random numbers for exponential overlap verify:
-!       ! j=1   RAN(j)=RND1
-!       ! j>1   if RND1 < alpha(j,j-1) => RAN(j) = RAN(j-1)
-!       !                                 RAN(j) = RND2
-!       ! alpha is obtained from the equation
-!       ! alpha = exp(- (Zi-Zj-1)/Zo) where Zo is a characteristic length scale    
+     case(4)
+       ! Exponential overlap: transition from maximum to random cloud overlap increases 
+       ! exponentially with layer thickness and distance through layers
+       !
+       ! generate 2 streams of random numbers
+       ! CDF2 is used to select which sub-columns are vertically correlated relative to alpha
+       ! CDF  is used to select which sub-columns are treated as cloudy relative to cloud fraction
+       if (irng.eq.0) then 
+          do isubcol = 1,nsubcol
+             do ilev = 1,nlayers
+                call kissvec(seed1, seed2, seed3, seed4, rand_num)
+                CDF(isubcol, ilev) = rand_num
+                call kissvec(seed1, seed2, seed3, seed4, rand_num)
+                CDF2(isubcol, ilev) = rand_num
+             end do
+          end do
+       elseif (irng.eq.1) then
+          do isubcol = 1, nsubcol
+             do ilev = 1,nlayers
+                rand_num_mt = getRandomReal(randomNumbers)
+                CDF(isubcol,ilev) = rand_num_mt
+                rand_num_mt = getRandomReal(randomNumbers)
+                CDF2(isubcol,ilev) = rand_num_mt
+             enddo
+          enddo
+       endif
 
+       ! generate vertical correlations in random number arrays: bottom to top
+       do ilev = 2,nlayers
+          where (CDF2(:, ilev) < spread(alpha (ilev), dim=1, nCopies=nsubcol) )
+             CDF(:,ilev) = CDF(:,ilev-1) 
+          end where
+       end do
 
-!       ! compute alpha
-!       zm    = state%zm     
-!       alpha(:, 1) = 0._rb
-!       do ilev = 2,nlayers
-!          alpha(:, ilev) = exp( -( zm (:, ilev-1) -  zm (:, ilev)) / Zo)
-!       end do
-       
-!       ! generate 2 streams of random numbers
-!       do isubcol = 1,nsubcol
-!          do ilev = 1,nlayers
-!             call kissvec(seed1, seed2, seed3, seed4, rand_num)
-!             CDF(isubcol, ilev) = rand_num
-!             call kissvec(seed1, seed2, seed3, seed4, rand_num)
-!             CDF2(isubcol, ilev) = rand_num
-!          end do
-!       end do
+     case(5)
+       ! Exponential_Random overlap: transition from maximum to random cloud overlap increases 
+       ! exponentially with layer thickness and with distance through adjacent cloudy layers. 
+       ! Non-adjacent blocks of clouds are treated randomly, and each block begins a new 
+       ! exponential transition from maximum to random. 
+       !
+       ! generate 2 streams of random numbers
+       ! CDF2 is used to select which sub-columns are vertically correlated relative to alpha
+       ! CDF  is used to select which sub-columns are treated as cloudy relative to cloud fraction
+       if (irng.eq.0) then 
+          do isubcol = 1,nsubcol
+             do ilev = 1,nlayers
+                call kissvec(seed1, seed2, seed3, seed4, rand_num)
+                CDF(isubcol, ilev) = rand_num
+                call kissvec(seed1, seed2, seed3, seed4, rand_num)
+                CDF2(isubcol, ilev) = rand_num
+             end do
+          end do
+       elseif (irng.eq.1) then
+          do isubcol = 1, nsubcol
+             do ilev = 1,nlayers
+                rand_num_mt = getRandomReal(randomNumbers)
+                CDF(isubcol,ilev) = rand_num_mt
+                rand_num_mt = getRandomReal(randomNumbers)
+                CDF2(isubcol,ilev) = rand_num_mt
+             enddo
+          enddo
+       endif
 
-!       ! generate random numbers
-!       do ilev = 2,nlayers
-!          where (CDF2(:, ilev) < spread(alpha (:,ilev), dim=1, nCopies=nsubcol) )
-!             CDF(:,ilev) = CDF(:,ilev-1) 
-!          end where
-!       end do
+       ! generate vertical correlations in random number arrays - bottom to top
+       do ilev = 2,nlayers
+          where (CDF2(:, ilev) < spread(alpha (ilev), dim=1, nCopies=nsubcol) )
+             CDF(:,ilev) = CDF(:,ilev-1) 
+          end where
+       end do
 
       end select
 
- 
 ! -- generate subcolumns for homogeneous clouds -----
 
       do ilev = 1, nlayers

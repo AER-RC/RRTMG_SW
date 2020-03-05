@@ -134,6 +134,7 @@
       real(kind=rb) :: zrk, zrk2, zrkg, zrm1, zrp, zrp1, zrpp
       real(kind=rb) :: zsr3, zt1, zt2, zt3, zt4, zt5, zto1
       real(kind=rb) :: zw, zwcrit, zwo
+      real(kind=rb) :: denom
 
       real(kind=rb), parameter :: eps = 1.e-08_rb
 
@@ -177,8 +178,12 @@
             zgamma4= 1._rb - zgamma3
     
 ! Recompute original s.s.a. to test for conservative solution
+! Added protection for possible divide by zero condition
 
-            zwo= zw / (1._rb - (1._rb - zw) * (zg / (1._rb - zg))**2)
+            zwo = 0._rb
+            denom = 1._rb
+            if (zg .ne. 1._rb) denom = (1._rb - (1._rb - zw) * (zg / (1._rb - zg))**2)
+            if (zw .gt. 0._rb .and. denom .ne. 0._rb) zwo = zw / denom
     
             if (zwo >= zwcrit) then
 ! Conservative scattering

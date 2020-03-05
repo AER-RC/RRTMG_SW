@@ -9,6 +9,46 @@ RRTMG_SW Release Notes
 NOTE: ** CVS rtags can't accept "." in strings, substitute "_"
 
 
+March 5, 2020:
+
+        Release_5_0
+
+        Added several new features and fixes:
+        - Two new cloud overlap options were added, exponential (icld=4) and
+        exponential-random (icld=5) that apply an exponential transition from
+        maximum to random through model layers. Exponential applies this 
+        transition through all layers without regard to the cloud configuration
+        and exponential-random applies this transition through adjacent cloudy
+        layers while randomly correlating cloud layers separated by clear sky. 
+        Both methods require calling a new subroutine, get_alpha, to define
+        alpha, the exponential transition parameter, prior to calling the
+        McICA sub-column generator. Alpha requires the specification of a 
+        decorrelation length (in meters), and two methods for defining this
+        value are available that are selected using a new input control
+        variable, idcor, that allows the decorrelation length to be specified
+        either as a constant or as a value that varies by latitude and 
+        day-of-year using the method of Oreopolous et al. (2012). See the
+        file doc/rrtmg_sw_instructions.txt for more information.    
+        - The three NRLSSI2 solar source component coefficients (quiet sun, 
+        facular, and sunspot) added in v4.0 and updated in v4.1 were added to
+        the optional netCDF input data file (/data/rrtmg_sw.nc), and the optional
+        source module rrtmg_sw_read_nc.f90 was modified to input these data if 
+        the netCDF input option is selected in the makefile. These data function
+        in the same way as the identical NRLSSI2 solar source coefficients that
+        are stored in the code by default in module rrtmg_sw_k_g.f90. 
+        - A fix was applied to source module rrtmg_sw_read_nc.f90, which 
+        optionally reads the input data coefficients from /data/rrtmg_sw.nc if
+        that option is selected in the makefile, to correct the loading of the
+        water vapor foreign continuum data for the upper atmosphere into the
+        model array forrefo. This issue could impact surface downward shortwave
+        fluxes by as much as five percent if the netCDF option was used. The 
+        default input coefficient data in rrtmg_sw_k_g.f90 were not affected.
+        - Revised the calculation of zwo in rrtmg_sw_reftra.f90 to protect 
+        against unlikely, but possible divide by zero conditions. 
+
+        Publicly released on AER RT web site in March 2020.
+
+
 February 14, 2020:
 
         Release_4_1
@@ -28,10 +68,10 @@ February 14, 2020:
         in that band. The net effect of this change is to increase the heating 
         rate by up to 0.1 K/day near 1 hPa.
 
-        Publicly released on AER RT web site in February 2020.
+        Internal release. Provided to NASA/GSFC in February 2020.
 
 
-February 26, 2018:
+February 21, 2018:
 
         Release_4_02
 
@@ -55,10 +95,6 @@ February 26, 2018:
         tmp_a_0 and tmp_b_0 were corrected to tmp_f_0 and tmp_s_0. 
         - In the subroutine version of the code the handling of optional 
         input variables bndsolvar, indsolvar and solcycfrac was improved.
-        - In the column and subroutine versions of the code, changed variable
-        solcycfrac_max to solcycfrac_min in the calculation of the interpolation 
-        weight in the section of code that adjusts the indsolvar scaling between
-        the solar cycle minimum and maximum. 
 
         Publicly released on AER RT web site in February 2018.
 

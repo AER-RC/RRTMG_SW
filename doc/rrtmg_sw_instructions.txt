@@ -111,7 +111,7 @@
                   = 1  use McICA (will perform statistical sample of 200 forward
                        calculations and output average flux and heating rates)
   
-	  ICLD   (0,1,2,3) flag for clouds     
+	  ICLD   (0,1,2,3,4,5) flag for clouds     
                   = 0  no cloudy layers in atmosphere
                   = 1  one or more cloudy layers present in atmosphere.  Cloud layers
                        are treated as overcast only for IMCA = 0, or they are treated
@@ -119,12 +119,22 @@
                        (requires the presence of file IN_CLD_RRTM for column model)
                        (available for IMCA = 0 or 1)
                   = 2  one or more cloudy layers present in atmosphere.  Cloud layers
-		       are treated using a MAXIMUM/RANDOM overlap assmption.
+		       are treated using a MAXIMUM-RANDOM overlap assumption.
                        (requires the presence of file IN_CLD_RRTM for column model)
                        (available only for IMCA = 1)
                   = 3  one or more cloudy layers present in atmosphere.  Cloud layers
-		       are treated using a MAXIMUM overlap assmption.
+		       are treated using a MAXIMUM overlap assumption.
                        (requires the presence of file IN_CLD_RRTM for column model)
+                       (available only for IMCA = 1)
+                  = 4  one or more cloudy layers present in atmosphere.  Cloud layers
+		       are treated using the EXPONENTIAL overlap method.
+                       (requires the presence of file IN_CLD_RRTM for column model,
+                       and inputs set on Records 1.5 and either 1.5.1 or 1.5.2)
+                       (available only for IMCA = 1)
+                  = 5  one or more cloudy layers present in atmosphere.  Cloud layers
+		       are treated using the EXPONENTIAL-RANDOM overlap method.
+                       (requires the presence of file IN_CLD_RRTM for column model,
+                       and inputs set on Records 1.5 and either 1.5.1 or 1.5.2)
                        (available only for IMCA = 1)
   
   Measurement comparison flags:
@@ -265,6 +275,52 @@
                   and no surface emissivity value is given for SEMISS(IB), a value of 1.0 
                   is used for band IB.
  
+ 
+ 
+ RECORD 1.5     (only needed if ICLD .EQ. 4 or ICLD .EQ. 5)
+  
+       LEN_TYPE
+ 
+           9-10
+ 
+         8X, I2 
+ 
+       LEN_TYPE   = 0 for constant decorrelation length in calculation of alpha
+                      for exponential or exponential-random cloud overlap;
+                      set decorrelation length in Record 1.5.1
+                  = 1 for latitude-varying decorrelation length in calculation of alpha
+                      for exponential or exponential-random cloud overlap
+                      set decorrelation length in Record 1.5.1
+
+ 
+
+ RECORD 1.5.1     (only needed if ICLD .EQ. 4 or ICLD .EQ. 5 and if LEN_TYPE = 0)
+  
+     DECORR_LEN
+ 
+           1-10
+ 
+          F10.3
+ 
+     DECORR_LEN   constant decorrelation length to use in calculation of alpha
+                  for exponential or exponential-random cloud overlap (meters)
+
+ 
+
+ RECORD 1.5.2     (only needed if ICLD .EQ. 4 or ICLD .EQ. 5 and if LEN_TYPE = 1)
+  
+            LAT
+ 
+           1-10
+ 
+          F10.3
+ 
+            LAT   latitude for calculation of latitude-varying decorrelation length
+                  for exponential or exponential-random cloud overlap (degrees)
+
+                  NOTE: if IATM .EQ. 1, then LAT will default to REF_LAT if that value 
+                  is set in RECORD 3.1
+
  
  
  *****************************************************************************
