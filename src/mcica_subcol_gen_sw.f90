@@ -7,7 +7,7 @@
       module mcica_subcol_gen_sw
 
 !----------------------------------------------------------------------------
-! Copyright (c) 2002-2016, Atmospheric & Environmental Research, Inc. (AER)
+! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
 ! All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
@@ -156,7 +156,7 @@
          alpha(:ncol,1) = 0.0_rb
          do i = 1, ncol
             do k = 2, nlayers
-               alpha(i,k) = exp( - 0.5_rb * (dz(i,k) + dz(i,k-1)) ) * decorr_inv(i)
+               alpha(i,k) = exp( -(0.5_rb * (dz(i,k) + dz(i,k-1))) * decorr_inv(i))
             enddo
          enddo
       endif
@@ -165,7 +165,7 @@
          alpha(:ncol,1) = 0.0_rb
          do i = 1, ncol
             do k = 2, nlayers
-               alpha(i,k) = exp( - 0.5_rb * (dz(i,k) + dz(i,k-1)) ) * decorr_inv(i)
+               alpha(i,k) = exp( -(0.5_rb * (dz(i,k) + dz(i,k-1))) * decorr_inv(i))
       ! Decorrelate layers when a clear layer follows a cloudy layer to enforce
       ! random correlation between non-adjacent blocks of cloudy layers
                if (cldfrac(i,k) .eq. 0.0_rb .and. cldfrac(i,k-1) .gt. 0.0_rb) then

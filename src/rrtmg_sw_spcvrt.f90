@@ -6,7 +6,7 @@
       module rrtmg_sw_spcvrt
 
 !----------------------------------------------------------------------------
-! Copyright (c) 2002-2016, Atmospheric & Environmental Research, Inc. (AER)
+! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
 ! All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without

@@ -7,7 +7,7 @@
       module mcica_subcol_gen_sw
 
 !----------------------------------------------------------------------------
-! Copyright (c) 2002-2016, Atmospheric & Environmental Research, Inc. (AER)
+! Copyright (c) 2002-2020, Atmospheric & Environmental Research, Inc. (AER)
 ! All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without
@@ -148,14 +148,14 @@
       if (icld .eq. 4) then 
          alpha(1) = 0.0_rb
          do k = 2, nlayers
-            alpha(k) = exp( - 0.5_rb * (dz(k) + dz(k-1)) ) * decorr_inv
+            alpha(k) = exp( -(0.5_rb * (dz(k) + dz(k-1))) * decorr_inv)
          enddo
       endif
 ! Exponential-random cloud overlap
       if (icld .eq. 5) then 
          alpha(1) = 0.0_rb
          do k = 2, nlayers
-            alpha(k) = exp( - 0.5_rb * (dz(k) + dz(k-1)) ) * decorr_inv
+            alpha(k) = exp( -(0.5_rb * (dz(k) + dz(k-1))) * decorr_inv)
       ! Decorrelate layers when a clear layer follows a cloudy layer to enforce
       ! random correlation between non-adjacent blocks of cloudy layers
             if (cldfrac(k) .eq. 0.0_rb .and. cldfrac(k-1) .gt. 0.0_rb) then
