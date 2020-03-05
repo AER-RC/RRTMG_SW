@@ -1594,7 +1594,7 @@
 ! vapor self-continuum is interpolated (in temperature) separately.  
 
       strrat = 6.67029e-07_rb
-      layreffr = 58
+      layreffr = 42
 
 ! Lower atmosphere loop
       do lay = 1, laytrop
