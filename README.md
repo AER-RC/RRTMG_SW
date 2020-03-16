@@ -41,40 +41,38 @@ The following source files (in the `src` directory) must be used to run RRTMG\_S
 | `extra.f` | Process input data files
 | `util_**.f` | Utilities (available for multiple platforms)
 
-   The following module files (in the /modules directory) must be used to run 
-   RRTMG_SW in stand-alone mode as a column model (these must be compiled before the
-   source code files):
+The following module files (in the `modules` directory) must be used to run RRTMG\_SW in stand-alone mode as a column model (these must be compiled before the source code files):
 
-   parkind.f90               : real and integer kind type parameters
-   parrrsw.f90               : main configuration parameters
-   rrsw_aer.f90              : aerosol property coefficients
-   rrsw_cld.f90              : cloud property coefficients
-   rrsw_con.f90              : constants
-   rrsw_kg**.f90             : absorption coefficient arrays for 16 spectral bands
-   rrsw_ncpar.f90            : parameters for netCDF input data option
-   rrsw_ref.f90              : reference atmosphere data arrays
-   rrsw_tbl.f90              : exponential lookup table arrays
-   rrsw_vsn.f90              : version number information
-   rrsw_wvn.f90              : spectral band and g-interval array information
+| File Name | Description |
+| :---: | :--- |
+| parkind.f90 | real and integer kind type parameters |
+| parrrsw.f90 | main configuration parameters |
+| rrsw_aer.f90 | aerosol property coefficients |
+| rrsw_cld.f90 | cloud property coefficients |
+| rrsw_con.f90 | constants |
+| rrsw_kg**.f90 | absorption coefficient arrays for 16 spectral bands |
+| rrsw_ncpar.f90 | parameters for netCDF input data option |
+| rrsw_ref.f90 | reference atmosphere data arrays |
+| rrsw_tbl.f90 | exponential lookup table arrays |
+| rrsw_vsn.f90 | version number information |
+| rrsw_wvn.f90 | spectral band and g-interval array information |
 
 ### INPUT DATA:
-   The following file (in the /data directory) is the optional netCDF input file
-   containing absorption coefficient and other input data for the model.
-   The file is used if keyword KGSRC is set for netCDF input in the makefile. 
+The following file (in the `data` directory) is the optional netCDF input file containing absorption coefficient and other input data for the model. The file is used if keyword `KGSRC` is set for netCDF input in the makefile. 
 
-   rrtmg_sw.nc               : Optional netCDF input data file
+* `rrtmg_sw.nc` -- Optional netCDF input data file
 
 ### MAKEFILES:
-   The following files (in /build/makefiles directory) can be used to compile 
-   RRTMG_SW in stand-alone mode as a column model on various platforms.  Link
-   one of these into the /build directory to compile. 
+The following files (in `build/makefiles` directory) can be used to compile RRTMG\_SW in stand-alone mode as a column model on various platforms.  Link one of these into the `build` directory to compile.
 
-   make_rrtmg_sw_sgi         : Sample makefile for SGI
-   make_rrtmg_sw_sun         : Sample makefile for SUN
-   make_rrtmg_sw_linux_pgi   : Sample makefile for LINUX (PGI compiler)
-   make_rrtmg_sw_aix_xlf90   : Sample makefile for AIX (XLF90 compiler)
-   make_rrtmg_sw_OS_X_g95    : Sample makefile for OS_X (G95 compiler)
-   make_rrtmg_sw_OS_X_ibm_xl : Sample makefile for OS_X (IBM XL compiler)
+| File Name | Description |
+| :---: | :--- |
+| make_rrtmg_sw_sgi | Sample makefile for SGI
+| make_rrtmg_sw_sun | Sample makefile for SUN
+| make_rrtmg_sw_linux_pgi | Sample makefile for LINUX (PGI compiler)
+| make_rrtmg_sw_aix_xlf90 | Sample makefile for AIX (XLF90 compiler)
+| make_rrtmg_sw_OS_X_g95 | Sample makefile for OS_X (G95 compiler)
+| make_rrtmg_sw_OS_X_ibm_xl | Sample makefile for OS_X (IBM XL compiler)
 
 ### SAMPLE INPUT/OUTPUT: 
    Several sample input (and output) files are included in the /runs_std_atm directory.
