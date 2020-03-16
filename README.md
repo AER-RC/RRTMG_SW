@@ -45,17 +45,17 @@ The following module files (in the `modules` directory) must be used to run RRTM
 
 | File Name | Description |
 | :---: | :--- |
-| parkind.f90 | real and integer kind type parameters |
-| parrrsw.f90 | main configuration parameters |
-| rrsw_aer.f90 | aerosol property coefficients |
-| rrsw_cld.f90 | cloud property coefficients |
-| rrsw_con.f90 | constants |
-| rrsw_kg**.f90 | absorption coefficient arrays for 16 spectral bands |
-| rrsw_ncpar.f90 | parameters for netCDF input data option |
-| rrsw_ref.f90 | reference atmosphere data arrays |
-| rrsw_tbl.f90 | exponential lookup table arrays |
-| rrsw_vsn.f90 | version number information |
-| rrsw_wvn.f90 | spectral band and g-interval array information |
+| `parkind.f90` | real and integer kind type parameters |
+| `parrrsw.f90` | main configuration parameters |
+| `rrsw_aer.f90` | aerosol property coefficients |
+| `rrsw_cld.f90` | cloud property coefficients |
+| `rrsw_con.f90` | constants |
+| `rrsw_kg**.f90` | absorption coefficient arrays for 16 spectral bands |
+| `rrsw_ncpar.f90` | parameters for netCDF input data option |
+| `rrsw_ref.f90` | reference atmosphere data arrays |
+| `rrsw_tbl.f90` | exponential lookup table arrays |
+| `rrsw_vsn.f90` | version number information |
+| `rrsw_wvn.f90` | spectral band and g-interval array information |
 
 ### INPUT DATA:
 The following file (in the `data` directory) is the optional netCDF input file containing absorption coefficient and other input data for the model. The file is used if keyword `KGSRC` is set for netCDF input in the makefile. 
@@ -67,83 +67,52 @@ The following files (in `build/makefiles` directory) can be used to compile RRTM
 
 | File Name | Description |
 | :---: | :--- |
-| make_rrtmg_sw_sgi | Sample makefile for SGI
-| make_rrtmg_sw_sun | Sample makefile for SUN
-| make_rrtmg_sw_linux_pgi | Sample makefile for LINUX (PGI compiler)
-| make_rrtmg_sw_aix_xlf90 | Sample makefile for AIX (XLF90 compiler)
-| make_rrtmg_sw_OS_X_g95 | Sample makefile for OS_X (G95 compiler)
-| make_rrtmg_sw_OS_X_ibm_xl | Sample makefile for OS_X (IBM XL compiler)
+| `make_rrtmg_sw_sgi` | Sample makefile for SGI
+| `make_rrtmg_sw_sun` | Sample makefile for SUN
+| `make_rrtmg_sw_linux_pgi` | Sample makefile for LINUX (PGI compiler)
+| `make_rrtmg_sw_aix_xlf90` | Sample makefile for AIX (XLF90 compiler)
+| `make_rrtmg_sw_OS_X_g95` | Sample makefile for OS_X (G95 compiler)
+| `make_rrtmg_sw_OS_X_ibm_xl` | Sample makefile for OS_X (IBM XL compiler)
 
 ### SAMPLE INPUT/OUTPUT: 
-   Several sample input (and output) files are included in the /runs_std_atm directory.
-   Note that user-defined profiles may be used for as many as 200 layers.
+Several sample input (and output) files are included in the `runs_std_atm directory`. Note that user-defined profiles may be used for as many as 200 layers.
 
-   INPUT_RRTM                : Required input file for (clear sky) atmospheric 
-                               specification
-   IN_CLD_RRTM               : Required input file for cloud specification if clouds 
-                               are present
-   IN_AER_RRTM               : Required input file for aerosol specification if aerosols
-                               are present
-   OUTPUT_RRTM               : Main output file for atmospheric fluxes and heating rates
-   input_rrtm.MLS-clr        : Sample 51 layer mid-latitude summer standard atmosphere
-   input_rrtm.MLS-cld-imca0-icld2
-                             : Sample 51 layer mid-latitude summer standard atmosphere
-                               with cloud flag turned on and maximum-random cloud 
-                               overlap selected (without McICA)
-   input_rrtm.MLS-cld-imca1-icld2
-                             : Sample 51 layer mid-latitude summer standard atmosphere
-                               with cloud flag turned on and maximum-random cloud 
-                               overlap selected (with McICA)
-   input_rrtm.MLS-cld-imca1-icld5-idcor0
-                             : Sample 51 layer mid-latitude summer standard atmosphere
-                               with cloud flag turned on and exponential-random cloud overlap
-                               and constant decorrelation length selected (with McICA)
-   input_rrtm.MLS-cld-imca1-icld5-idcor1
-                             : Sample 51 layer mid-latitude summer standard atmosphere
-                               with cloud flag turned on and exponential-random cloud overlap
-                               and varying decorrelation length selected (with McICA)
-   input_rrtm.MLS-clr-aer12  : Sample 51 layer mid-latitude summer standard atmosphere
-                               with aerosol flag set
-   input_rrtm.MLS-clr-sza45-isolvar0_tsi_avg
-                             : Sample 51 layer mid-latitude summer standard atmosphere
-                               with solar zenith angle set to 45 degrees and using the 
-                               NRLSSI2 solar source function with total solar irradiance
-                               for the mean solar cycle with no solar variability
-   input_rrtm.MLS-clr-sza45-isolvar1_tsi_max
-                             : Sample 51 layer mid-latitude summer standard atmosphere
-                               with solar zenith angle set to 45 degrees and using the 
-                               NRLSSI2 solar source function with solar variability 
-                               active and with total solar irradiance near the maximum 
-                               in the mean solar cycle
-   input_rrtm.MLS-clr-sza45-isolvar1_tsi_min
-                             : Sample 51 layer mid-latitude summer standard atmosphere
-                               with solar zenith angle set to 45 degrees and using the 
-                               NRLSSI2 solar source function with solar variability 
-                               active and with total solar irradiance near the minimum 
-                               in the mean solar cycle
-   input_rrtm.MLS-clr-sza45-isolvar2_01Jan1950
-                             : Sample 51 layer mid-latitude summer standard atmosphere
-                               with solar zenith angle set to 45 degrees and using the 
-                               NRLSSI2 solar source function with solar variability 
-                               active and with total solar irradiance specified with
-                               facular and sunspot indices for 1 January 1950
-   input_rrtm.MLS-clr-sza45-isolvar3_bndscl_tsi_max
-                             : Sample 51 layer mid-latitude summer standard atmosphere
-                               with solar zenith angle set to 45 degrees and using the 
-                               NRLSSI2 solar source function with solar variability 
-                               active and with total solar irradiance near the maximum 
-                               in the mean solar cycle scaled to a different value
-                               with individual band scaling factors
-   input_rrtm.MLW-clr        : Sample 51 layer mid-latitude winter standard atmosphere
-   input_rrtm.SAW-clr        : Sample 51 layer sub-arctic winter standard atmosphere
-   input_rrtm.TROP-clr       : Sample 51 layer tropical standard atmosphere
-   in_cld_rrtm-cld5          : Sample cloud input file
-   in_cld_rrtm-cld6          : Sample cloud input file
-   in_cld_rrtm-cld7          : Sample cloud input file
-   in_aer_rrtm-aer12         : Sample aerosol input file
-   script.run_std_atm        : UNIX script for running the full suite of example cases,
-                               which will put the output into similarly named files
-                               prefixed with output_rrtm*
+| File Name | Description |
+| :---: | :--- |
+| `INPUT_RRTM` | Required input file for (clear sky) atmospheric specification |
+| `IN_CLD_RRTM` | Required input file for cloud specification if clouds are present |
+| `IN_AER_RRTM` |  Required input file for aerosol specification if aerosols are present |
+| `OUTPUT_RRTM` | Main output file for atmospheric fluxes and heating rates |
+| `input_rrtm.MLS-clr` | Sample 51 layer mid-latitude summer standard atmosphere |
+
+| `input_rrtm.MLS-cld-imca0-icld2` | Sample 51 layer mid-latitude summer standard atmosphere with cloud flag turned on and maximum-random cloud overlap selected (without McICA) |
+
+| `input_rrtm.MLS-cld-imca1-icld2` | Sample 51 layer mid-latitude summer standard atmosphere with cloud flag turned on and maximum-random cloud overlap selected (with McICA) |
+
+| `input_rrtm.MLS-cld-imca1-icld5-idcor0` | Sample 51 layer mid-latitude summer standard atmosphere with cloud flag turned on and exponential-random cloud overlap and constant decorrelation length selected (with McICA) |
+
+| `input_rrtm.MLS-cld-imca1-icld5-idcor1` | Sample 51 layer mid-latitude summer standard atmosphere with cloud flag turned on and exponential-random cloud overlap and varying decorrelation length selected (with McICA) |
+
+| `input_rrtm.MLS-clr-aer12` | Sample 51 layer mid-latitude summer standard atmosphere with aerosol flag set |
+
+| `input_rrtm.MLS-clr-sza45-isolvar0_tsi_avg` | Sample 51 layer mid-latitude summer standard atmosphere with solar zenith angle set to 45 degrees and using the NRLSSI2 solar source function with total solar irradiance for the mean solar cycle with no solar variability |
+
+| `input_rrtm.MLS-clr-sza45-isolvar1_tsi_max` | Sample 51 layer mid-latitude summer standard atmosphere with solar zenith angle set to 45 degrees and using the NRLSSI2 solar source function with solar variability active and with total solar irradiance near the maximum in the mean solar cycle |
+
+| `input_rrtm.MLS-clr-sza45-isolvar1_tsi_min` | Sample 51 layer mid-latitude summer standard atmosphere with solar zenith angle set to 45 degrees and using the  NRLSSI2 solar source function with solar variability active and with total solar irradiance near the minimum in the mean solar cycle |
+
+| `input_rrtm.MLS-clr-sza45-isolvar2_01Jan1950` | Sample 51 layer mid-latitude summer standard atmosphere with solar zenith angle set to 45 degrees and using the NRLSSI2 solar source function with solar variability active and with total solar irradiance specified with facular and sunspot indices for 1 January 1950 |
+
+| `input_rrtm.MLS-clr-sza45-isolvar3_bndscl_tsi_max` | Sample 51 layer mid-latitude summer standard atmosphere with solar zenith angle set to 45 degrees and using the NRLSSI2 solar source function with solar variability active and with total solar irradiance near the maximum in the mean solar cycle scaled to a different value with individual band scaling factors |
+
+| `input_rrtm.MLW-clr` | Sample 51 layer mid-latitude winter standard atmosphere |
+| `input_rrtm.SAW-clr` | Sample 51 layer sub-arctic winter standard atmosphere |
+| `input_rrtm.TROP-clr` | Sample 51 layer tropical standard atmosphere |
+| `in_cld_rrtm-cld5` | Sample cloud input file |
+| `in_cld_rrtm-cld6` | Sample cloud input file |
+| `in_cld_rrtm-cld7` | Sample cloud input file |
+| `in_aer_rrtm-aer12` | Sample aerosol input file |
+| `script.run_std_atm` | UNIX script for running the full suite of example cases, which will put the output into similarly named files prefixed with `output_rrtm*` |
 
 ### INSTRUCTIONS FOR COMPILING AND RUNNING THE COLUMN MODEL:
    1) In the /build directory, link one of the makefiles from the /makefile sub-directory
