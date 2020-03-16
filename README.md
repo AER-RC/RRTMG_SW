@@ -1,7 +1,7 @@
 # RRTMG_SW: Shortwave Radiative Transfer Model for GCMs
 
 This package contains the source code and sample makefiles necessary to run the latest version of RRTMG\_SW, a correlated k-distribution shortwave radiative transfer model developed at AER for application to GCMs. This version of RRTMG\_SW utilizes a two-stream radiative transfer method as implemented at ECMWF. This
-code has also been modified to utilize updated FORTRAN coding features. Two modes of operation are possible: 1) RRTMG_SW can be run as a column model using the 
+code has also been modified to utilize updated FORTRAN coding features. Two modes of operation are possible: 1) RRTMG\_SW can be run as a column model using the 
 input files and source modules described below, or 2) it can be implemented as a subroutine into an atmospheric general circulation model or single column model.
 
 The version of RRTMG\_SW provided here utilizes a reduced complement of 112 g-points, which is half of the 224 g-points used in the standard RRTM\_SW, and a two-stream method for radiative transfer. Additional minor changes have been made to enhance computational performance. Total fluxes are accurate to within 1-2 W/m2 relative to the standard RRTM\_SW (using DISORT) in clear sky and in the presence of aerosols and within 6 W/m2 in overcast sky. RRTM_SW with DISORT is itself accurate to within 2 W/m2 of the data-validated multiple scattering model, CHARTS. Required absorption coefficient input data can be read in either from data stored within the code or from a netCDF file as selected in the makefile. 
