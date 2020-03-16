@@ -14,7 +14,7 @@ This model can also utilize McICA, the Monte-Carlo Independent Column Approximat
 The following text files (in the `doc` directory), along with this `README` provide information on release updates and on using and running RRTMG\_SW:
 
 | File Name | Description |
-| :---: | :--- |
+| :--- | :--- |
 | `release_notes.txt` | Code archive update information |
 | `rrtmg_sw_instructions.txt` | Input instructions for files INPUT_RRTM, IN_CLD_RRTM and IN_AER_RRTM |
 
@@ -22,7 +22,7 @@ The following text files (in the `doc` directory), along with this `README` prov
 The following source files (in the `src` directory) must be used to run RRTMG\_SW in stand-alone mode as a column model (the utility files are stored separately in the `aer_rt_utils` directory):
 
 | File Name | Description |
-| :---: | :--- |
+| :--- | :--- |
 | `rrtmg_sw.1col.f90` | Main module
 | `rrtmg_sw_cldprop.f90` | Calculation of cloud optical properties
 | `rrtmg_sw_cldprmc.f90` | Calculation of cloud optical properties (McICA)
@@ -44,7 +44,7 @@ The following source files (in the `src` directory) must be used to run RRTMG\_S
 The following module files (in the `modules` directory) must be used to run RRTMG\_SW in stand-alone mode as a column model (these must be compiled before the source code files):
 
 | File Name | Description |
-| :---: | :--- |
+| :--- | :--- |
 | `parkind.f90` | real and integer kind type parameters |
 | `parrrsw.f90` | main configuration parameters |
 | `rrsw_aer.f90` | aerosol property coefficients |
@@ -66,7 +66,7 @@ The following file (in the `data` directory) is the optional netCDF input file c
 The following files (in `build/makefiles` directory) can be used to compile RRTMG\_SW in stand-alone mode as a column model on various platforms.  Link one of these into the `build` directory to compile.
 
 | File Name | Description |
-| :---: | :--- |
+| :--- | :--- |
 | `make_rrtmg_sw_sgi` | Sample makefile for SGI
 | `make_rrtmg_sw_sun` | Sample makefile for SUN
 | `make_rrtmg_sw_linux_pgi` | Sample makefile for LINUX (PGI compiler)
@@ -78,33 +78,22 @@ The following files (in `build/makefiles` directory) can be used to compile RRTM
 Several sample input (and output) files are included in the `runs_std_atm directory`. Note that user-defined profiles may be used for as many as 200 layers.
 
 | File Name | Description |
-| :---: | :--- |
+| :--- | :--- |
 | `INPUT_RRTM` | Required input file for (clear sky) atmospheric specification |
 | `IN_CLD_RRTM` | Required input file for cloud specification if clouds are present |
 | `IN_AER_RRTM` |  Required input file for aerosol specification if aerosols are present |
 | `OUTPUT_RRTM` | Main output file for atmospheric fluxes and heating rates |
 | `input_rrtm.MLS-clr` | Sample 51 layer mid-latitude summer standard atmosphere |
-
 | `input_rrtm.MLS-cld-imca0-icld2` | Sample 51 layer mid-latitude summer standard atmosphere with cloud flag turned on and maximum-random cloud overlap selected (without McICA) |
-
 | `input_rrtm.MLS-cld-imca1-icld2` | Sample 51 layer mid-latitude summer standard atmosphere with cloud flag turned on and maximum-random cloud overlap selected (with McICA) |
-
 | `input_rrtm.MLS-cld-imca1-icld5-idcor0` | Sample 51 layer mid-latitude summer standard atmosphere with cloud flag turned on and exponential-random cloud overlap and constant decorrelation length selected (with McICA) |
-
 | `input_rrtm.MLS-cld-imca1-icld5-idcor1` | Sample 51 layer mid-latitude summer standard atmosphere with cloud flag turned on and exponential-random cloud overlap and varying decorrelation length selected (with McICA) |
-
 | `input_rrtm.MLS-clr-aer12` | Sample 51 layer mid-latitude summer standard atmosphere with aerosol flag set |
-
 | `input_rrtm.MLS-clr-sza45-isolvar0_tsi_avg` | Sample 51 layer mid-latitude summer standard atmosphere with solar zenith angle set to 45 degrees and using the NRLSSI2 solar source function with total solar irradiance for the mean solar cycle with no solar variability |
-
 | `input_rrtm.MLS-clr-sza45-isolvar1_tsi_max` | Sample 51 layer mid-latitude summer standard atmosphere with solar zenith angle set to 45 degrees and using the NRLSSI2 solar source function with solar variability active and with total solar irradiance near the maximum in the mean solar cycle |
-
 | `input_rrtm.MLS-clr-sza45-isolvar1_tsi_min` | Sample 51 layer mid-latitude summer standard atmosphere with solar zenith angle set to 45 degrees and using the  NRLSSI2 solar source function with solar variability active and with total solar irradiance near the minimum in the mean solar cycle |
-
 | `input_rrtm.MLS-clr-sza45-isolvar2_01Jan1950` | Sample 51 layer mid-latitude summer standard atmosphere with solar zenith angle set to 45 degrees and using the NRLSSI2 solar source function with solar variability active and with total solar irradiance specified with facular and sunspot indices for 1 January 1950 |
-
 | `input_rrtm.MLS-clr-sza45-isolvar3_bndscl_tsi_max` | Sample 51 layer mid-latitude summer standard atmosphere with solar zenith angle set to 45 degrees and using the NRLSSI2 solar source function with solar variability active and with total solar irradiance near the maximum in the mean solar cycle scaled to a different value with individual band scaling factors |
-
 | `input_rrtm.MLW-clr` | Sample 51 layer mid-latitude winter standard atmosphere |
 | `input_rrtm.SAW-clr` | Sample 51 layer sub-arctic winter standard atmosphere |
 | `input_rrtm.TROP-clr` | Sample 51 layer tropical standard atmosphere |
@@ -115,21 +104,11 @@ Several sample input (and output) files are included in the `runs_std_atm direct
 | `script.run_std_atm` | UNIX script for running the full suite of example cases, which will put the output into similarly named files prefixed with `output_rrtm*` |
 
 ### INSTRUCTIONS FOR COMPILING AND RUNNING THE COLUMN MODEL:
-   1) In the /build directory, link one of the makefiles from the /makefile sub-directory
-      into /build/make.build. To use the optional netCDF input file, switch the keyword
-      "KGSRC" in the makefile from "dat" to "nc". Compile the model with "make -f make.build"
-   2) Link the executable to, for example, "rrtmg_sw" in the /runs_std_atm directory
-   3) If the optional netCDF input file was selected when compiling, link the file 
-      /data/rrtmg_sw.nc into the /runs_std_atm directory.  
-   4) In the /runs_std_atm directory, run the UNIX script "./script.run_std_atm" to run
-      the full suite of example cases. To run a single case, modify INPUT_RRTM following the
-      instructions in /doc/rrtmg_sw_instructions.txt", or copy one of the example input_rrtm* 
-      files into INPUT_RRTM. If clouds are selected (ICLD > 0), then modify IN_CLD_RRTM or
-      copy one of the in_cld_rrtm* files into IN_CLD_RRTM. If aerosols are selected 
-      (IAER > 0), then modify IN_AER_RRTM or set it to the sample file in_aer_rrtm-aer12. 
-   5) In column mode, if McICA is selected (IMCA=1) with partial cloudiness defined, then 
-      RRTMG_SW will run the case 200 times to derive adequate statistics, and the average
-      of the 200 samples will be written to the output file, OUTPUT_RRTM. 
+1) In the `build` directory, link one of the makefiles from the `makefile` sub-directory into `build/make.build`. To use the optional netCDF input file, switch the keyword `KGSRC` in the makefile from `dat` to `nc`. Compile the model with `make -f make.build`
+2) Link the executable to, for example, `rrtmg_sw` in the `runs_std_atm directory`
+3) If the optional netCDF input file was selected when compiling, link the file `data/rrtmg_sw.nc` into the `runs_std_atm directory`.  
+4) In the `runs_std_atm directory`, run the UNIX script `./script.run_std_atm` to run the full suite of example cases. To run a single case, modify `INPUT_RRTM` following the instructions in `doc/rrtmg_sw_instructions.txt`, or copy one of the example `input_rrtm*` files into `INPUT_RRTM`. If clouds are selected (`ICLD` > 0), then modify `IN_CLD_RRTM` or copy one of the `in_cld_rrtm*` files into `IN_CLD_RRTM`. If aerosols are selected (`IAER` > 0), then modify `IN_AER_RRTM` or set it to the sample file `in_aer_rrtm-aer12`.
+5) In column mode, if McICA is selected (`IMCA`=1) with partial cloudiness defined, then RRTMG\_SW will run the case 200 times to derive adequate statistics, and the average of the 200 samples will be written to the output file, `OUTPUT_RRTM`. 
 
 
 ## RRTMG_SW : GCM version
