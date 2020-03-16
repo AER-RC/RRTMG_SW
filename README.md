@@ -1,98 +1,45 @@
 # RRTMG_SW: Shortwave Radiative Transfer Model for GCMs
 
-## Maintenance and Contact Info
+This package contains the source code and sample makefiles necessary to run the latest version of RRTMG\_SW, a correlated k-distribution shortwave radiative transfer model developed at AER for application to GCMs. This version of RRTMG\_SW utilizes a two-stream radiative transfer method as implemented at ECMWF. This
+code has also been modified to utilize updated FORTRAN coding features. Two modes of operation are possible: 1) RRTMG_SW can be run as a column model using the 
+input files and source modules described below, or 2) it can be implemented as a subroutine into an atmospheric general circulation model or single column model.
 
-Atmospheric and Environmental Research 
-131 Hartwell Avenue, Lexington, MA 02421
+The version of RRTMG\_SW provided here utilizes a reduced complement of 112 g-points, which is half of the 224 g-points used in the standard RRTM\_SW, and a two-stream method for radiative transfer. Additional minor changes have been made to enhance computational performance. Total fluxes are accurate to within 1-2 W/m2 relative to the standard RRTM\_SW (using DISORT) in clear sky and in the presence of aerosols and within 6 W/m2 in overcast sky. RRTM_SW with DISORT is itself accurate to within 2 W/m2 of the data-validated multiple scattering model, CHARTS. Required absorption coefficient input data can be read in either from data stored within the code or from a netCDF file as selected in the makefile. 
 
-Original version:   Eli. J. Mlawer, J. S. Delamere, et al. (AER)
-Revision for GCMs:  Michael J. Iacono (AER)
+This model can also utilize McICA, the Monte-Carlo Independent Column Approximation, to represent sub-grid scale cloud variability such as cloud fraction and cloud overlap. If the McICA option is selected to model a cloudy profile in column mode, then the model will run stochastically, and the output fluxes and heating rates will be an average over 200 samples. In GCM mode, the code will calcualte a single column per profile, and the statistical basis is provided by the spatial and temporal dimensions of the 3-D calculations. Several cloud overlap methods are available for partial cloudiness including maximum-random, exponential, and exponential-random. Without McICA, RRTMG\_SW is limited to clear sky or overcast cloud conditions.
 
-Contact:   Michael J. Iacono   (E-mail: miacono@aer.com)
+## RRTMG_SW : Column Version
 
-## References
+### DOCUMENTATION:
+The following text files (in the `doc` directory), along with this `README` provide information on release updates and on using and running RRTMG\_SW:
 
-* [Github repository](https://github.com/AER-RC/RRTMG_SW)
-* [AER Radiative Transfer Models Documentation](https://www.rtweb.aer.com)
-* **RRTMG_SW, RRTM_SW**
-  * Iacono, M.J., J.S. Delamere, E.J. Mlawer, M.W. Shephard, S.A. Clough, and W.D. Collins, Radiative forcing by long-lived greenhouse gases: Calculations with the AER radiative transfer models, J. Geophys. Res., 113, D13103, doi:10.1029/2008JD009944, 2008.
-  * Clough, S.A., M.W. Shephard, E.J. Mlawer, J.S. Delamere, M.J. Iacono, K. Cady-Pereira, S. Boukabara, and P.D. Brown, Atmospheric radiative transfer modeling: a summary of the AER codes, J. Quant. Spectrosc. Radiat. Transfer, 91, 233-244, 2005. 
+| File Name | Description |
+| :---: | :--- |
+| `release_notes.txt` | Code archive update information |
+| `rrtmg_sw_instructions.txt` | Input instructions for files INPUT_RRTM, IN_CLD_RRTM and IN_AER_RRTM |
 
-* **McICA**
-  * Pincus, R., H. W. Barker, and J.-J. Morcrette, A fast, flexible, approximation technique for computing radiative transfer in inhomogeneous cloud fields, J. Geophys. Res., 108(D13), 4376, doi:10.1029/2002JD003322, 2003.
+### SOURCE CODE:
+The following source files (in the `src` directory) must be used to run RRTMG\_SW in stand-alone mode as a column model (the utility files are stored separately in the `aer_rt_utils` directory):
 
-*  **Latitude-Varying Decorrelation Length**: Oreopoulos, L., D. Lee, Y.C. Sud, and M.J. Suarez, Radiative impacts of cloud heterogeneity and overlap in an atmospheric General Circulation Model, Atmos. Chem. Phys., 12, 9097-9111, doi:10.5194/acp-12-9097-2012, 2012.
-******************************************************************************
-
-This package contains the source code and sample makefiles necessary to run the
-latest version of RRTMG_SW, a correlated k-distribution shortwave radiative transfer 
-model developed at AER for application to GCMs. This version of RRTMG_SW 
-utilizes a two-stream radiative transfer method as implemented at ECMWF. This
-code has also been modified to utilize updated FORTRAN coding features. Two modes 
-of operation are possible: 1) RRTMG_SW can be run as a column model using the 
-input files and source modules described below, or 2) it can be implemented as a
-subroutine into an atmospheric general circulation model or single column model.
-
-The version of RRTMG_SW provided here utilizes a reduced complement of 112 
-g-points, which is half of the 224 g-points used in the standard RRTM_SW, and
-a two-stream method for radiative transfer. Additional minor changes have been 
-made to enhance computational performance. Total fluxes are accurate to within 
-1-2 W/m2 relative to the standard RRTM_SW (using DISORT) in clear sky and in the
-presence of aerosols and within 6 W/m2 in overcast sky. RRTM_SW with DISORT is
-itself accurate to within 2 W/m2 of the data-validated multiple scattering 
-model, CHARTS. Required absorption coefficient input data can be read in either
-from data stored within the code or from a netCDF file as selected in the makefile. 
-
-This model can also utilize McICA, the Monte-Carlo Independent Column 
-Approximation, to represent sub-grid scale cloud variability such as cloud 
-fraction and cloud overlap. If the McICA option is selected to model a cloudy 
-profile in column mode, then the model will run stochastically, and the output 
-fluxes and heating rates will be an average over 200 samples. In GCM mode, 
-the code will calcualte a single column per profile, and the statistical basis
-is provided by the spatial and temporal dimensions of the 3-D calculations. 
-Several cloud overlap methods are available for partial cloudiness including
-maximum-random, exponential, and exponential-random. Without McICA, RRTMG_SW
-is limited to clear sky or overcast cloud conditions.
-
-
-*************************
-RRTMG_SW : Column Version
-*************************
-
-DOCUMENTATION:
-   The following text files (some in the /doc directory) provide information
-   on release updates and on using and running RRTMG_SW:
-
-   README                    : Basic code package information (this file)
-   release_notes.txt         : Code archive update information
-   rrtmg_sw_instructions.txt : Input instructions for files INPUT_RRTM, IN_CLD_RRTM 
-                               and IN_AER_RRTM
-
-SOURCE CODE:
-   The following source files (in the /src directory) must be used to run 
-   RRTMG_SW in stand-alone mode as a column model (the utility files are stored
-   separately in the /aer_rt_utils directory):
-
-   rrtmg_sw.1col.f90         : Main module
-   rrtmg_sw_cldprop.f90      : Calculation of cloud optical properties
-   rrtmg_sw_cldprmc.f90      : Calculation of cloud optical properties (McICA)
-   rrtmg_sw_init.f90         : RRTMG_SW initialization routine; reduces g-intervals
-                               from 224 to 112
-   rrtmg_sw_k_g.f90          : Absorption coefficient data file
-   rrtmg_sw_read_nc.f90      : Optional absorption coefficient data netCDF input
-   rrtmg_sw_reftra.f90       : Calculation of two-stream reflectivities and 
-                               transmissivities
-   rrtmg_sw_setcoef.f90      : Set up routine
-   rrtmg_sw_spcvrt.f90       : Top subroutine for two-stream model
-   rrtmg_sw_spcvmc.f90       : Top subroutine for two-stream model (McICA)
-   rrtmg_sw_taumol.f90       : Calculation of optical depths and Planck fractions for 
-                               each spectral band
-   rrtmg_sw_vrtqdr.f90       : Two-stream vertical quadrature 
-   mcica_random_numbers.f90  : Random number generator for McICA
-   mcica_subcol_gen_sw.1col.f90 : Sub-column generator for McICA
-   rrtatm.f                  : Process user-defined input data files
-   extra.f                   : Process input data files
-   util_**.f                 : Utilities (available for multiple platforms)
+| File Name | Description |
+| :---: | :--- |
+| `rrtmg_sw.1col.f90` | Main module
+| `rrtmg_sw_cldprop.f90` | Calculation of cloud optical properties
+| `rrtmg_sw_cldprmc.f90` | Calculation of cloud optical properties (McICA)
+| `rrtmg_sw_init.f90` | RRTMG_SW initialization routine; reduces g-intervals from 224 to 112
+| `rrtmg_sw_k_g.f90` | Absorption coefficient data file
+| `rrtmg_sw_read_nc.f90` | Optional absorption coefficient data netCDF input
+| `rrtmg_sw_reftra.f90` | Calculation of two-stream reflectivities and transmissivities
+| `rrtmg_sw_setcoef.f90` | Set up routine
+| `rrtmg_sw_spcvrt.f90` | Top subroutine for two-stream model
+| `rrtmg_sw_spcvmc.f90` | Top subroutine for two-stream model (McICA)
+| `rrtmg_sw_taumol.f90` | Calculation of optical depths and Planck fractions for each spectral band
+| `rrtmg_sw_vrtqdr.f90` | Two-stream vertical quadrature 
+| `mcica_random_numbers.f90` | Random number generator for McICA
+| `mcica_subcol_gen_sw.1col.f90` | Sub-column generator for McICA
+| `rrtatm.f` | Process user-defined input data files
+| `extra.f` | Process input data files
+| `util_**.f` | Utilities (available for multiple platforms)
 
    The following module files (in the /modules directory) must be used to run 
    RRTMG_SW in stand-alone mode as a column model (these must be compiled before the
@@ -110,14 +57,14 @@ SOURCE CODE:
    rrsw_vsn.f90              : version number information
    rrsw_wvn.f90              : spectral band and g-interval array information
 
-INPUT DATA:
+### INPUT DATA:
    The following file (in the /data directory) is the optional netCDF input file
    containing absorption coefficient and other input data for the model.
    The file is used if keyword KGSRC is set for netCDF input in the makefile. 
 
    rrtmg_sw.nc               : Optional netCDF input data file
 
-MAKEFILES:
+### MAKEFILES:
    The following files (in /build/makefiles directory) can be used to compile 
    RRTMG_SW in stand-alone mode as a column model on various platforms.  Link
    one of these into the /build directory to compile. 
@@ -129,7 +76,7 @@ MAKEFILES:
    make_rrtmg_sw_OS_X_g95    : Sample makefile for OS_X (G95 compiler)
    make_rrtmg_sw_OS_X_ibm_xl : Sample makefile for OS_X (IBM XL compiler)
 
-SAMPLE INPUT/OUTPUT: 
+### SAMPLE INPUT/OUTPUT: 
    Several sample input (and output) files are included in the /runs_std_atm directory.
    Note that user-defined profiles may be used for as many as 200 layers.
 
@@ -200,7 +147,7 @@ SAMPLE INPUT/OUTPUT:
                                which will put the output into similarly named files
                                prefixed with output_rrtm*
 
-INSTRUCTIONS FOR COMPILING AND RUNNING THE COLUMN MODEL:
+### INSTRUCTIONS FOR COMPILING AND RUNNING THE COLUMN MODEL:
    1) In the /build directory, link one of the makefiles from the /makefile sub-directory
       into /build/make.build. To use the optional netCDF input file, switch the keyword
       "KGSRC" in the makefile from "dat" to "nc". Compile the model with "make -f make.build"
@@ -218,9 +165,7 @@ INSTRUCTIONS FOR COMPILING AND RUNNING THE COLUMN MODEL:
       of the 200 samples will be written to the output file, OUTPUT_RRTM. 
 
 
-**********************
-RRTMG_SW : GCM version
-**********************
+## RRTMG_SW : GCM version
 
 DOCUMENTATION:
    README                    : Basic code package information (this file)
@@ -298,3 +243,25 @@ NOTES ON RUNNING THE GCM (SUBROUTINE) VERSION OF THE CODE:
       then the main module is rrtmg_sw_rad.nomcica.f90, though the cloud specification
       is limited to overcast clouds.
 
+## Maintenance and Contact Info
+
+Atmospheric and Environmental Research 
+131 Hartwell Avenue, Lexington, MA 02421
+
+Original version:   Eli. J. Mlawer, J. S. Delamere, et al. (AER)
+Revision for GCMs:  Michael J. Iacono (AER)
+
+Contact:   Michael J. Iacono   (E-mail: miacono@aer.com)
+
+## References
+
+* [Github repository](https://github.com/AER-RC/RRTMG_SW)
+* [AER Radiative Transfer Models Documentation](https://www.rtweb.aer.com)
+* **RRTMG_SW, RRTM_SW**
+  * Iacono, M.J., J.S. Delamere, E.J. Mlawer, M.W. Shephard, S.A. Clough, and W.D. Collins, Radiative forcing by long-lived greenhouse gases: Calculations with the AER radiative transfer models, J. Geophys. Res., 113, D13103, doi:10.1029/2008JD009944, 2008.
+  * Clough, S.A., M.W. Shephard, E.J. Mlawer, J.S. Delamere, M.J. Iacono, K. Cady-Pereira, S. Boukabara, and P.D. Brown, Atmospheric radiative transfer modeling: a summary of the AER codes, J. Quant. Spectrosc. Radiat. Transfer, 91, 233-244, 2005. 
+
+* **McICA**
+  * Pincus, R., H. W. Barker, and J.-J. Morcrette, A fast, flexible, approximation technique for computing radiative transfer in inhomogeneous cloud fields, J. Geophys. Res., 108(D13), 4376, doi:10.1029/2002JD003322, 2003.
+
+*  **Latitude-Varying Decorrelation Length**: Oreopoulos, L., D. Lee, Y.C. Sud, and M.J. Suarez, Radiative impacts of cloud heterogeneity and overlap in an atmospheric General Circulation Model, Atmos. Chem. Phys., 12, 9097-9111, doi:10.5194/acp-12-9097-2012, 2012.
