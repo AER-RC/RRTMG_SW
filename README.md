@@ -60,7 +60,9 @@ The following module files (in the `modules` directory) must be used to run RRTM
 ### INPUT DATA
 The following file (in the `data` directory) is the optional netCDF input file containing absorption coefficient and other input data for the model. The file is used if keyword `KGSRC` is set for netCDF input in the makefile. 
 
-* `rrtmg_sw.nc` -- Optional netCDF input data file
+| File Name | Description |
+| :--- | :--- |
+| `rrtmg_sw.nc` | Optional netCDF input data file |
 
 ### MAKEFILES
 The following files (in `build/makefiles` directory) can be used to compile RRTMG\_SW in stand-alone mode as a column model on various platforms.  Link one of these into the `build` directory to compile.
@@ -75,7 +77,7 @@ The following files (in `build/makefiles` directory) can be used to compile RRTM
 | `make_rrtmg_sw_OS_X_ibm_xl` | Sample makefile for OS_X (IBM XL compiler)
 
 ### SAMPLE INPUT/OUTPUT
-Several sample input (and output) files are included in the `runs_std_atm directory`. Note that user-defined profiles may be used for as many as 200 layers.
+Several sample input (and output) files are included in the `run_examples_std_atm` directory. Note that user-defined profiles may be used for as many as 200 layers.
 
 | File Name | Description |
 | :--- | :--- |
@@ -105,9 +107,9 @@ Several sample input (and output) files are included in the `runs_std_atm direct
 
 ### INSTRUCTIONS FOR COMPILING AND RUNNING THE COLUMN MODEL:
 1) In the `build` directory, link one of the makefiles from the `makefile` sub-directory into `build/make.build`. To use the optional netCDF input file, switch the keyword `KGSRC` in the makefile from `dat` to `nc`. Compile the model with `make -f make.build`
-2) Link the executable to, for example, `rrtmg_sw` in the `runs_std_atm directory`
-3) If the optional netCDF input file was selected when compiling, link the file `data/rrtmg_sw.nc` into the `runs_std_atm directory`.  
-4) In the `runs_std_atm directory`, run the UNIX script `./script.run_std_atm` to run the full suite of example cases. To run a single case, modify `INPUT_RRTM` following the instructions in `doc/rrtmg_sw_instructions.txt`, or copy one of the example `input_rrtm*` files into `INPUT_RRTM`. If clouds are selected (`ICLD` > 0), then modify `IN_CLD_RRTM` or copy one of the `in_cld_rrtm*` files into `IN_CLD_RRTM`. If aerosols are selected (`IAER` > 0), then modify `IN_AER_RRTM` or set it to the sample file `in_aer_rrtm-aer12`.
+2) Link the executable to, for example, `rrtmg_sw` in the `run_examples_std_atm` directory
+3) If the optional netCDF input file was selected when compiling, link the file `data/rrtmg_sw.nc` into the `run_examples_std_atm` directory.  
+4) In the `run_examples_std_atm` directory, run the UNIX script `./script.run_std_atm` to run the full suite of example cases. To run a single case, modify `INPUT_RRTM` following the instructions in `doc/rrtmg_sw_instructions.txt`, or copy one of the example `input_rrtm*` files into `INPUT_RRTM`. If clouds are selected (`ICLD` > 0), then modify `IN_CLD_RRTM` or copy one of the `in_cld_rrtm*` files into `IN_CLD_RRTM`. If aerosols are selected (`IAER` > 0), then modify `IN_AER_RRTM` or set it to the sample file `in_aer_rrtm-aer12`.
 5) In column mode, if McICA is selected (`IMCA`=1) with partial cloudiness defined, then RRTMG\_SW will run the case 200 times to derive adequate statistics, and the average of the 200 samples will be written to the output file, `OUTPUT_RRTM`. 
 
 ## RRTMG_SW : GCM version
@@ -156,11 +158,9 @@ The following file (in the `data` directory) is the optional netCDF file contain
 
 ### NOTES ON RUNNING THE GCM (SUBROUTINE) VERSION OF THE CODE
 
-   1) The module rrtmg_sw_init.f90 is the initialization routine that has to be called only once.  The call to this subroutine should be moved to the initialization section of the host model if RRTMG_SW is called by a GCM or SCM. 
-
-   2) The number of model layers and the number of columns to be looped over should be passed into RRTMG_SW through the subroutine call along with the other model profile arrays.  
-
-   3) To utilize McICA, the sub-column generator (`mcica_subcol_gen_sw.f90`) must be implemented in the GCM so that it is called just before RRTMG\_SW. The cloud overlap method is selected using the input flag, icld. If either exponential (`ICLD`=4) or exponential-random (`ICLD`=5) cloud overlap is selected, then the  subroutine `get_alpha` must be called prior to calling `mcica_subcol_sw` to define the vertical correlation parameter, `alpha`, needed for those overlap methods. Also for those methods, use the input flag `idcor` to select the use of either a constant or latitude-varying decorrelation length. If McICA is utilized, this will run only a single statistical sample per model grid box. There are two options for the random number generator used with McICA, which is selected with the variable `irnd` in `mcica_subcol_gen_sw.f90`. When using McICA, then the main module is `rrtmg_sw_rad.f90`. If McICA is not used, then the main module is `rrtmg_sw_rad.nomcica.f90`, though the cloud specification is limited to overcast clouds.
+1) The module rrtmg_sw_init.f90 is the initialization routine that has to be called only once.  The call to this subroutine should be moved to the initialization section of the host model if RRTMG_SW is called by a GCM or SCM. 
+2) The number of model layers and the number of columns to be looped over should be passed into RRTMG_SW through the subroutine call along with the other model profile arrays.  
+3) To utilize McICA, the sub-column generator (`mcica_subcol_gen_sw.f90`) must be implemented in the GCM so that it is called just before RRTMG\_SW. The cloud overlap method is selected using the input flag, icld. If either exponential (`ICLD`=4) or exponential-random (`ICLD`=5) cloud overlap is selected, then the  subroutine `get_alpha` must be called prior to calling `mcica_subcol_sw` to define the vertical correlation parameter, `alpha`, needed for those overlap methods. Also for those methods, use the input flag `idcor` to select the use of either a constant or latitude-varying decorrelation length. If McICA is utilized, this will run only a single statistical sample per model grid box. There are two options for the random number generator used with McICA, which is selected with the variable `irnd` in `mcica_subcol_gen_sw.f90`. When using McICA, then the main module is `rrtmg_sw_rad.f90`. If McICA is not used, then the main module is `rrtmg_sw_rad.nomcica.f90`, though the cloud specification is limited to overcast clouds.
 
 ## Maintenance and Contact Info
 
@@ -183,4 +183,5 @@ Contact:   Michael J. Iacono   (E-mail: miacono@aer.com)
 * **McICA**
   * Pincus, R., H. W. Barker, and J.-J. Morcrette, A fast, flexible, approximation technique for computing radiative transfer in inhomogeneous cloud fields, J. Geophys. Res., 108(D13), 4376, doi:10.1029/2002JD003322, 2003.
 
-*  **Latitude-Varying Decorrelation Length**: Oreopoulos, L., D. Lee, Y.C. Sud, and M.J. Suarez, Radiative impacts of cloud heterogeneity and overlap in an atmospheric General Circulation Model, Atmos. Chem. Phys., 12, 9097-9111, doi:10.5194/acp-12-9097-2012, 2012.
+*  **Latitude-Varying Decorrelation Length**
+    *  Oreopoulos, L., D. Lee, Y.C. Sud, and M.J. Suarez, Radiative impacts of cloud heterogeneity and overlap in an atmospheric General Circulation Model, Atmos. Chem. Phys., 12, 9097-9111, doi:10.5194/acp-12-9097-2012, 2012.
