@@ -154,7 +154,9 @@ The following module files (in the `modules` directory) must be used to run RRTM
 ### INPUT DATA
 The following file (in the `data` directory) is the optional netCDF file containing absorption coefficient and other input data for the model. The file is used if source file `rrtmg_sw_read_nc.f90` is used in place of `rrtmg_sw_k_g.f90` (only one or the other is required). 
 
-* `rrtmg_sw.nc` -- Optional netCDF input data file
+| File Name | Description |
+| :--- | :--- |
+| `rrtmg_sw.nc` | Optional netCDF input data file |
 
 ### NOTES ON RUNNING THE GCM (SUBROUTINE) VERSION OF THE CODE
 
