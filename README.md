@@ -10,7 +10,7 @@ This model can also utilize McICA, the Monte-Carlo Independent Column Approximat
 
 ## RRTMG_SW : Column Version
 
-### DOCUMENTATION:
+### DOCUMENTATION
 The following text files (in the `doc` directory), along with this `README` provide information on release updates and on using and running RRTMG\_SW:
 
 | File Name | Description |
@@ -18,7 +18,7 @@ The following text files (in the `doc` directory), along with this `README` prov
 | `release_notes.txt` | Code archive update information |
 | `rrtmg_sw_instructions.txt` | Input instructions for files INPUT_RRTM, IN_CLD_RRTM and IN_AER_RRTM |
 
-### SOURCE CODE:
+### SOURCE CODE
 The following source files (in the `src` directory) must be used to run RRTMG\_SW in stand-alone mode as a column model (the utility files are stored separately in the `aer_rt_utils` directory):
 
 | File Name | Description |
@@ -57,12 +57,12 @@ The following module files (in the `modules` directory) must be used to run RRTM
 | `rrsw_vsn.f90` | version number information |
 | `rrsw_wvn.f90` | spectral band and g-interval array information |
 
-### INPUT DATA:
+### INPUT DATA
 The following file (in the `data` directory) is the optional netCDF input file containing absorption coefficient and other input data for the model. The file is used if keyword `KGSRC` is set for netCDF input in the makefile. 
 
 * `rrtmg_sw.nc` -- Optional netCDF input data file
 
-### MAKEFILES:
+### MAKEFILES
 The following files (in `build/makefiles` directory) can be used to compile RRTMG\_SW in stand-alone mode as a column model on various platforms.  Link one of these into the `build` directory to compile.
 
 | File Name | Description |
@@ -74,7 +74,7 @@ The following files (in `build/makefiles` directory) can be used to compile RRTM
 | `make_rrtmg_sw_OS_X_g95` | Sample makefile for OS_X (G95 compiler)
 | `make_rrtmg_sw_OS_X_ibm_xl` | Sample makefile for OS_X (IBM XL compiler)
 
-### SAMPLE INPUT/OUTPUT: 
+### SAMPLE INPUT/OUTPUT
 Several sample input (and output) files are included in the `runs_std_atm directory`. Note that user-defined profiles may be used for as many as 200 layers.
 
 | File Name | Description |
@@ -110,84 +110,57 @@ Several sample input (and output) files are included in the `runs_std_atm direct
 4) In the `runs_std_atm directory`, run the UNIX script `./script.run_std_atm` to run the full suite of example cases. To run a single case, modify `INPUT_RRTM` following the instructions in `doc/rrtmg_sw_instructions.txt`, or copy one of the example `input_rrtm*` files into `INPUT_RRTM`. If clouds are selected (`ICLD` > 0), then modify `IN_CLD_RRTM` or copy one of the `in_cld_rrtm*` files into `IN_CLD_RRTM`. If aerosols are selected (`IAER` > 0), then modify `IN_AER_RRTM` or set it to the sample file `in_aer_rrtm-aer12`.
 5) In column mode, if McICA is selected (`IMCA`=1) with partial cloudiness defined, then RRTMG\_SW will run the case 200 times to derive adequate statistics, and the average of the 200 samples will be written to the output file, `OUTPUT_RRTM`. 
 
-
 ## RRTMG_SW : GCM version
 
-DOCUMENTATION:
-   README                    : Basic code package information (this file)
+### SOURCE CODE
+The following source files (in the `src` directory) must be used to run RRTMG\_SW as a callable subroutine:
 
-SOURCE CODE:
-   The following source files (in the /src directory) must be used to run RRTMG_SW
-   as a callable subroutine:
-   NOTE: Only one of rrtmg_sw_k_g.f90 or rrtmg_sw_read_nc.f90 is required. 
+| File Name | Description |
+| :--- | :--- |
+| `rrtmg_sw_rad.f90` | RRTMG_SW main module (with McICA)
+| `rrtmg_sw_rad.nomcica.f90` | Optional RRTMG_SW main module (without McICA only)
+| `rrtmg_sw_cldprop.f90` | Calculation of cloud optical properties
+| `rrtmg_sw_cldprmc.f90` | Calculation of cloud optical properties (McICA)
+| `rrtmg_sw_init.f90` | RRTMG_SW initialization routine; reduces g-intervals from 224 to 112; (This has to run only once and should be installed in the GCM initialization section)
+| `rrtmg_sw_k_g.f90` | Absorption coefficient data file
+| `rrtmg_sw_read_nc.f90` | Alternate absorption coefficient data netCDF input
+| `rrtmg_sw_reftra.f90` | Calculation of two-stream reflectivities and transmissivities
+| `rrtmg_sw_setcoef.f90` | Set up routine
+| `rrtmg_sw_spcvrt.f90` | Top subroutine for two-stream model
+| `rrtmg_sw_spcvmc.f90` | Top subroutine for two-stream model (McICA)
+| `rrtmg_sw_taumol.f90` | Calculation of optical depths and Planck fractions for each spectral band
+| `rrtmg_sw_vrtqdr.f90` | Two-stream vertical quadrature 
+| `mcica_random_numbers.f90` | Random number generator for McICA
+| `mcica_subcol_gen_sw.f90` | Sub-column generator for McICA
 
-   rrtmg_sw_rad.f90          : RRTMG_SW main module (with McICA)
-   rrtmg_sw_rad.nomcica.f90  : Optional RRTMG_SW main module (without McICA only)
-   rrtmg_sw_cldprop.f90      : Calculation of cloud optical properties
-   rrtmg_sw_cldprmc.f90      : Calculation of cloud optical properties (McICA)
-   rrtmg_sw_init.f90         : RRTMG_SW initialization routine; reduces g-intervals
-                               from 224 to 112; (This has to run only once and should 
-                               be installed in the GCM initialization section)
-   rrtmg_sw_k_g.f90          : Absorption coefficient data file
-   rrtmg_sw_read_nc.f90      : Alternate absorption coefficient data netCDF input
-   rrtmg_sw_reftra.f90       : Calculation of two-stream reflectivities and 
-                               transmissivities
-   rrtmg_sw_setcoef.f90      : Set up routine
-   rrtmg_sw_spcvrt.f90       : Top subroutine for two-stream model
-   rrtmg_sw_spcvmc.f90       : Top subroutine for two-stream model (McICA)
-   rrtmg_sw_taumol.f90       : Calculation of optical depths and Planck fractions for 
-                               each spectral band
-   rrtmg_sw_vrtqdr.f90       : Two-stream vertical quadrature 
-   mcica_random_numbers.f90  : Random number generator for McICA
-   mcica_subcol_gen_sw.f90   : Sub-column generator for McICA
+**NOTE**: Only one of `rrtmg_sw_k_g.f90` or `rrtmg_sw_read_nc.f90` is required. 
 
-   The following module files (in the /modules directory) must be used to run 
-   RRTMG_SW as a callable subroutine (these must be compiled before the source code) 
+The following module files (in the `modules` directory) must be used to run RRTMG\_SW as a callable subroutine (these must be compiled before the source code) 
 
-   parkind.f90               : real and integer kind type parameters
-   parrrsw.f90               : main configuration parameters
-   rrsw_aer.f90              : aerosol property coefficients
-   rrsw_cld.f90              : cloud property coefficients
-   rrsw_con.f90              : constants
-   rrsw_kg**.f90             : absorption coefficient arrays for 16 spectral bands
-   rrsw_ncpar.f90            : parameters for netCDF input data option
-   rrsw_ref.f90              : reference atmosphere data arrays
-   rrsw_tbl.f90              : exponential lookup table arrays
-   rrsw_vsn.f90              : version number information
-   rrsw_wvn.f90              : spectral band and g-interval array information
+| `parkind.f90` | real and integer kind type parameters |
+| `parrrsw.f90` | main configuration parameters |
+| `rrsw_aer.f90` | aerosol property coefficients |
+| `rrsw_cld.f90` | cloud property coefficients |
+| `rrsw_con.f90` | constants |
+| `rrsw_kg**.f90` | absorption coefficient arrays for 16 spectral bands |
+| `rrsw_ncpar.f90` | parameters for netCDF input data option |
+| `rrsw_ref.f90` | reference atmosphere data arrays |
+| `rrsw_tbl.f90` | exponential lookup table arrays |
+| `rrsw_vsn.f90` | version number information |
+| `rrsw_wvn.f90` | spectral band and g-interval array information |
 
-INPUT DATA:
-   The following file (in the /data directory) is the optional netCDF file
-   containing absorption coefficient and other input data for the model.
-   The file is used if source file rrtmg_sw_read_nc.f90 is used in place
-   of rrtmg_sw_k_g.f90 (only one or the other is required). 
+### INPUT DATA
+The following file (in the `data` directory) is the optional netCDF file containing absorption coefficient and other input data for the model. The file is used if source file `rrtmg_sw_read_nc.f90` is used in place of `rrtmg_sw_k_g.f90` (only one or the other is required). 
 
-   rrtmg_sw.nc               : Optional netCDF input data file
+* `rrtmg_sw.nc` -- Optional netCDF input data file
 
-NOTES ON RUNNING THE GCM (SUBROUTINE) VERSION OF THE CODE:
+### NOTES ON RUNNING THE GCM (SUBROUTINE) VERSION OF THE CODE
 
-   1) The module rrtmg_sw_init.f90 is the initialization routine that has to be 
-      called only once.  The call to this subroutine should be moved to the 
-      initialization section of the host model if RRTMG_SW is called by a GCM or SCM. 
+   1) The module rrtmg_sw_init.f90 is the initialization routine that has to be called only once.  The call to this subroutine should be moved to the initialization section of the host model if RRTMG_SW is called by a GCM or SCM. 
 
-   2) The number of model layers and the number of columns to be looped over should
-      be passed into RRTMG_SW through the subroutine call along with the other model
-      profile arrays.  
+   2) The number of model layers and the number of columns to be looped over should be passed into RRTMG_SW through the subroutine call along with the other model profile arrays.  
 
-   3) To utilize McICA, the sub-column generator (mcica_subcol_gen_sw.f90) must be
-      implemented in the GCM so that it is called just before RRTMG_SW. The cloud
-      overlap method is selected using the input flag, icld. If either exponential
-      (ICLD=4) or exponential-random (ICLD=5) cloud overlap is selected, then the 
-      subroutine "get_alpha" must be called prior to calling "mcica_subcol_sw" to 
-      define the vertical correlation parameter, alpha, needed for those overlap 
-      methods. Also for those methods, use the input flag "idcor" to select the use 
-      of either a constant or latitude-varying decorrelation length. 
-      If McICA is utilized, this will run only a single statistical sample per
-      model grid box. There are two options for the random number generator used
-      with McICA, which is selected with the variable irnd in mcica_subcol_gen_sw.f90.
-      When using McICA, then the main module is rrtmg_sw_rad.f90. If McICA is not used,
-      then the main module is rrtmg_sw_rad.nomcica.f90, though the cloud specification
-      is limited to overcast clouds.
+   3) To utilize McICA, the sub-column generator (`mcica_subcol_gen_sw.f90`) must be implemented in the GCM so that it is called just before RRTMG\_SW. The cloud overlap method is selected using the input flag, icld. If either exponential (`ICLD`=4) or exponential-random (`ICLD`=5) cloud overlap is selected, then the  subroutine `get_alpha` must be called prior to calling `mcica_subcol_sw` to define the vertical correlation parameter, `alpha`, needed for those overlap methods. Also for those methods, use the input flag `idcor` to select the use of either a constant or latitude-varying decorrelation length. If McICA is utilized, this will run only a single statistical sample per model grid box. There are two options for the random number generator used with McICA, which is selected with the variable `irnd` in `mcica_subcol_gen_sw.f90`. When using McICA, then the main module is `rrtmg_sw_rad.f90`. If McICA is not used, then the main module is `rrtmg_sw_rad.nomcica.f90`, though the cloud specification is limited to overcast clouds.
 
 ## Maintenance and Contact Info
 
