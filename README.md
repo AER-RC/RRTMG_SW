@@ -1,45 +1,27 @@
-!     path:      $Source$
-!     author:    $Author: mike $
-!     revision:  $Revision: 11661 $
-!     created:   $Date: 2009-05-22 18:22:22 -0400 (Fri, 22 May 2009) $
-!------------------------------------------------------------------------
+# RRTMG_SW: Shortwave Radiative Transfer Model for GCMs
 
- RRTMG_SW: Shortwave Radiative Transfer Model for GCMs
- Atmospheric and Environmental Research, 
- 131 Hartwell Avenue, Lexington, MA 02421
+## Maintenance and Contact Info
 
- Original version:   Eli. J. Mlawer, J. S. Delamere, et al. (AER)
- Revision for GCMs:  Michael J. Iacono (AER)
+Atmospheric and Environmental Research 
+131 Hartwell Avenue, Lexington, MA 02421
 
- Contact:   Michael J. Iacono   (E-mail: miacono@aer.com)
+Original version:   Eli. J. Mlawer, J. S. Delamere, et al. (AER)
+Revision for GCMs:  Michael J. Iacono (AER)
 
- Web Sites: https://github.com/AER-RC/RRTMG_SW
-            https://www.rtweb.aer.com
+Contact:   Michael J. Iacono   (E-mail: miacono@aer.com)
 
- References (RRTMG_SW/RRTM_SW):  
-             Iacono, M.J., J.S. Delamere, E.J. Mlawer, M.W. Shephard,
-             S.A. Clough, and W.D. Collins, Radiative forcing by long-
-             lived greenhouse gases: Calculations with the AER radiative
-             transfer models, J. Geophys. Res., 113, D13103, doi:
-             10.1029/2008JD009944, 2008.
+## References
 
-             Clough, S.A., M.W. Shephard, E.J. Mlawer, J.S. Delamere, 
-             M.J. Iacono, K. Cady-Pereira, S. Boukabara, and P.D. Brown, 
-             Atmospheric radiative transfer modeling: a summary of the
-             AER codes, J. Quant. Spectrosc. Radiat. Transfer, 91, 
-             233-244, 2005. 
+* [Github repository](https://github.com/AER-RC/RRTMG_SW)
+* [AER Radiative Transfer Models Documentation](https://www.rtweb.aer.com)
+* **RRTMG_SW, RRTM_SW**
+  * Iacono, M.J., J.S. Delamere, E.J. Mlawer, M.W. Shephard, S.A. Clough, and W.D. Collins, Radiative forcing by long-lived greenhouse gases: Calculations with the AER radiative transfer models, J. Geophys. Res., 113, D13103, doi:10.1029/2008JD009944, 2008.
+  * Clough, S.A., M.W. Shephard, E.J. Mlawer, J.S. Delamere, M.J. Iacono, K. Cady-Pereira, S. Boukabara, and P.D. Brown, Atmospheric radiative transfer modeling: a summary of the AER codes, J. Quant. Spectrosc. Radiat. Transfer, 91, 233-244, 2005. 
 
- Reference (McICA):  
-             Pincus, R., H. W. Barker, and J.-J. Morcrette, A fast, flexible,
-             approximation technique for computing radiative transfer in
-             inhomogeneous cloud fields, J. Geophys. Res., 108(D13), 4376,
-             doi:10.1029/2002JD003322, 2003.
+* **McICA**
+  * Pincus, R., H. W. Barker, and J.-J. Morcrette, A fast, flexible, approximation technique for computing radiative transfer in inhomogeneous cloud fields, J. Geophys. Res., 108(D13), 4376, doi:10.1029/2002JD003322, 2003.
 
- Reference (Latitude-Varying Decorrelation Length):
-             Oreopoulos, L., D. Lee, Y.C. Sud, and M.J. Suarez, Radiative
-             impacts of cloud heterogeneity and overlap in an atmospheric
-             General Circulation Model, Atmos. Chem. Phys., 12, 9097-9111,
-             doi:10.5194/acp-12-9097-2012, 2012.
+*  **Latitude-Varying Decorrelation Length**: Oreopoulos, L., D. Lee, Y.C. Sud, and M.J. Suarez, Radiative impacts of cloud heterogeneity and overlap in an atmospheric General Circulation Model, Atmos. Chem. Phys., 12, 9097-9111, doi:10.5194/acp-12-9097-2012, 2012.
 ******************************************************************************
 
 This package contains the source code and sample makefiles necessary to run the
