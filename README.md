@@ -1,10 +1,11 @@
 # RRTMG_SW: Shortwave Radiative Transfer Model for GCMs
 
-This package contains the source code and sample makefiles necessary to run the latest version of RRTMG\_SW, a correlated k-distribution shortwave radiative transfer model developed at AER for application to GCMs. This version of RRTMG\_SW utilizes a two-stream radiative transfer method as implemented at ECMWF. This
-code has also been modified to utilize updated FORTRAN coding features. Two modes of operation are possible: 1) RRTMG\_SW can be run as a column model using the 
-input files and source modules described below, or 2) it can be implemented as a subroutine into an atmospheric general circulation model or single column model.
+This package contains the source code and sample makefiles necessary to run the latest version of RRTMG\_SW, a correlated k-distribution shortwave radiative transfer model developed at AER for application to GCMs. This version of RRTMG\_SW utilizes a two-stream radiative transfer method as implemented at ECMWF. This code has also been modified to utilize updated FORTRAN coding features. Two modes of operation are possible: 
 
-The version of RRTMG\_SW provided here utilizes a reduced complement of 112 g-points, which is half of the 224 g-points used in the standard RRTM\_SW, and a two-stream method for radiative transfer. Additional minor changes have been made to enhance computational performance. Total fluxes are accurate to within 1-2 W/m2 relative to the standard RRTM\_SW (using DISORT) in clear sky and in the presence of aerosols and within 6 W/m2 in overcast sky. RRTM_SW with DISORT is itself accurate to within 2 W/m2 of the data-validated multiple scattering model, CHARTS. Required absorption coefficient input data can be read in either from data stored within the code or from a netCDF file as selected in the makefile. 
+1) RRTMG\_SW can be run as a [column model](https://github.com/AER-RC/RRTMG_SW#rrtmg_sw--column-version) using the [input files](https://github.com/AER-RC/RRTMG_SW#input-data) and [source modules](https://github.com/AER-RC/RRTMG_SW#source-code) described in the column version section, or 
+2) it can be implemented as a [subroutine into an atmospheric general circulation model or single column model](https://github.com/AER-RC/RRTMG_SW#rrtmg_sw--gcm-version).
+
+The version of RRTMG\_SW provided here utilizes a reduced complement of 112 *g*-points, which is half of the 224 *g*-points used in the standard RRTM\_SW, and a two-stream method for radiative transfer. Additional minor changes have been made to enhance computational performance. Total fluxes are accurate to within 1-2 W m<sup>-2</sup> relative to the standard RRTM\_SW (using DISORT) in clear sky and in the presence of aerosols and within 6 W/m2 in overcast sky. RRTM\_SW with DISORT is itself accurate to within 2 W m<sup>-2</sup> of the data-validated multiple scattering model, CHARTS. Required absorption coefficient input data can be read in either from data stored within the code or from a netCDF file as selected in the makefile. 
 
 This model can also utilize McICA, the Monte-Carlo Independent Column Approximation, to represent sub-grid scale cloud variability such as cloud fraction and cloud overlap. If the McICA option is selected to model a cloudy profile in column mode, then the model will run stochastically, and the output fluxes and heating rates will be an average over 200 samples. In GCM mode, the code will calcualte a single column per profile, and the statistical basis is provided by the spatial and temporal dimensions of the 3-D calculations. Several cloud overlap methods are available for partial cloudiness including maximum-random, exponential, and exponential-random. Without McICA, RRTMG\_SW is limited to clear sky or overcast cloud conditions.
 
@@ -16,7 +17,7 @@ The following text files (in the `doc` directory), along with this `README` prov
 | File Name | Description |
 | :--- | :--- |
 | `release_notes.txt` | Code archive update information |
-| `rrtmg_sw_instructions.txt` | Input instructions for files INPUT_RRTM, IN_CLD_RRTM and IN_AER_RRTM |
+| `rrtmg_sw_instructions.txt` | Input instructions for files `INPUT_RRTM`, `IN_CLD_RRTM` and `IN_AER_RRTM` |
 
 ### SOURCE CODE
 The following source files (in the `src` directory) must be used to run RRTMG\_SW in stand-alone mode as a column model (the utility files are stored separately in the `aer_rt_utils` directory):
@@ -26,7 +27,7 @@ The following source files (in the `src` directory) must be used to run RRTMG\_S
 | `rrtmg_sw.1col.f90` | Main module
 | `rrtmg_sw_cldprop.f90` | Calculation of cloud optical properties
 | `rrtmg_sw_cldprmc.f90` | Calculation of cloud optical properties (McICA)
-| `rrtmg_sw_init.f90` | RRTMG_SW initialization routine; reduces g-intervals from 224 to 112
+| `rrtmg_sw_init.f90` | RRTMG_SW initialization routine; reduces *g*-intervals from 224 to 112
 | `rrtmg_sw_k_g.f90` | Absorption coefficient data file
 | `rrtmg_sw_read_nc.f90` | Optional absorption coefficient data netCDF input
 | `rrtmg_sw_reftra.f90` | Calculation of two-stream reflectivities and transmissivities
@@ -55,7 +56,7 @@ The following module files (in the `modules` directory) must be used to run RRTM
 | `rrsw_ref.f90` | reference atmosphere data arrays |
 | `rrsw_tbl.f90` | exponential lookup table arrays |
 | `rrsw_vsn.f90` | version number information |
-| `rrsw_wvn.f90` | spectral band and g-interval array information |
+| `rrsw_wvn.f90` | spectral band and *g*-interval array information |
 
 ### INPUT DATA
 The following file (in the `data` directory) is the optional netCDF input file containing absorption coefficient and other input data for the model. The file is used if keyword `KGSRC` is set for netCDF input in the makefile. 
@@ -123,7 +124,7 @@ The following source files (in the `src` directory) must be used to run RRTMG\_S
 | `rrtmg_sw_rad.nomcica.f90` | Optional RRTMG_SW main module (without McICA only)
 | `rrtmg_sw_cldprop.f90` | Calculation of cloud optical properties
 | `rrtmg_sw_cldprmc.f90` | Calculation of cloud optical properties (McICA)
-| `rrtmg_sw_init.f90` | RRTMG_SW initialization routine; reduces g-intervals from 224 to 112; (This has to run only once and should be installed in the GCM initialization section)
+| `rrtmg_sw_init.f90` | RRTMG_SW initialization routine; reduces *g*-intervals from 224 to 112; (This has to run only once and should be installed in the GCM initialization section)
 | `rrtmg_sw_k_g.f90` | Absorption coefficient data file
 | `rrtmg_sw_read_nc.f90` | Alternate absorption coefficient data netCDF input
 | `rrtmg_sw_reftra.f90` | Calculation of two-stream reflectivities and transmissivities
@@ -139,6 +140,8 @@ The following source files (in the `src` directory) must be used to run RRTMG\_S
 
 The following module files (in the `modules` directory) must be used to run RRTMG\_SW as a callable subroutine (these must be compiled before the source code) 
 
+| File Name | Description |
+| :--- | :--- |
 | `parkind.f90` | real and integer kind type parameters |
 | `parrrsw.f90` | main configuration parameters |
 | `rrsw_aer.f90` | aerosol property coefficients |
@@ -149,7 +152,7 @@ The following module files (in the `modules` directory) must be used to run RRTM
 | `rrsw_ref.f90` | reference atmosphere data arrays |
 | `rrsw_tbl.f90` | exponential lookup table arrays |
 | `rrsw_vsn.f90` | version number information |
-| `rrsw_wvn.f90` | spectral band and g-interval array information |
+| `rrsw_wvn.f90` | spectral band and *g*-interval array information |
 
 ### INPUT DATA
 The following file (in the `data` directory) is the optional netCDF file containing absorption coefficient and other input data for the model. The file is used if source file `rrtmg_sw_read_nc.f90` is used in place of `rrtmg_sw_k_g.f90` (only one or the other is required). 
@@ -177,6 +180,7 @@ Contact:   Michael J. Iacono   (E-mail: miacono@aer.com)
 ## References
 
 * [AER Radiative Transfer Models Documentation](https://www.rtweb.aer.com)
+* [Github Wiki](https://github.com/AER-RC/RRTMG_SW/wiki)
 * **RRTMG_SW, RRTM_SW**
   * Iacono, M.J., J.S. Delamere, E.J. Mlawer, M.W. Shephard, S.A. Clough, and W.D. Collins, Radiative forcing by long-lived greenhouse gases: Calculations with the AER radiative transfer models, *J. Geophys. Res.*, 113, D13103, doi:10.1029/2008JD009944, 2008.
   * Clough, S.A., M.W. Shephard, E.J. Mlawer, J.S. Delamere, M.J. Iacono, K. Cady-Pereira, S. Boukabara, and P.D. Brown, Atmospheric radiative transfer modeling: a summary of the AER codes, *J. Quant. Spectrosc. Radiat. Transfer*, 91, 233-244, 2005. 
