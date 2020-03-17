@@ -11,7 +11,9 @@ This model can also utilize McICA, the Monte-Carlo Independent Column Approximat
 
 ## Current Release
 
-[Version 5.0](https://github.com/AER-RC/RRTMG_SW/releases/tag/v5.0)
+[Version 5.0 is the latest version of the model](https://github.com/AER-RC/RRTMG_SW/releases/tag/v5.0)
+
+Releases before Version 5.0 are not publicly available.
 
 ## RRTMG_SW : Column Version
 
