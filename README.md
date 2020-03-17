@@ -1,5 +1,17 @@
 # RRTMG_SW: Shortwave Radiative Transfer Model for GCMs
 
+---
+**Contents**
+
+1. [Introduction](#intro)
+2. [Releases](#releases)
+3. [Column Version](#column)
+4. [GCM Version](#gcm)
+5. [Contact](#contact)
+6. [References](#ref)
+
+## Introduction <a name="intro"></a>
+
 This package contains the source code and sample makefiles necessary to run the latest version of RRTMG\_SW, a correlated k-distribution shortwave radiative transfer model developed at AER for application to GCMs. This version of RRTMG\_SW utilizes a two-stream radiative transfer method as implemented at ECMWF. This code has also been modified to utilize updated FORTRAN coding features. Two modes of operation are possible: 
 
 1) RRTMG\_SW can be run as a [column model](https://github.com/AER-RC/RRTMG_SW#rrtmg_sw--column-version) using the [input files](https://github.com/AER-RC/RRTMG_SW#input-data) and [source modules](https://github.com/AER-RC/RRTMG_SW#source-code) described in the column version section, or 
@@ -9,13 +21,13 @@ The version of RRTMG\_SW provided here utilizes a reduced complement of 112 *g*-
 
 This model can also utilize McICA, the Monte-Carlo Independent Column Approximation, to represent sub-grid scale cloud variability such as cloud fraction and cloud overlap. If the McICA option is selected to model a cloudy profile in column mode, then the model will run stochastically, and the output fluxes and heating rates will be an average over 200 samples. In GCM mode, the code will calcualte a single column per profile, and the statistical basis is provided by the spatial and temporal dimensions of the 3-D calculations. Several cloud overlap methods are available for partial cloudiness including maximum-random, exponential, and exponential-random. Without McICA, RRTMG\_SW is limited to clear sky or overcast cloud conditions.
 
-## Current Release
+## Current Release <a name="releases"></a>
 
 [Version 5.0 is the latest version of the model](https://github.com/AER-RC/RRTMG_SW/releases/tag/v5.0)
 
 Releases before Version 5.0 are not publicly available.
 
-## RRTMG_SW : Column Version
+## RRTMG_SW : Column Version <a name="column"></a>
 
 ### DOCUMENTATION
 The following text files (in the `doc` directory), along with this `README` provide information on release updates and on using and running RRTMG\_SW:
@@ -119,7 +131,7 @@ Several sample input (and output) files are included in the `run_examples_std_at
 4) In the `run_examples_std_atm` directory, run the UNIX script `./script.run_std_atm` to run the full suite of example cases. To run a single case, modify `INPUT_RRTM` following the instructions in `doc/rrtmg_sw_instructions.txt`, or copy one of the example `input_rrtm*` files into `INPUT_RRTM`. If clouds are selected (`ICLD` > 0), then modify `IN_CLD_RRTM` or copy one of the `in_cld_rrtm*` files into `IN_CLD_RRTM`. If aerosols are selected (`IAER` > 0), then modify `IN_AER_RRTM` or set it to the sample file `in_aer_rrtm-aer12`.
 5) In column mode, if McICA is selected (`IMCA`=1) with partial cloudiness defined, then RRTMG\_SW will run the case 200 times to derive adequate statistics, and the average of the 200 samples will be written to the output file, `OUTPUT_RRTM`. 
 
-## RRTMG_SW : GCM version
+## RRTMG_SW : GCM version <a name="gcm"></a>
 
 ### SOURCE CODE
 The following source files (in the `src` directory) must be used to run RRTMG\_SW as a callable subroutine:
@@ -173,7 +185,7 @@ The following file (in the `data` directory) is the optional netCDF file contain
 2) The number of model layers and the number of columns to be looped over should be passed into RRTMG_SW through the subroutine call along with the other model profile arrays.  
 3) To utilize McICA, the sub-column generator (`mcica_subcol_gen_sw.f90`) must be implemented in the GCM so that it is called just before RRTMG\_SW. The cloud overlap method is selected using the input flag, icld. If either exponential (`ICLD`=4) or exponential-random (`ICLD`=5) cloud overlap is selected, then the  subroutine `get_alpha` must be called prior to calling `mcica_subcol_sw` to define the vertical correlation parameter, `alpha`, needed for those overlap methods. Also for those methods, use the input flag `idcor` to select the use of either a constant or latitude-varying decorrelation length. If McICA is utilized, this will run only a single statistical sample per model grid box. There are two options for the random number generator used with McICA, which is selected with the variable `irnd` in `mcica_subcol_gen_sw.f90`. When using McICA, then the main module is `rrtmg_sw_rad.f90`. If McICA is not used, then the main module is `rrtmg_sw_rad.nomcica.f90`, though the cloud specification is limited to overcast clouds.
 
-## Maintenance and Contact Info
+## Maintenance and Contact Info <a name="contact"></a>
 
 Atmospheric and Environmental Research 
 131 Hartwell Avenue, Lexington, MA 02421
@@ -183,7 +195,7 @@ Revision for GCMs:  Michael J. Iacono (AER)
 
 Contact:   Michael J. Iacono   (E-mail: miacono@aer.com)
 
-## References
+## References <a name="ref"></a>
 
 * [AER Radiative Transfer Models Documentation](https://www.rtweb.aer.com)
 * [Github Wiki](https://github.com/AER-RC/RRTMG_SW/wiki)
