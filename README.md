@@ -9,6 +9,10 @@ The version of RRTMG\_SW provided here utilizes a reduced complement of 112 *g*-
 
 This model can also utilize McICA, the Monte-Carlo Independent Column Approximation, to represent sub-grid scale cloud variability such as cloud fraction and cloud overlap. If the McICA option is selected to model a cloudy profile in column mode, then the model will run stochastically, and the output fluxes and heating rates will be an average over 200 samples. In GCM mode, the code will calcualte a single column per profile, and the statistical basis is provided by the spatial and temporal dimensions of the 3-D calculations. Several cloud overlap methods are available for partial cloudiness including maximum-random, exponential, and exponential-random. Without McICA, RRTMG\_SW is limited to clear sky or overcast cloud conditions.
 
+## Current Release
+
+[Version 5.0](https://github.com/AER-RC/RRTMG_SW/releases/tag/v5.0)
+
 ## RRTMG_SW : Column Version
 
 ### DOCUMENTATION
@@ -163,7 +167,7 @@ The following file (in the `data` directory) is the optional netCDF file contain
 
 ### NOTES ON RUNNING THE GCM (SUBROUTINE) VERSION OF THE CODE
 
-1) The module rrtmg_sw_init.f90 is the initialization routine that has to be called only once.  The call to this subroutine should be moved to the initialization section of the host model if RRTMG_SW is called by a GCM or SCM. 
+1) The module `rrtmg_sw_init.f90` is the initialization routine that has to be called only once.  The call to this subroutine should be moved to the initialization section of the host model if RRTMG_SW is called by a GCM or SCM. 
 2) The number of model layers and the number of columns to be looped over should be passed into RRTMG_SW through the subroutine call along with the other model profile arrays.  
 3) To utilize McICA, the sub-column generator (`mcica_subcol_gen_sw.f90`) must be implemented in the GCM so that it is called just before RRTMG\_SW. The cloud overlap method is selected using the input flag, icld. If either exponential (`ICLD`=4) or exponential-random (`ICLD`=5) cloud overlap is selected, then the  subroutine `get_alpha` must be called prior to calling `mcica_subcol_sw` to define the vertical correlation parameter, `alpha`, needed for those overlap methods. Also for those methods, use the input flag `idcor` to select the use of either a constant or latitude-varying decorrelation length. If McICA is utilized, this will run only a single statistical sample per model grid box. There are two options for the random number generator used with McICA, which is selected with the variable `irnd` in `mcica_subcol_gen_sw.f90`. When using McICA, then the main module is `rrtmg_sw_rad.f90`. If McICA is not used, then the main module is `rrtmg_sw_rad.nomcica.f90`, though the cloud specification is limited to overcast clouds.
 
