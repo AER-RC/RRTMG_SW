@@ -206,3 +206,4 @@ Contact:   Michael J. Iacono   (E-mail: miacono@aer.com)
   * Pincus, R., H. W. Barker, and J.-J. Morcrette, A fast, flexible, approximation technique for computing radiative transfer in inhomogeneous cloud fields, *J. Geophys. Res.*, 108(D13), 4376, doi:10.1029/2002JD003322, 2003.
 *  **Latitude-Varying Decorrelation Length**
     *  Oreopoulos, L., D. Lee, Y.C. Sud, and M.J. Suarez, Radiative impacts of cloud heterogeneity and overlap in an atmospheric General Circulation Model, *Atmos. Chem. Phys.*, 12, 9097-9111, doi:10.5194/acp-12-9097-2012, 2012.
+* [Full list of references](https://github.com/AER-RC/RRTMG_SW/wiki/References)
