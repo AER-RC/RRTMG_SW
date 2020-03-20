@@ -21,6 +21,8 @@ The version of RRTMG\_SW provided here utilizes a reduced complement of 112 *g*-
 
 This model can also utilize McICA, the Monte-Carlo Independent Column Approximation, to represent sub-grid scale cloud variability such as cloud fraction and cloud overlap. If the McICA option is selected to model a cloudy profile in column mode, then the model will run stochastically, and the output fluxes and heating rates will be an average over 200 samples. In GCM mode, the code will calcualte a single column per profile, and the statistical basis is provided by the spatial and temporal dimensions of the 3-D calculations. Several cloud overlap methods are available for partial cloudiness including maximum-random, exponential, and exponential-random. Without McICA, RRTMG\_SW is limited to clear sky or overcast cloud conditions.
 
+For more information on the model, see the [Wiki Description Page](https://github.com/AER-RC/RRTMG_SW/wiki/Description).
+
 ## Current Release <a name="releases"></a>
 
 [Version 5.0 is the latest version of the model](https://github.com/AER-RC/RRTMG_SW/releases/tag/v5.0)
