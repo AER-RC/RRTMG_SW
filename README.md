@@ -200,7 +200,7 @@ Contact:   Michael J. Iacono   (E-mail: miacono@aer.com)
 ## References <a name="ref"></a>
 
 * [AER Radiative Transfer Models Documentation](https://www.rtweb.aer.com)
-* [Github Wiki](https://github.com/AER-RC/RRTMG_SW/wiki)
+* [Github Wiki](https://github.com/AER-RC/RRTMG_LW/wiki)
 * **RRTMG_SW, RRTM_SW**
   * Iacono, M.J., J.S. Delamere, E.J. Mlawer, M.W. Shephard, S.A. Clough, and W.D. Collins, Radiative forcing by long-lived greenhouse gases: Calculations with the AER radiative transfer models, *J. Geophys. Res.*, 113, D13103, doi:10.1029/2008JD009944, 2008.
   * Clough, S.A., M.W. Shephard, E.J. Mlawer, J.S. Delamere, M.J. Iacono, K. Cady-Pereira, S. Boukabara, and P.D. Brown, Atmospheric radiative transfer modeling: a summary of the AER codes, *J. Quant. Spectrosc. Radiat. Transfer*, 91, 233-244, 2005. 
