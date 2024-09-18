@@ -96,6 +96,7 @@ The following files (in `build/makefiles` directory) can be used to compile RRTM
 | `make_rrtmg_sw_aix_xlf90` | Sample makefile for AIX (XLF90 compiler)
 | `make_rrtmg_sw_OS_X_g95` | Sample makefile for OS_X (G95 compiler)
 | `make_rrtmg_sw_OS_X_ibm_xl` | Sample makefile for OS_X (IBM XL compiler)
+| `make_rrtmg_sw_linux_mimi`  | Sample makefile for running on UiO machine "mimi" with gfortran
 
 ### SAMPLE INPUT/OUTPUT
 Several sample input (and output) files are included in the `run_examples_std_atm` directory. Note that user-defined profiles may be used for as many as 200 layers.
@@ -127,7 +128,12 @@ Several sample input (and output) files are included in the `run_examples_std_at
 | `script.run_std_atm` | UNIX script for running the full suite of example cases, which will put the output into similarly named files prefixed with `output_rrtm*` |
 
 ### INSTRUCTIONS FOR COMPILING AND RUNNING THE COLUMN MODEL:
-1) In the `build` directory, link one of the makefiles from the `makefile` sub-directory into `build/make.build`. To use the optional netCDF input file, switch the keyword `KGSRC` in the makefile from `dat` to `nc`. Compile the model with `make -f make.build`
+
+0) If you are planning to use netCDF input, make sure your version of netcdf has `nc-config` utility,
+   you can check it by `nc-config --version` which will tell the version of your netCDF install. Since since the source code is written in Fortran, check if your netCDF distribution has fortran support: `nc-config --has-fortran`.
+1) In the `build` directory, simply run `./build.sh <platform_name> <kgsrc_format>` or link one of the makefiles from the `makefiles` sub-directory into `build/makefile`. To use optional netCDF input file with the manual make build do `make KGSRC=<dat/nc>`, this will overwrite variable `KGSRC` in the makefile to `dat` to `nc`.
+2) If manual make build fails, you can clean with `make clean` to restart it from scratch.
+3) If you've build with `./build.sh` you can test your build by running `./test.sh`. If a tests fails but you want to see the resluts of all of the tests run `./test.sh --allow-failed`.
 2) Link the executable to, for example, `rrtmg_sw` in the `run_examples_std_atm` directory
 3) If the optional netCDF input file was selected when compiling, link the file `data/rrtmg_sw.nc` into the `run_examples_std_atm` directory.  
 4) In the `run_examples_std_atm` directory, run the UNIX script `./script.run_std_atm` to run the full suite of example cases. To run a single case, modify `INPUT_RRTM` following the instructions in `doc/rrtmg_sw_instructions.txt`, or copy one of the example `input_rrtm*` files into `INPUT_RRTM`. If clouds are selected (`ICLD` > 0), then modify `IN_CLD_RRTM` or copy one of the `in_cld_rrtm*` files into `IN_CLD_RRTM`. If aerosols are selected (`IAER` > 0), then modify `IN_AER_RRTM` or set it to the sample file `in_aer_rrtm-aer12`.

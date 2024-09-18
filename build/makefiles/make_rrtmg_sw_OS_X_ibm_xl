@@ -438,3 +438,16 @@ conclude :
 	echo '================='
 	echo
 
+##############################
+# cleaning
+##############################
+clean :
+
+	echo cleaning: $(CDOTO)
+	rm -rf $(CDOTO)
+	echo "cleaning: *.mod"
+	rm -rf *.mod
+	echo "cleaning: *.o"
+	rm -rf *.o
+	echo "cleaning: $(OUTPUT)"
+	rm -rf $(OUTPUT)

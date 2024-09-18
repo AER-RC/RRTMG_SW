@@ -2,72 +2,72 @@
 
 \cp input_rrtm_MLS-cld-imca0-icld2 INPUT_RRTM
 \cp in_cld_rrtm-cld6 IN_CLD_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLS-cld6-imca0-icld2
 
 \cp input_rrtm_MLS-cld-imca1-icld2 INPUT_RRTM
 \cp in_cld_rrtm-cld5 IN_CLD_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLS-cld5-imca1-icld2
 
 \cp input_rrtm_MLS-cld-imca1-icld2 INPUT_RRTM
 \cp in_cld_rrtm-cld7 IN_CLD_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLS-cld7-imca1-icld2
 
 \cp input_rrtm_MLS-cld-imca1-icld5-idcor0 INPUT_RRTM
 \cp in_cld_rrtm-cld7 IN_CLD_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLS-cld7-imca1-icld5-idcor0
 
 \cp input_rrtm_MLS-cld-imca1-icld5-idcor1 INPUT_RRTM
 \cp in_cld_rrtm-cld7 IN_CLD_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLS-cld7-imca1-icld5-idcor1
 
 \cp input_rrtm_MLS-clr INPUT_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLS-clr
 
 \cp input_rrtm_MLS-clr-aer12 INPUT_RRTM
 \cp in_aer_rrtm-aer12 IN_AER_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLS-clr-aer12
 
 \cp input_rrtm_MLS-clr-sza45-isolvar0_tsi_avg INPUT_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLS-clr-sza45-isolvar0_tsi_avg
 
 \cp input_rrtm_MLS-clr-sza45-isolvar1_tsi_max INPUT_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLS-clr-sza45-isolvar1_tsi_max
 
 \cp input_rrtm_MLS-clr-sza45-isolvar1_tsi_min INPUT_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLS-clr-sza45-isolvar1_tsi_min
 
 \cp input_rrtm_MLS-clr-sza45-isolvar2_01Jan1950 INPUT_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLS-clr-sza45-isolvar2_01Jan1950
 
 \cp input_rrtm_MLS-clr-sza45-isolvar3_bndscl_tsi_max INPUT_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLS-clr-sza45-isolvar3_bndscl_tsi_max
 
 \cp input_rrtm_MLS-clr-sza65 INPUT_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLS-clr-sza65
 
 \cp input_rrtm_MLW-clr INPUT_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_MLW-clr
 
 \cp input_rrtm_SAW-clr INPUT_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_SAW-clr
 
 \cp input_rrtm_TROP-clr INPUT_RRTM
-rrtmg_sw
+./rrtmg_sw
 \mv OUTPUT_RRTM output_rrtm_TROP-clr
 
 echo Finished all profiles

@@ -282,9 +282,16 @@ $(CDOTO)/$(MK26).o : $(MPATH)/$(MK26).f90
 $(CDOTO)/$(MK27).o : $(MPATH)/$(MK27).f90
 	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK27).f90
 	\mv $(MK27).o *.mod $(CDOTO)
+clean :
 
-$(CDOTO)/$(MK28).o : $(MPATH)/$(MK28).f90
-	$(FC) $(FCOPTS) -I$(CDOTO) -c $(MPATH)/$(MK28).f90
+	echo cleaning: $(CDOTO)
+	rm -rf $(CDOTO)
+	echo "cleaning: *.mod"
+	rm -rf *.mod
+	echo "cleaning: *.o"
+	rm -rf *.o
+	echo "cleaning: $(OUTPUT)"
+	rm -rf $(OUTPUT)
 	\mv $(MK28).o *.mod $(CDOTO)
 
 $(CDOTO)/$(MK29).o : $(MPATH)/$(MK29).f90
@@ -438,3 +445,16 @@ conclude :
 	echo '================='
 	echo
 
+##############################
+# cleaning
+##############################
+clean :
+
+	echo cleaning: $(CDOTO)
+	rm -rf $(CDOTO)
+	echo "cleaning: *.mod"
+	rm -rf *.mod
+	echo "cleaning: *.o"
+	rm -rf *.o
+	echo "cleaning: $(OUTPUT)"
+	rm -rf $(OUTPUT)
