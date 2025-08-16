@@ -85,6 +85,11 @@ The following file (in the `data` directory) is the optional netCDF input file c
 | :--- | :--- |
 | `rrtmg_sw.nc` | Optional netCDF input data file |
 
+**Note:** The required aerosol input file format for RRTMG may be generated using one of the following methods:
+1. [**Online application**](https://huggingface.co/spaces/nagakasam/Aerosol-Formatter_for_RRTM) — Provides a graphical interface for direct entry of aerosol parameters.  
+2. [**Dockerized container**](https://github.com/NagaSaiDhirajK/Aerosol-Input-Formatter-for-AER-RRTM-G-.git) — Runs locally to produce the formatted file.  
+3. [**Terminal-based formatter**](https://github.com/NagaSaiDhirajK/Aerosol-Formatter-for-RRTMG-Terminal-Only.git)  — Command-line tool for environments where the online application or container deployment is not feasible.
+
 ### MAKEFILES
 The following files (in `build/makefiles` directory) can be used to compile RRTMG\_SW in stand-alone mode as a column model on various platforms.  Link one of these into the `build` directory to compile.
 
